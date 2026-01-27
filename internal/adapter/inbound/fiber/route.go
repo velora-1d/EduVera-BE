@@ -16,7 +16,7 @@ func InitRoute(
 ) {
 	// Enable CORS for frontend access
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: "http://localhost:5173, https://eduvera.ve-lora.my.id",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
