@@ -30,3 +30,7 @@ go.work.sum
 # Project specific
 tmp/
 bin/
+
+# Local Dev Tools
+cloudflared-bin
+start-dev.sh

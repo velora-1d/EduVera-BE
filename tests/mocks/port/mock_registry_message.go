@@ -47,3 +47,17 @@ func (mr *MockMessagePortMockRecorder) Client() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockMessagePort)(nil).Client))
 }
+
+// WhatsApp mocks base method.
+func (m *MockMessagePort) WhatsApp() outbound_port.WhatsAppMessagePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WhatsApp")
+	ret0, _ := ret[0].(outbound_port.WhatsAppMessagePort)
+	return ret0
+}
+
+// WhatsApp indicates an expected call of WhatsApp.
+func (mr *MockMessagePortMockRecorder) WhatsApp() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WhatsApp", reflect.TypeOf((*MockMessagePort)(nil).WhatsApp))
+}
