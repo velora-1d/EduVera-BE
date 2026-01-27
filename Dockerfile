@@ -1,27 +1,38 @@
-## We specify the base image we need for our
-## go application
-FROM golang:1.24-alpine AS builder
-## We create an /app directory within our
-## image that will hold our application source
-## files
-RUN mkdir /app
-## We copy everything in the root directory
-## into our /app directory
-ADD . /app
-## We specify that we now wish to execute
-## any further commands inside our /app
-## directory
+# Build stage
+FROM golang:1.21-alpine AS builder
+
 WORKDIR /app
-## we run go build to compile the binary
-## executable of our Go program
-RUN go mod tidy
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o prabogo ./cmd
+# Install build dependencies
+RUN apk add --no-cache gcc musl-dev
 
-FROM alpine:3.14  
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY --from=builder /app/prabogo .
-COPY --from=builder /app/internal/migration/postgres internal/migration/postgres
-COPY --from=builder /app/.env.example .env
+# Copy the source code
+COPY . .
 
-ENTRYPOINT ["./prabogo"]
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/main.go
+
+# Runtime stage
+FROM alpine:latest
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata
+
+# Copy the binary from builder
+COPY --from=builder /app/main .
+
+# Copy migration files and other assets if needed
+COPY --from=builder /app/internal/migration ./internal/migration
+COPY --from=builder /app/web/templates ./web/templates
+
+# Expose port
+EXPOSE 8081
+
+# Command to run
+CMD ["./main"]

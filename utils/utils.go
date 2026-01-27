@@ -97,6 +97,9 @@ func IsInList(list []string, s string) bool {
 }
 
 func GetDatabaseString() string {
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		return dbURL
+	}
 	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s&connect_timeout=5",
 		os.Getenv("OUTBOUND_DATABASE_DRIVER"),
 		os.Getenv("DATABASE_USERNAME"),
@@ -109,5 +112,9 @@ func GetDatabaseString() string {
 }
 
 func GetMigrationDir() string {
-	return fmt.Sprintf("./internal/migration/%s", os.Getenv("OUTBOUND_DB_DRIVER"))
+	driver := os.Getenv("OUTBOUND_DATABASE_DRIVER")
+	if driver == "" {
+		driver = "postgres" // default
+	}
+	return fmt.Sprintf("./internal/migration/%s", driver)
 }

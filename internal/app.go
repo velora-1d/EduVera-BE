@@ -172,8 +172,15 @@ func (a *App) httpInbound() {
 		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain)
 		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter)
 		go func() {
-			if err := app.Listen(":" + os.Getenv("SERVER_PORT")); err != nil {
-				log.WithContext(ctx).Fatalf("failed to listen and serve: %+v", err)
+			port := os.Getenv("SERVER_PORT")
+			if port == "" {
+				port = os.Getenv("PORT")
+			}
+			if port == "" {
+				port = "8081" // Default fallback
+			}
+			if err := app.Listen(":" + port); err != nil {
+				log.WithContext(ctx).Fatalf("failed to listen fiber: %v", err)
 			}
 		}()
 	}
