@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="id" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.Title}}</title>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            display: ["Outfit", "sans-serif"],
+          },
+          extend: {
+            colors: {
+              primary: "#6366f1", // Indigo 500
+              secondary: "#ec4899", // Pink 500
+              dark: "#0f172a", // Slate 900
+              "dark-surface": "#1e293b", // Slate 800
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Custom Animations usually not in standard Tailwind utility */
+      .glass {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .text-gradient {
+        background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .text-gradient-primary {
+        background: linear-gradient(135deg, #818cf8 0%, #f472b6 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-dark text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-primary selection:text-white"
+  >
+    <!-- NAVBAR -->
+    <nav
+      class="fixed w-full z-50 transition-all duration-300 glass border-b border-slate-700/50"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-20">
+          <div class="flex-shrink-0">
+            <h1
+              class="font-display font-bold text-2xl tracking-tighter text-white"
+            >
+              Edu<span class="text-primary">Vera</span>
+            </h1>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-8">
+              <a
+                href="#produk"
+                class="hover:text-white text-slate-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >Produk</a
+              >
+              <a
+                href="#fitur"
+                class="hover:text-white text-slate-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >Fitur</a
+              >
+              <a
+                href="#harga"
+                class="hover:text-white text-slate-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >Harga</a
+              >
+              <a
+                href="/login"
+                class="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full text-sm font-medium transition-all border border-white/10"
+                >Login</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <div class="relative pt-32 pb-20 sm:pt-40 sm:pb-24 overflow-hidden">
+      <!-- Background Blobs -->
+      <div
+        class="absolute top-0 left-1/2 w-full -translate-x-1/2 h-full z-0 pointer-events-none"
+      >
+        <div
+          class="absolute top-20 left-10 w-72 h-72 bg-primary/30 rounded-full blur-[100px] animate-pulse"
+        ></div>
+        <div
+          class="absolute top-40 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-pulse"
+          style="animation-duration: 4s"
+        ></div>
+      </div>
+
+      <div
+        class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+      >
+        <div
+          class="inline-flex items-center px-4 py-2 rounded-full border border-slate-700 bg-slate-800/50 backdrop-blur-sm mb-8"
+        >
+          <span
+            class="flex h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse"
+          ></span>
+          <span class="text-sm text-slate-300 font-medium"
+            >Platform Manajemen Sekolah #1 di Indonesia</span
+          >
+        </div>
+
+        <h1
+          class="text-5xl sm:text-7xl font-display font-bold tracking-tight mb-8 leading-tight"
+        >
+          Kelola Sekolah & Pesantren<br />
+          <span class="text-gradient-primary">Jadi Lebih Modern</span>
+        </h1>
+
+        <p
+          class="mt-4 max-w-2xl mx-auto text-xl text-slate-400 mb-10 font-light"
+        >
+          Satu platform untuk semua kebutuhan: Akademik, Asrama, Keuangan,
+          hingga Laporan Digital. Terintegrasi, Aman, dan Mudah Digunakan.
+        </p>
+
+        <div class="flex justify-center gap-4">
+          <a
+            href="/register"
+            class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-primary rounded-full hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/50 hover:-translate-y-1"
+          >
+            Mulai Sekarang Gratis
+            <i
+              class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"
+            ></i>
+          </a>
+          <a
+            href="/demo"
+            class="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white transition-all duration-200 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 backdrop-blur-sm"
+          >
+            <i class="fas fa-play mr-2 text-secondary"></i> Lihat Demo
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS SECTION -->
+    <div
+      class="relative -mt-10 z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20"
+    >
+      <div
+        class="glass rounded-3xl p-8 sm:p-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center shadow-2xl shadow-indigo-500/10"
+      >
+        <div>
+          <dt
+            class="text-4xl sm:text-5xl font-display font-bold text-white mb-2"
+          >
+            100+
+          </dt>
+          <dd
+            class="text-sm font-medium text-slate-400 tracking-widest uppercase"
+          >
+            Pesantren & Sekolah
+          </dd>
+        </div>
+        <div class="md:border-x border-slate-700/50">
+          <dt
+            class="text-4xl sm:text-5xl font-display font-bold text-white mb-2"
+          >
+            15k+
+          </dt>
+          <dd
+            class="text-sm font-medium text-slate-400 tracking-widest uppercase"
+          >
+            Siswa & Santri
+          </dd>
+        </div>
+        <div>
+          <dt
+            class="text-4xl sm:text-5xl font-display font-bold text-white mb-2"
+          >
+            99.9%
+          </dt>
+          <dd
+            class="text-sm font-medium text-slate-400 tracking-widest uppercase"
+          >
+            Uptime Server
+          </dd>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES OVERVIEW -->
+    <section id="produk" class="py-24 bg-dark-surface relative overflow-hidden">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-16">
+          <h2
+            class="text-3xl sm:text-4xl font-display font-bold text-white mb-4"
+          >
+            Solusi Terpadu
+          </h2>
+          <p class="text-slate-400 max-w-2xl mx-auto">
+            Kami menyediakan modul spesifik untuk berbagai jenis lembaga
+            pendidikan.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Card 1 -->
+          <div
+            class="group bg-dark p-8 rounded-2xl border border-slate-700/50 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-2"
+          >
+            <div
+              class="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-indigo-500/20 transition-colors"
+            >
+              <i class="fas fa-school text-2xl text-indigo-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Sekolah Formal</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Manajemen akademik lengkap untuk SD, SMP, SMA/K dengan standar
+              kurikulum nasional (Dapodik, Rapor K13/Merdeka).
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div
+            class="group bg-dark p-8 rounded-2xl border border-slate-700/50 hover:border-secondary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-2"
+          >
+            <div
+              class="w-14 h-14 bg-pink-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-pink-500/20 transition-colors"
+            >
+              <i class="fas fa-mosque text-2xl text-pink-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Pesantren Modern</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Kelola Kesantrian, Asrama, Tahfidz, Perizinan, hingga Laporan
+              Diniyah dalam satu dashboard terintegrasi.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div
+            class="group bg-dark p-8 rounded-2xl border border-slate-700/50 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-2"
+          >
+            <div
+              class="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors"
+            >
+              <i class="fas fa-chart-pie text-2xl text-emerald-400"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Finance & ERP</h3>
+            <p class="text-slate-400 leading-relaxed">
+              Sistem keuangan transparan. Tagihan SPP otomatis via WA, Payment
+              Gateway, dan Laporan Neraca Realtime.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DETAILED FEATURES -->
+    <section id="fitur" class="py-24 bg-dark relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <div
+              class="inline-flex items-center px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-6"
+            >
+              <span
+                class="text-xs font-bold text-primary tracking-wide uppercase"
+                >ISLAMIC ECOSYSTEM</span
+              >
+            </div>
+            <h2
+              class="text-3xl sm:text-4xl font-display font-bold text-white mb-6"
+            >
+              Satu Aplikasi, <br />Dua Dunia Terhubung
+            </h2>
+            <p class="text-slate-400 text-lg mb-8 leading-relaxed">
+              EduVera memahami bahwa Pondok Pesantren bukan sekadar asrama, dan
+              Sekolah bukan sekadar kelas. Kami menyatukan keduanya.
+            </p>
+
+            <ul class="space-y-4">
+              <li class="flex items-start">
+                <div
+                  class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center mt-1"
+                >
+                  <i class="fas fa-check text-xs text-green-400"></i>
+                </div>
+                <div class="ml-4">
+                  <h4 class="text-white font-bold">
+                    Sinkronisasi Data Siswa & Santri
+                  </h4>
+                  <p class="text-slate-500 text-sm">
+                    Satu input data untuk Dapodik sekolah dan EMIS pesantren.
+                  </p>
+                </div>
+              </li>
+              <li class="flex items-start">
+                <div
+                  class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center mt-1"
+                >
+                  <i class="fas fa-check text-xs text-green-400"></i>
+                </div>
+                <div class="ml-4">
+                  <h4 class="text-white font-bold">
+                    Monitoring Hafalan & Pelanggaran
+                  </h4>
+                  <p class="text-slate-500 text-sm">
+                    Orang tua bisa pantau setoran hafalan dan poin pelanggaran
+                    realtime.
+                  </p>
+                </div>
+              </li>
+              <li class="flex items-start">
+                <div
+                  class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center mt-1"
+                >
+                  <i class="fas fa-check text-xs text-green-400"></i>
+                </div>
+                <div class="ml-4">
+                  <h4 class="text-white font-bold">Keuangan Terpusat</h4>
+                  <p class="text-slate-500 text-sm">
+                    Tagihan SPP sekolah dan Syahriah pondok dalam satu invoice
+                    WA.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="relative">
+            <div
+              class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-secondary/20 rounded-3xl blur-2xl transform rotate-3"
+            ></div>
+            <div
+              class="relative glass rounded-3xl p-8 border border-slate-700/50"
+            >
+              <!-- Mockup UI Element -->
+              <div class="space-y-4">
+                <div
+                  class="flex items-center justify-between border-b border-slate-700 pb-4"
+                >
+                  <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-700"></div>
+                    <div>
+                      <div class="h-2 w-24 bg-slate-700 rounded mb-1"></div>
+                      <div class="h-2 w-16 bg-slate-800 rounded"></div>
+                    </div>
+                  </div>
+                  <div
+                    class="h-8 w-8 bg-green-500/20 rounded-lg flex items-center justify-center text-green-400"
+                  >
+                    <i class="fas fa-bell"></i>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div
+                    class="h-16 w-full bg-slate-800/50 rounded-lg p-3 flex items-center space-x-3"
+                  >
+                    <div
+                      class="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center text-indigo-400"
+                    >
+                      <i class="fas fa-book"></i>
+                    </div>
+                    <div class="flex-1">
+                      <div class="h-2 w-32 bg-slate-700 rounded mb-1"></div>
+                      <div class="h-2 w-20 bg-slate-800 rounded"></div>
+                    </div>
+                  </div>
+                  <div
+                    class="h-16 w-full bg-slate-800/50 rounded-lg p-3 flex items-center space-x-3"
+                  >
+                    <div
+                      class="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center text-pink-400"
+                    >
+                      <i class="fas fa-star"></i>
+                    </div>
+                    <div class="flex-1">
+                      <div class="h-2 w-32 bg-slate-700 rounded mb-1"></div>
+                      <div class="h-2 w-20 bg-slate-800 rounded"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section id="harga" class="py-24 bg-dark-surface relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+          <h2
+            class="text-3xl sm:text-4xl font-display font-bold text-white mb-4"
+          >
+            Investasi Pendidikan
+          </h2>
+          <p class="text-slate-400">
+            Pilih paket yang sesuai dengan skala lembaga Anda.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Basic Plan -->
+          <div
+            class="bg-dark p-8 rounded-2xl border border-slate-700/50 flex flex-col hover:border-slate-500 transition-colors"
+          >
+            <h3 class="text-xl font-bold text-white mb-2">Starter</h3>
+            <p class="text-slate-400 text-sm mb-6">
+              Cocok untuk sekolah rintisan.
+            </p>
+            <div class="mb-6">
+              <span class="text-4xl font-bold text-white">Gratis</span>
+              <span class="text-slate-500">/bulan</span>
+            </div>
+            <ul class="space-y-3 mb-8 flex-1">
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Maks. 100 Siswa
+              </li>
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Fitur Dasar
+                Akademik
+              </li>
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Aplikasi Wali
+                (Web)
+              </li>
+            </ul>
+            <a
+              href="/register?plan=starter"
+              class="block w-full py-3 text-center border border-slate-600 rounded-lg text-white font-medium hover:bg-slate-700 transition-colors"
+              >Pilih Starter</a
+            >
+          </div>
+
+          <!-- Pro Plan -->
+          <div
+            class="relative bg-dark p-8 rounded-2xl border border-primary ring-2 ring-primary/20 flex flex-col transform md:-translate-y-4 shadow-2xl shadow-indigo-500/20"
+          >
+            <div
+              class="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg"
+            >
+              POPULAR
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Growth</h3>
+            <p class="text-slate-400 text-sm mb-6">
+              Untuk sekolah & pesantren berkembang.
+            </p>
+            <div class="mb-6">
+              <span class="text-xs align-top text-slate-400">Rp</span>
+              <span class="text-4xl font-bold text-white">500rb</span>
+              <span class="text-slate-500">/bulan</span>
+            </div>
+            <ul class="space-y-3 mb-8 flex-1">
+              <li class="flex items-center text-sm text-white">
+                <i class="fas fa-check text-primary mr-2"></i> **Unlimited**
+                Siswa
+              </li>
+              <li class="flex items-center text-sm text-white">
+                <i class="fas fa-check text-primary mr-2"></i> Modul Pesantren
+                Lengkap
+              </li>
+              <li class="flex items-center text-sm text-white">
+                <i class="fas fa-check text-primary mr-2"></i> Keuangan &
+                Tagihan WA
+              </li>
+              <li class="flex items-center text-sm text-white">
+                <i class="fas fa-check text-primary mr-2"></i> Aplikasi Android
+                (Wali)
+              </li>
+            </ul>
+            <a
+              href="/register?plan=growth"
+              class="block w-full py-3 text-center bg-primary rounded-lg text-white font-bold hover:bg-indigo-600 transition-colors shadow-lg shadow-indigo-500/50"
+              >Mulai Trial 14 Hari</a
+            >
+          </div>
+
+          <!-- Enterprise Plan -->
+          <div
+            class="bg-dark p-8 rounded-2xl border border-slate-700/50 flex flex-col hover:border-slate-500 transition-colors"
+          >
+            <h3 class="text-xl font-bold text-white mb-2">Enterprise</h3>
+            <p class="text-slate-400 text-sm mb-6">
+              Sistem custom untuk yayasan besar.
+            </p>
+            <div class="mb-6">
+              <span class="text-4xl font-bold text-white">Call Us</span>
+            </div>
+            <ul class="space-y-3 mb-8 flex-1">
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Multi-Lembaga /
+                Cabang
+              </li>
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Custom Domain &
+                Branding
+              </li>
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Dedicated
+                Server
+              </li>
+              <li class="flex items-center text-sm text-slate-300">
+                <i class="fas fa-check text-green-400 mr-2"></i> Prioritas
+                Support 24/7
+              </li>
+            </ul>
+            <a
+              href="https://wa.me/6281234567890"
+              class="block w-full py-3 text-center border border-slate-600 rounded-lg text-white font-medium hover:bg-slate-700 transition-colors"
+              >Hubungi Sales</a
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CALL TO ACTION -->
+    <section class="py-20 relative overflow-hidden">
+      <div class="absolute inset-0 bg-primary/10"></div>
+      <div
+        class="absolute -top-40 -right-40 w-96 h-96 bg-secondary/20 rounded-full blur-[100px]"
+      ></div>
+      <div
+        class="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/20 rounded-full blur-[100px]"
+      ></div>
+
+      <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+        <h2 class="text-3xl sm:text-5xl font-display font-bold text-white mb-6">
+          Siap Mengubah Wajah Pendidikan?
+        </h2>
+        <p class="text-xl text-slate-300 mb-10">
+          Bergabunglah dengan ratusan lembaga modern lainnya. Transformasi
+          digital dimulai dari sini.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <a
+            href="/register"
+            class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-white/10 border border-white/20 rounded-full hover:bg-white hover:text-primary backdrop-blur-sm"
+          >
+            Daftar Gratis Sekarang
+          </a>
+          <a
+            href="https://wa.me/62812345678"
+            class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-green-600 rounded-full hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
+          >
+            <i class="fab fa-whatsapp mr-2"></i> Konsultasi Gratis
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-dark border-t border-slate-800 py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="text-slate-500">
+          &copy; 2026 EduVera SaaS Platform. All Rights Reserved.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

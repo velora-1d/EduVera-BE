@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="auth-box">
+        <div class="auth-header">
+          <h2><i class="fas fa-file-invoice-dollar"></i> Ringkasan Order</h2>
+          <p>Langkah 5 dari 7: Konfirmasi & Aktivasi</p>
+        </div>
+
+        <div
+          style="
+            background: var(--light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 1rem;
+            "
+          >
+            <span style="color: var(--gray)">Nama Lembaga</span>
+            <span style="font-weight: 600">{{.TenantName}}</span>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 1rem;
+            "
+          >
+            <span style="color: var(--gray)">Alamat Website</span>
+            <span style="font-weight: 600; color: var(--primary)"
+              >{{.Subdomain}}.eduvera.id</span
+            >
+          </div>
+          <hr
+            style="border: 0; border-top: 1px dashed #cbd5e1; margin: 1rem 0"
+          />
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 0.5rem;
+            "
+          >
+            <span style="color: var(--gray)">Paket Langganan</span>
+            <span style="font-weight: 600">{{.PackageName}}</span>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <span style="font-weight: 700">Total Tagihan</span>
+            <span
+              style="font-size: 1.5rem; font-weight: 800; color: var(--dark)"
+              >{{.PriceFormatted}}</span
+            >
+          </div>
+        </div>
+
+        <form action="/onboarding/step-5?tenant_id={{.TenantID}}" method="POST">
+          <div class="form-group">
+            <label>Metode Pembayaran (Simulasi)</label>
+            <select
+              class="form-control"
+              style="
+                width: 100%;
+                padding: 0.9rem;
+                border: 2px solid var(--border);
+                border-radius: 8px;
+              "
+            >
+              <option value="VA_BCA">Virtual Account BCA</option>
+              <option value="QRIS">QRIS (GoPay/OVO/Shopee)</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn-primary" style="background: #10b981">
+            <i class="fas fa-lock"></i> Bayar & Konfirmasi
+          </button>
+        </form>
+        <p
+          style="
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 1rem;
+          "
+        >
+          <i class="fas fa-shield-alt"></i> Pembayaran aman & terenkripsi.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
