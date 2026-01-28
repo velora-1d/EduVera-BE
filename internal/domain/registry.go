@@ -6,6 +6,7 @@ import (
 	"eduvera/internal/domain/client"
 	"eduvera/internal/domain/content"
 	disbursement_domain "eduvera/internal/domain/disbursement"
+	erapor_domain "eduvera/internal/domain/erapor"
 	notification_domain "eduvera/internal/domain/notification"
 	"eduvera/internal/domain/payment"
 	dashboard "eduvera/internal/domain/pesantren/dashboard"
@@ -28,6 +29,7 @@ type Domain interface {
 	Notification() notification_domain.Service
 	Sekolah() sekolah.AkademikDomain
 	AuditLog() audit_log_domain.Service
+	ERapor() *erapor_domain.Service
 }
 
 type domain struct {
@@ -94,4 +96,8 @@ func (d *domain) Sekolah() sekolah.AkademikDomain {
 
 func (d *domain) AuditLog() audit_log_domain.Service {
 	return audit_log_domain.NewService(d.databasePort.AuditLog())
+}
+
+func (d *domain) ERapor() *erapor_domain.Service {
+	return erapor_domain.NewService(d.databasePort.ERapor())
 }

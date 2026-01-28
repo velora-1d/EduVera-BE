@@ -66,3 +66,7 @@ func (a *adapter) SPP() inbound_port.SPPHttpPort {
 func (a *adapter) Sekolah() inbound_port.SekolahHttpPort {
 	return sekolah.NewAkademikHandler(a.domain.Sekolah())
 }
+
+func (a *adapter) ERapor() inbound_port.ERaporHttpPort {
+	return NewERaporAdapter(a.domain)
+}

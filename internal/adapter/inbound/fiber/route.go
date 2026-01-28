@@ -226,6 +226,47 @@ func InitRoute(
 		return port.Sekolah().GetMapelList(c)
 	})
 
+	// E-Rapor Routes (Nilai & Rapor)
+	erapor := sekolah.Group("/erapor")
+
+	// Subject Management
+	erapor.Get("/subjects", func(c *fiber.Ctx) error {
+		return port.ERapor().GetSubjects(c)
+	})
+	erapor.Post("/subjects", func(c *fiber.Ctx) error {
+		return port.ERapor().CreateSubject(c)
+	})
+	erapor.Put("/subjects/:id", func(c *fiber.Ctx) error {
+		return port.ERapor().UpdateSubject(c)
+	})
+	erapor.Delete("/subjects/:id", func(c *fiber.Ctx) error {
+		return port.ERapor().DeleteSubject(c)
+	})
+
+	// Grade Management
+	erapor.Post("/grades", func(c *fiber.Ctx) error {
+		return port.ERapor().SaveGrade(c)
+	})
+	erapor.Post("/grades/batch", func(c *fiber.Ctx) error {
+		return port.ERapor().BatchSaveGrades(c)
+	})
+	erapor.Get("/grades/student/:student_id", func(c *fiber.Ctx) error {
+		return port.ERapor().GetStudentGrades(c)
+	})
+	erapor.Get("/grades/subject/:subject_id", func(c *fiber.Ctx) error {
+		return port.ERapor().GetSubjectGrades(c)
+	})
+
+	// Rapor
+	erapor.Get("/rapor/:student_id/:semester", func(c *fiber.Ctx) error {
+		return port.ERapor().GetStudentRapor(c)
+	})
+
+	// Stats
+	erapor.Get("/stats", func(c *fiber.Ctx) error {
+		return port.ERapor().GetStats(c)
+	})
+
 	// ========================================
 	// LEGACY ROUTES (Keep for backward compatibility)
 	// ========================================

@@ -13,4 +13,5 @@ type HttpPort interface {
 	SPP() SPPHttpPort
 	PesantrenDashboard() PesantrenDashboardHttpPort
 	Sekolah() SekolahHttpPort
+	ERapor() ERaporHttpPort
 }

@@ -16,6 +16,7 @@ type DatabasePort interface {
 	Notification() NotificationDatabasePort
 	Sekolah() SekolahPort
 	AuditLog() AuditLogDatabasePort
+	ERapor() ERaporDatabasePort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }
 
