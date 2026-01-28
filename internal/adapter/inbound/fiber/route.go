@@ -145,6 +145,12 @@ func InitRoute(
 		return port.Owner().RejectDisbursement(c)
 	})
 
+	// Pesantren / Tenant Routes
+	pesantren := api.Group("/pesantren")
+	pesantren.Get("/dashboard/stats", func(c *fiber.Ctx) error {
+		return port.PesantrenDashboard().GetStats(c)
+	})
+
 	// Notification logs
 	ownerProtected.Get("/notifications", func(c *fiber.Ctx) error {
 		return port.Owner().GetNotificationLogs(c)

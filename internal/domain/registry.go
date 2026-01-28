@@ -5,6 +5,7 @@ import (
 	"eduvera/internal/domain/client"
 	"eduvera/internal/domain/content"
 	"eduvera/internal/domain/payment"
+	dashboard "eduvera/internal/domain/pesantren/dashboard"
 	"eduvera/internal/domain/tenant"
 	outbound_port "eduvera/internal/port/outbound"
 )
@@ -15,6 +16,7 @@ type Domain interface {
 	Auth() auth.AuthDomain
 	Payment() payment.PaymentDomain
 	Content() content.ContentDomain
+	PesantrenDashboard() dashboard.Service
 }
 
 type domain struct {
@@ -56,4 +58,9 @@ func (d *domain) Payment() payment.PaymentDomain {
 
 func (d *domain) Content() content.ContentDomain {
 	return content.NewContentDomain(d.databasePort)
+}
+
+func (d *domain) PesantrenDashboard() dashboard.Service {
+	// Use Mock Service for now
+	return dashboard.NewMockService()
 }

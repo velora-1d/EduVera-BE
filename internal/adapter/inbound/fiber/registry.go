@@ -1,6 +1,7 @@
 package fiber_inbound_adapter
 
 import (
+	"eduvera/internal/adapter/inbound/fiber/pesantren"
 	"eduvera/internal/domain"
 	inbound_port "eduvera/internal/port/inbound"
 )
@@ -51,4 +52,8 @@ func (s *adapter) Owner() inbound_port.OwnerHttpPort {
 
 func (a *adapter) Content() inbound_port.ContentHttpPort {
 	return NewContentAdapter(a.domain)
+}
+
+func (a *adapter) PesantrenDashboard() inbound_port.PesantrenDashboardHttpPort {
+	return pesantren.NewDashboardAdapter(a.domain.PesantrenDashboard())
 }

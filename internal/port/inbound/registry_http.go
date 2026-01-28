@@ -10,4 +10,5 @@ type HttpPort interface {
 	Payment() PaymentHttpPort
 	Owner() OwnerHttpPort
 	Content() ContentHttpPort
+	PesantrenDashboard() PesantrenDashboardHttpPort
 }
