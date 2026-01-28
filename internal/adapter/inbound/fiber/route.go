@@ -124,6 +124,32 @@ func InitRoute(
 		return port.Content().Upsert(c)
 	})
 
+	// Registration logs
+	ownerProtected.Get("/registrations", func(c *fiber.Ctx) error {
+		return port.Owner().GetRegistrations(c)
+	})
+
+	// SPP Transactions
+	ownerProtected.Get("/transactions", func(c *fiber.Ctx) error {
+		return port.Owner().GetSPPTransactions(c)
+	})
+
+	// Disbursements
+	ownerProtected.Get("/disbursements", func(c *fiber.Ctx) error {
+		return port.Owner().GetDisbursements(c)
+	})
+	ownerProtected.Post("/disbursements/:id/approve", func(c *fiber.Ctx) error {
+		return port.Owner().ApproveDisbursement(c)
+	})
+	ownerProtected.Post("/disbursements/:id/reject", func(c *fiber.Ctx) error {
+		return port.Owner().RejectDisbursement(c)
+	})
+
+	// Notification logs
+	ownerProtected.Get("/notifications", func(c *fiber.Ctx) error {
+		return port.Owner().GetNotificationLogs(c)
+	})
+
 	// Payment Routes (Midtrans)
 	payment := api.Group("/payment")
 	payment.Post("/create", func(c *fiber.Ctx) error {
