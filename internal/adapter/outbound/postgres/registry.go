@@ -127,3 +127,7 @@ func (s *adapter) AuditLog() outbound_port.AuditLogDatabasePort {
 func (s *adapter) ERapor() outbound_port.ERaporDatabasePort {
 	return NewERaporAdapter(s.db)
 }
+
+func (s *adapter) SDM() outbound_port.SDMDatabasePort {
+	return NewSDMAdapter(s.db)
+}

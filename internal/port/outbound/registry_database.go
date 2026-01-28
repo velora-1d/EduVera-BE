@@ -17,6 +17,7 @@ type DatabasePort interface {
 	Sekolah() SekolahPort
 	AuditLog() AuditLogDatabasePort
 	ERapor() ERaporDatabasePort
+	SDM() SDMDatabasePort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }
 

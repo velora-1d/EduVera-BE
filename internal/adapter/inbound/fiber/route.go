@@ -267,6 +267,54 @@ func InitRoute(
 		return port.ERapor().GetStats(c)
 	})
 
+	// SDM Routes (Employee, Payroll, Attendance)
+	sdm := sekolah.Group("/sdm")
+
+	// Employee Management
+	sdm.Get("/employees", func(c *fiber.Ctx) error {
+		return port.SDM().GetEmployees(c)
+	})
+	sdm.Post("/employees", func(c *fiber.Ctx) error {
+		return port.SDM().CreateEmployee(c)
+	})
+	sdm.Put("/employees/:id", func(c *fiber.Ctx) error {
+		return port.SDM().UpdateEmployee(c)
+	})
+	sdm.Delete("/employees/:id", func(c *fiber.Ctx) error {
+		return port.SDM().DeleteEmployee(c)
+	})
+
+	// Payroll
+	sdm.Get("/payroll", func(c *fiber.Ctx) error {
+		return port.SDM().GetPayrollByPeriod(c)
+	})
+	sdm.Post("/payroll/generate", func(c *fiber.Ctx) error {
+		return port.SDM().GeneratePayroll(c)
+	})
+	sdm.Post("/payroll/:id/pay", func(c *fiber.Ctx) error {
+		return port.SDM().MarkPayrollPaid(c)
+	})
+	sdm.Get("/payroll/:id/slip", func(c *fiber.Ctx) error {
+		return port.SDM().GetPaySlip(c)
+	})
+	sdm.Get("/payroll/config", func(c *fiber.Ctx) error {
+		return port.SDM().GetPayrollConfig(c)
+	})
+	sdm.Put("/payroll/config", func(c *fiber.Ctx) error {
+		return port.SDM().SavePayrollConfig(c)
+	})
+
+	// Attendance
+	sdm.Get("/attendance", func(c *fiber.Ctx) error {
+		return port.SDM().GetAttendance(c)
+	})
+	sdm.Post("/attendance", func(c *fiber.Ctx) error {
+		return port.SDM().RecordAttendance(c)
+	})
+	sdm.Get("/attendance/summary", func(c *fiber.Ctx) error {
+		return port.SDM().GetAttendanceSummary(c)
+	})
+
 	// ========================================
 	// LEGACY ROUTES (Keep for backward compatibility)
 	// ========================================

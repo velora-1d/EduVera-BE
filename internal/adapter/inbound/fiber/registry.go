@@ -70,3 +70,7 @@ func (a *adapter) Sekolah() inbound_port.SekolahHttpPort {
 func (a *adapter) ERapor() inbound_port.ERaporHttpPort {
 	return NewERaporAdapter(a.domain)
 }
+
+func (a *adapter) SDM() inbound_port.SDMHttpPort {
+	return NewSDMAdapter(a.domain)
+}

@@ -10,6 +10,7 @@ import (
 	notification_domain "eduvera/internal/domain/notification"
 	"eduvera/internal/domain/payment"
 	dashboard "eduvera/internal/domain/pesantren/dashboard"
+	sdm_domain "eduvera/internal/domain/sdm"
 	"eduvera/internal/domain/sekolah"
 	spp_domain "eduvera/internal/domain/spp"
 	"eduvera/internal/domain/tenant"
@@ -30,6 +31,7 @@ type Domain interface {
 	Sekolah() sekolah.AkademikDomain
 	AuditLog() audit_log_domain.Service
 	ERapor() *erapor_domain.Service
+	SDM() sdm_domain.SDMDomain
 }
 
 type domain struct {
@@ -100,4 +102,8 @@ func (d *domain) AuditLog() audit_log_domain.Service {
 
 func (d *domain) ERapor() *erapor_domain.Service {
 	return erapor_domain.NewService(d.databasePort.ERapor())
+}
+
+func (d *domain) SDM() sdm_domain.SDMDomain {
+	return sdm_domain.NewSDMDomain(d.databasePort.SDM())
 }
