@@ -12,10 +12,10 @@ import (
 	"github.com/redis/go-redis/v9"
 	. "github.com/smartystreets/goconvey/convey"
 
-	fiber_inbound_adapter "eduvera/internal/adapter/inbound/fiber"
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	mock_outbound_port "eduvera/tests/mocks/port"
+	fiber_inbound_adapter "prabogo/internal/adapter/inbound/fiber"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	mock_outbound_port "prabogo/tests/mocks/port"
 )
 
 func TestMiddlewareAdapter(t *testing.T) {

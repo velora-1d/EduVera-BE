@@ -1,7 +1,7 @@
 package temporal_outbound_adapter
 
 import (
-	outbound_port "eduvera/internal/port/outbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type adapter struct{}

@@ -3,8 +3,8 @@ package fiber_inbound_adapter
 import (
 	"context"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
 
 	"github.com/gofiber/fiber/v2"
 )

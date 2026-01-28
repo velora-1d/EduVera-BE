@@ -1,9 +1,9 @@
 package temporal_inbound_adapter
 
 import (
-	client_temporal_inbound_adapter "eduvera/internal/adapter/inbound/temporal/client"
-	"eduvera/internal/domain"
-	inbound_port "eduvera/internal/port/inbound"
+	client_temporal_inbound_adapter "prabogo/internal/adapter/inbound/temporal/client"
+	"prabogo/internal/domain"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 type adapter struct {

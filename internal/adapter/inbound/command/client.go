@@ -3,11 +3,11 @@ package command_inbound_adapter
 import (
 	"context"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
-	"eduvera/utils/activity"
-	"eduvera/utils/log"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
+	"prabogo/utils/activity"
+	"prabogo/utils/log"
 )
 
 type clientAdapter struct {

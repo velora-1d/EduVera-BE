@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	outbound_port "eduvera/internal/port/outbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type fonnteAdapter struct {

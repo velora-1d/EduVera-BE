@@ -3,8 +3,8 @@ package fiber_inbound_adapter
 import (
 	"github.com/gofiber/fiber/v2"
 
-	"eduvera/internal/domain"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/domain"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 type landingAdapter struct {

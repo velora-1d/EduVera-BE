@@ -1,7 +1,7 @@
 package pesantren
 
 import (
-	"eduvera/internal/domain/pesantren/dashboard"
+	"prabogo/internal/domain/pesantren/dashboard"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,9 +21,8 @@ func NewDashboardAdapter(service dashboard.Service) DashboardHttpPort {
 }
 
 func (h *dashboardAdapter) GetStats(c *fiber.Ctx) error {
-	// TODO: Get tenant_id from context/token after middleware implementation
-	// For now, use a dummy or query param if needed, or just pass a placeholder
-	tenantID := "default-tenant"
+	// Get tenant_id from context (set by middleware)
+	tenantID := c.Locals("tenant_id").(string)
 
 	stats, err := h.service.GetStats(c.Context(), tenantID)
 	if err != nil {

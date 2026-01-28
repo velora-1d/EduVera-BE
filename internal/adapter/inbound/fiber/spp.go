@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
 )
 
 type sppAdapter struct {

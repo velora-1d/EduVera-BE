@@ -1,20 +1,21 @@
 package domain
 
 import (
-	audit_log_domain "eduvera/internal/domain/audit_log"
-	"eduvera/internal/domain/auth"
-	"eduvera/internal/domain/client"
-	"eduvera/internal/domain/content"
-	disbursement_domain "eduvera/internal/domain/disbursement"
-	erapor_domain "eduvera/internal/domain/erapor"
-	notification_domain "eduvera/internal/domain/notification"
-	"eduvera/internal/domain/payment"
-	dashboard "eduvera/internal/domain/pesantren/dashboard"
-	sdm_domain "eduvera/internal/domain/sdm"
-	"eduvera/internal/domain/sekolah"
-	spp_domain "eduvera/internal/domain/spp"
-	"eduvera/internal/domain/tenant"
-	outbound_port "eduvera/internal/port/outbound"
+	audit_log_domain "prabogo/internal/domain/audit_log"
+	"prabogo/internal/domain/auth"
+	"prabogo/internal/domain/client"
+	"prabogo/internal/domain/content"
+	disbursement_domain "prabogo/internal/domain/disbursement"
+	erapor_domain "prabogo/internal/domain/erapor"
+	notification_domain "prabogo/internal/domain/notification"
+	"prabogo/internal/domain/payment"
+	dashboard "prabogo/internal/domain/pesantren/dashboard"
+	sdm_domain "prabogo/internal/domain/sdm"
+	"prabogo/internal/domain/sekolah"
+	spp_domain "prabogo/internal/domain/spp"
+	"prabogo/internal/domain/subscription"
+	"prabogo/internal/domain/tenant"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type Domain interface {
@@ -32,6 +33,7 @@ type Domain interface {
 	AuditLog() audit_log_domain.Service
 	ERapor() *erapor_domain.Service
 	SDM() sdm_domain.SDMDomain
+	Subscription() subscription.SubscriptionDomain
 }
 
 type domain struct {
@@ -84,8 +86,7 @@ func (d *domain) SPP() spp_domain.Service {
 }
 
 func (d *domain) PesantrenDashboard() dashboard.Service {
-	// Use Mock Service for now
-	return dashboard.NewMockService()
+	return dashboard.NewService(d.databasePort.PesantrenDashboard())
 }
 
 func (d *domain) Notification() notification_domain.Service {
@@ -106,4 +107,8 @@ func (d *domain) ERapor() *erapor_domain.Service {
 
 func (d *domain) SDM() sdm_domain.SDMDomain {
 	return sdm_domain.NewSDMDomain(d.databasePort.SDM())
+}
+
+func (d *domain) Subscription() subscription.SubscriptionDomain {
+	return subscription.NewSubscriptionDomain(d.databasePort.Subscription(), d.databasePort)
 }

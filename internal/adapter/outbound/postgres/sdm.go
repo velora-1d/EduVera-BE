@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"eduvera/internal/model"
+	"prabogo/internal/model"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"

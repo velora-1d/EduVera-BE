@@ -1,4 +1,4 @@
-module eduvera
+module prabogo
 
 go 1.24.0
 
@@ -7,6 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/arielfikru/gibrun v1.0.0
 	github.com/doug-martin/goqu/v9 v9.19.0
+	github.com/go-pdf/fpdf v0.9.0
 	github.com/gofiber/fiber/v2 v2.52.8
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/golang-jwt/jwt/v5 v5.3.0

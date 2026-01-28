@@ -8,8 +8,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/palantir/stacktrace"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type AuthDomain interface {

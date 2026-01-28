@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"eduvera/utils"
+	"prabogo/utils"
 )
 
 const (

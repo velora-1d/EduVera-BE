@@ -6,9 +6,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 type ownerAdapter struct {

@@ -3,8 +3,8 @@ package audit_log
 import (
 	"context"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 // Service provides audit log operations

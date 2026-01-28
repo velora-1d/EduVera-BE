@@ -3,9 +3,9 @@ package rabbitmq_outbound_adapter
 import (
 	"context"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
-	"eduvera/utils/rabbitmq"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils/rabbitmq"
 )
 
 type clientAdapter struct{}

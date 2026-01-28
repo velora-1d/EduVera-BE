@@ -4,10 +4,10 @@ import (
 	"context"
 	"os"
 
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
-	"eduvera/utils/log"
-	"eduvera/utils/rabbitmq"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
+	"prabogo/utils/log"
+	"prabogo/utils/rabbitmq"
 )
 
 func InitRoute(

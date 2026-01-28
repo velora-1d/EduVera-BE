@@ -6,9 +6,9 @@ import (
 
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
-	"eduvera/utils/redis"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils/redis"
 )
 
 type clientAdapter struct{}

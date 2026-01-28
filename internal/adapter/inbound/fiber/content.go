@@ -1,9 +1,9 @@
 package fiber_inbound_adapter
 
 import (
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
 
 	"github.com/gofiber/fiber/v2"
 )

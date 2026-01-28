@@ -2,7 +2,7 @@ package outbound_port
 
 import (
 	"context"
-	"eduvera/internal/model"
+	"prabogo/internal/model"
 )
 
 type SPPDatabasePort interface {

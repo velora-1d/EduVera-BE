@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"time"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 
 	"github.com/palantir/stacktrace"
 )

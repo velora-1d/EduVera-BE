@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"context"
+	"prabogo/internal/model"
 )
 
 type mockService struct{}
@@ -10,9 +11,9 @@ func NewMockService() Service {
 	return &mockService{}
 }
 
-func (s *mockService) GetStats(ctx context.Context, tenantID string) (*DashboardStats, error) {
+func (s *mockService) GetStats(ctx context.Context, tenantID string) (*model.DashboardStats, error) {
 	// Mock data based on typical pesantren values for demo
-	return &DashboardStats{
+	return &model.DashboardStats{
 		TotalSantri:      156,
 		TotalAsrama:      4,
 		TotalUstadz:      12,

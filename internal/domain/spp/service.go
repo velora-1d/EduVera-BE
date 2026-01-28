@@ -3,8 +3,8 @@ package spp_domain
 import (
 	"context"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type Service interface {

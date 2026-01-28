@@ -6,8 +6,8 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/redis/go-redis/v9"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type ClientDomain interface {

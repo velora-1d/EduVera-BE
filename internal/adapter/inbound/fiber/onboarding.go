@@ -7,10 +7,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"eduvera/internal/adapter/outbound/notification"
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/adapter/outbound/notification"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 // Subdomain blacklist - reserved names that cannot be used

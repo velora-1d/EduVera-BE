@@ -5,10 +5,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	"eduvera/utils/activity"
-	"eduvera/utils/jwt"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	"prabogo/utils/activity"
+	"prabogo/utils/jwt"
 )
 
 const (

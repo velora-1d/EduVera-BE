@@ -3,8 +3,9 @@ package sdm
 import (
 	"context"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
+	pdf_utils "prabogo/utils/pdf"
 )
 
 // SDMDomain interface
@@ -27,6 +28,9 @@ type SDMDomain interface {
 	GetAttendanceByDate(ctx context.Context, tenantID, date string) ([]model.Attendance, error)
 	RecordAttendance(ctx context.Context, input *model.AttendanceInput) (*model.Attendance, error)
 	GetAttendanceSummary(ctx context.Context, tenantID, period string) (map[string]int, error)
+
+	// PDF
+	DownloadPaySlip(ctx context.Context, payrollID string) ([]byte, error)
 }
 
 type sdmDomain struct {
@@ -170,6 +174,15 @@ func (d *sdmDomain) GetPaySlip(ctx context.Context, payrollID string) (*model.Pa
 		Payroll:    *payroll,
 		SchoolName: "SMK Negeri 1 Example", // TODO: Get from tenant
 	}, nil
+}
+
+func (d *sdmDomain) DownloadPaySlip(ctx context.Context, payrollID string) ([]byte, error) {
+	slip, err := d.GetPaySlip(ctx, payrollID)
+	if err != nil {
+		return nil, err
+	}
+
+	return pdf_utils.GeneratePaySlipPDF(slip)
 }
 
 func (d *sdmDomain) GetPayrollConfig(ctx context.Context, tenantID string) (*model.PayrollConfig, error) {

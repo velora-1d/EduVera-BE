@@ -3,8 +3,8 @@ package erapor
 import (
 	"context"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 // Service adalah domain service untuk E-Rapor

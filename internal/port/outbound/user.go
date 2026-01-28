@@ -1,6 +1,6 @@
 package outbound_port
 
-import "eduvera/internal/model"
+import "prabogo/internal/model"
 
 //go:generate mockgen -source=user.go -destination=./../../../tests/mocks/port/mock_user.go
 type UserDatabasePort interface {

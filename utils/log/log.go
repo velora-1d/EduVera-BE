@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"eduvera/utils/activity"
+	"prabogo/utils/activity"
 )
 
 const (

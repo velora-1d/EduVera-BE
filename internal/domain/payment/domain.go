@@ -10,8 +10,8 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 	"github.com/palantir/stacktrace"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type PaymentDomain interface {

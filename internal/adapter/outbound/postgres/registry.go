@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	outbound_port "eduvera/internal/port/outbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type adapter struct {
@@ -130,4 +130,12 @@ func (s *adapter) ERapor() outbound_port.ERaporDatabasePort {
 
 func (s *adapter) SDM() outbound_port.SDMDatabasePort {
 	return NewSDMAdapter(s.db)
+}
+
+func (s *adapter) Subscription() outbound_port.SubscriptionDatabasePort {
+	return NewSubscriptionAdapter(s.db)
+}
+
+func (s *adapter) PesantrenDashboard() outbound_port.PesantrenDashboardPort {
+	return NewPesantrenDashboardAdapter(s.db)
 }

@@ -1,6 +1,6 @@
 package outbound_port
 
-import "eduvera/internal/model"
+import "prabogo/internal/model"
 
 // AuditLogDatabasePort defines the interface for audit log operations
 type AuditLogDatabasePort interface {

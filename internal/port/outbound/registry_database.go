@@ -18,6 +18,8 @@ type DatabasePort interface {
 	AuditLog() AuditLogDatabasePort
 	ERapor() ERaporDatabasePort
 	SDM() SDMDatabasePort
+	Subscription() SubscriptionDatabasePort
+	PesantrenDashboard() PesantrenDashboardPort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }
 

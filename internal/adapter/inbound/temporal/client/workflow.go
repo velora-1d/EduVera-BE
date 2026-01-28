@@ -5,8 +5,8 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
 )
 
 type ClientWorkflow interface {

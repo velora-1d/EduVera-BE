@@ -1,0 +1,83 @@
+services:
+  app:
+    container_name: eduvera_backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - SERVER_PORT=8081
+      - APP_MODE=release
+      - OUTBOUND_DATABASE_DRIVER=postgres
+      - OUTBOUND_MESSAGE_DRIVER=rabbitmq
+      - OUTBOUND_CACHE_DRIVER=redis
+      - OUTBOUND_WORKFLOW_DRIVER=none
+      - INBOUND_HTTP_DRIVER=fiber
+      - INBOUND_MESSAGE_DRIVER=rabbitmq
+      - INBOUND_WORKFLOW_DRIVER=none
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-prabogo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - POSTGRES_DB=${POSTGRES_DB:-prabogo}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-prabogo}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-changeme}
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    restart: always
+    networks:
+      - eduvera_net
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: eduvera_postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-prabogo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - POSTGRES_DB=${POSTGRES_DB:-prabogo}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - eduvera_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: eduvera_redis
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD:-changeme}" ]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - eduvera_net
+
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: eduvera_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-prabogo}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-changeme}
+    ports:
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - eduvera_net
+
+networks:
+  eduvera_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:

@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 type paymentAdapter struct {
@@ -83,11 +83,24 @@ func (a *paymentAdapter) Webhook(c *fiber.Ctx) error {
 	}
 
 	ctx := context.Background()
-	err := a.domainRegistry.Payment().HandleWebhook(ctx, &notification)
-	if err != nil {
+	if err := a.domainRegistry.Payment().HandleWebhook(ctx, &notification); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": err.Error(),
 		})
+	}
+
+	// Handle subscription renewal if payment success
+	if notification.TransactionStatus == "settlement" || notification.TransactionStatus == "capture" {
+		// Get payment details to find TenantID
+		payment, err := a.domainRegistry.Payment().GetPaymentByOrderID(ctx, notification.OrderID)
+		if err == nil && payment != nil {
+			// Renew subscription
+			if err := a.domainRegistry.Subscription().RenewSubscription(ctx, payment.TenantID, notification.OrderID); err != nil {
+				// Log error but don't fail the webhook response
+				// In real world, we might want to alert admin
+				// log.Printf("Failed to renew subscription for tenant %s: %v", payment.TenantID, err)
+			}
+		}
 	}
 
 	return c.JSON(fiber.Map{

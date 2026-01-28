@@ -7,8 +7,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 const tableAuditLog = "admin_audit_logs"

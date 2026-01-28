@@ -1,6 +1,6 @@
 package outbound_port
 
-import "eduvera/internal/model"
+import "prabogo/internal/model"
 
 //go:generate mockgen -source=payment.go -destination=./../../../tests/mocks/port/mock_payment.go
 type PaymentDatabasePort interface {

@@ -1,10 +1,10 @@
 package sekolah
 
 import (
-	"eduvera/internal/domain/sekolah"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
 	"net/http"
+	"prabogo/internal/domain/sekolah"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -93,4 +93,32 @@ func (h *akademikHandler) GetMapelList(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"data": mapelList})
+}
+
+// ------ Kelas Handler ------
+
+func (h *akademikHandler) GetKelasList(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+
+	kelasList, err := h.service.GetKelasList(c.Context(), tenantID)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": kelasList})
+}
+
+func (h *akademikHandler) CreateKelas(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+
+	var kelas model.Kelas
+	if err := c.BodyParser(&kelas); err != nil {
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	kelas.TenantID = tenantID
+
+	if err := h.service.CreateKelas(c.Context(), tenantID, &kelas); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Kelas created", "data": kelas})
 }

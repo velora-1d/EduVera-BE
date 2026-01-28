@@ -15,6 +15,7 @@ type SDMHttpPort interface {
 	GeneratePayroll(c *fiber.Ctx) error
 	MarkPayrollPaid(c *fiber.Ctx) error
 	GetPaySlip(c *fiber.Ctx) error
+	DownloadPaySlip(c *fiber.Ctx) error
 	GetPayrollConfig(c *fiber.Ctx) error
 	SavePayrollConfig(c *fiber.Ctx) error
 

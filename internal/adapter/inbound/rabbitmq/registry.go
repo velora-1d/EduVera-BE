@@ -1,8 +1,8 @@
 package rabbitmq_inbound_adapter
 
 import (
-	"eduvera/internal/domain"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/domain"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 type adapter struct {

@@ -6,7 +6,7 @@ package mock_rabbitmq
 
 import (
 	context "context"
-	rabbitmq "eduvera/utils/rabbitmq"
+	rabbitmq "prabogo/utils/rabbitmq"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"

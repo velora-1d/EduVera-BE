@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
-	"eduvera/utils/temporal"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils/temporal"
 )
 
 type clientWorkflowAdapter struct{}

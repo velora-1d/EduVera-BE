@@ -3,9 +3,9 @@ package gibrun_outbound_adapter
 import (
 	"context"
 
-	"eduvera/internal/model"
-	outbound_port "eduvera/internal/port/outbound"
-	"eduvera/utils/gibrun"
+	"prabogo/internal/model"
+	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils/gibrun"
 )
 
 type clientAdapter struct{}

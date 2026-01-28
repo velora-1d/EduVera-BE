@@ -3,8 +3,8 @@ package command_inbound_adapter
 import (
 	"context"
 
-	inbound_port "eduvera/internal/port/inbound"
-	"eduvera/utils/log"
+	inbound_port "prabogo/internal/port/inbound"
+	"prabogo/utils/log"
 )
 
 func InitRoute(

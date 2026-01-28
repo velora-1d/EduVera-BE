@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 
-	inbound_port "eduvera/internal/port/inbound"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 func InitRoute(
@@ -225,9 +225,93 @@ func InitRoute(
 	akademik.Get("/mapel", func(c *fiber.Ctx) error {
 		return port.Sekolah().GetMapelList(c)
 	})
+	akademik.Get("/kelas", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetKelasList(c)
+	})
+	akademik.Post("/kelas", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateKelas(c)
+	})
 
-	// E-Rapor Routes (Nilai & Rapor)
+	// Kepesantrenan
+	kepesantrenan := sekolah.Group("/kepesantrenan")
+	kepesantrenan.Get("/aturan", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetPelanggaranAturanList(c)
+	})
+	kepesantrenan.Post("/aturan", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreatePelanggaranAturan(c)
+	})
+	kepesantrenan.Get("/pelanggaran", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetPelanggaranSiswaList(c)
+	})
+	kepesantrenan.Post("/pelanggaran", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreatePelanggaranSiswa(c)
+	})
+	kepesantrenan.Get("/perizinan", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetPerizinanList(c)
+	})
+	kepesantrenan.Post("/perizinan", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreatePerizinan(c)
+	})
+
+	// Tahfidz
+	tahfidz := sekolah.Group("/tahfidz")
+	tahfidz.Get("/setoran", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetTahfidzSetoranList(c)
+	})
+	tahfidz.Post("/setoran", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateTahfidzSetoran(c)
+	})
+
+	// Diniyah
+	diniyah := sekolah.Group("/diniyah")
+	diniyah.Get("/kitab", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetDiniyahKitabList(c)
+	})
+	diniyah.Post("/kitab", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateDiniyahKitab(c)
+	})
+
+	// Rapor & E-Rapor Routes
 	erapor := sekolah.Group("/erapor")
+	erapor.Get("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetRaporList(c)
+	})
+	erapor.Post("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateRapor(c)
+	})
+
+	// Tabungan
+	tabungan := sekolah.Group("/tabungan")
+	tabungan.Get("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetTabunganList(c)
+	})
+	tabungan.Post("/mutasi", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateTabunganMutasi(c)
+	})
+
+	// Kalender
+	kalender := sekolah.Group("/kalender")
+	kalender.Get("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetKalenderEvents(c)
+	})
+	kalender.Post("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateKalenderEvent(c)
+	})
+
+	// Profil
+	profil := sekolah.Group("/profil")
+	profil.Get("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetProfil(c)
+	})
+	profil.Put("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().UpdateProfil(c)
+	})
+
+	// Laporan
+	laporan := sekolah.Group("/laporan")
+	laporan.Get("/", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetReportData(c)
+	})
 
 	// Subject Management
 	erapor.Get("/subjects", func(c *fiber.Ctx) error {
@@ -297,11 +381,32 @@ func InitRoute(
 	sdm.Get("/payroll/:id/slip", func(c *fiber.Ctx) error {
 		return port.SDM().GetPaySlip(c)
 	})
+	sdm.Get("/payroll/:id/slip/download", func(c *fiber.Ctx) error {
+		return port.SDM().DownloadPaySlip(c)
+	})
 	sdm.Get("/payroll/config", func(c *fiber.Ctx) error {
 		return port.SDM().GetPayrollConfig(c)
 	})
 	sdm.Put("/payroll/config", func(c *fiber.Ctx) error {
 		return port.SDM().SavePayrollConfig(c)
+	})
+
+	// Subscription & Billing Routes
+	sub := api.Group("/subscription")
+	sub.Use(func(c *fiber.Ctx) error {
+		return port.Middleware().ClientAuth(c)
+	})
+	sub.Get("/", func(c *fiber.Ctx) error {
+		return port.Subscription().GetSubscription(c)
+	})
+	sub.Post("/calculate-upgrade", func(c *fiber.Ctx) error {
+		return port.Subscription().CalculateUpgrade(c)
+	})
+	sub.Post("/upgrade", func(c *fiber.Ctx) error {
+		return port.Subscription().UpgradePlan(c)
+	})
+	sub.Post("/downgrade", func(c *fiber.Ctx) error {
+		return port.Subscription().DowngradePlan(c)
 	})
 
 	// Attendance

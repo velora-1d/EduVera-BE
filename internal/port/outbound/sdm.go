@@ -3,7 +3,7 @@ package outbound_port
 import (
 	"context"
 
-	"eduvera/internal/model"
+	"prabogo/internal/model"
 )
 
 // SDMDatabasePort defines the interface for SDM database operations

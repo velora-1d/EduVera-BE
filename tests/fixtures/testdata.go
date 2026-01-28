@@ -3,7 +3,7 @@ package fixtures
 import (
 	"time"
 
-	"eduvera/internal/model"
+	"prabogo/internal/model"
 )
 
 type ClientTestData struct{}

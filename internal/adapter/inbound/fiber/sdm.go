@@ -1,8 +1,10 @@
 package fiber_inbound_adapter
 
 import (
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
+	"fmt"
+
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -202,6 +204,24 @@ func (h *sdmAdapter) GetPaySlip(c *fiber.Ctx) error {
 		"status": "success",
 		"data":   slip,
 	})
+}
+
+func (h *sdmAdapter) DownloadPaySlip(c *fiber.Ctx) error {
+	ctx := c.Context()
+	payrollID := c.Params("id")
+
+	pdfBytes, err := h.domain.SDM().DownloadPaySlip(ctx, payrollID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal generate PDF slip gaji",
+			"error":   err.Error(),
+		})
+	}
+
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"slip-gaji-%s.pdf\"", payrollID))
+	return c.Send(pdfBytes)
 }
 
 func (h *sdmAdapter) GetPayrollConfig(c *fiber.Ctx) error {

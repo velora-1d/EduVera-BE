@@ -6,10 +6,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/palantir/stacktrace"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
-	"eduvera/utils/activity"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
+	"prabogo/utils/activity"
 )
 
 type clientAdapter struct {

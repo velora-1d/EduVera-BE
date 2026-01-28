@@ -15,4 +15,5 @@ type HttpPort interface {
 	Sekolah() SekolahHttpPort
 	ERapor() ERaporHttpPort
 	SDM() SDMHttpPort
+	Subscription() SubscriptionHttpPort
 }

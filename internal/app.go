@@ -11,28 +11,29 @@ import (
 	"github.com/joho/godotenv"
 	joonix "github.com/joonix/log"
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"github.com/sirupsen/logrus"
 
-	command_inbound_adapter "eduvera/internal/adapter/inbound/command"
-	fiber_inbound_adapter "eduvera/internal/adapter/inbound/fiber"
-	rabbitmq_inbound_adapter "eduvera/internal/adapter/inbound/rabbitmq"
-	temporal_inbound_adapter "eduvera/internal/adapter/inbound/temporal"
-	gibrun_outbound_adapter "eduvera/internal/adapter/outbound/gibrun"
-	postgres_outbound_adapter "eduvera/internal/adapter/outbound/postgres"
-	rabbitmq_outbound_adapter "eduvera/internal/adapter/outbound/rabbitmq"
-	redis_outbound_adapter "eduvera/internal/adapter/outbound/redis"
-	temporal_outbound_adapter "eduvera/internal/adapter/outbound/temporal"
-	whatsapp_outbound_adapter "eduvera/internal/adapter/outbound/whatsapp"
-	"eduvera/internal/domain"
-	_ "eduvera/internal/migration/postgres"
-	outbound_port "eduvera/internal/port/outbound"
-	"eduvera/utils"
-	"eduvera/utils/activity"
-	"eduvera/utils/database"
-	"eduvera/utils/gibrun"
-	"eduvera/utils/log"
-	"eduvera/utils/rabbitmq"
-	"eduvera/utils/redis"
+	command_inbound_adapter "prabogo/internal/adapter/inbound/command"
+	fiber_inbound_adapter "prabogo/internal/adapter/inbound/fiber"
+	rabbitmq_inbound_adapter "prabogo/internal/adapter/inbound/rabbitmq"
+	temporal_inbound_adapter "prabogo/internal/adapter/inbound/temporal"
+	gibrun_outbound_adapter "prabogo/internal/adapter/outbound/gibrun"
+	postgres_outbound_adapter "prabogo/internal/adapter/outbound/postgres"
+	rabbitmq_outbound_adapter "prabogo/internal/adapter/outbound/rabbitmq"
+	redis_outbound_adapter "prabogo/internal/adapter/outbound/redis"
+	temporal_outbound_adapter "prabogo/internal/adapter/outbound/temporal"
+	whatsapp_outbound_adapter "prabogo/internal/adapter/outbound/whatsapp"
+	"prabogo/internal/domain"
+	_ "prabogo/internal/migration/postgres"
+	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils"
+	"prabogo/utils/activity"
+	"prabogo/utils/database"
+	"prabogo/utils/gibrun"
+	"prabogo/utils/log"
+	"prabogo/utils/rabbitmq"
+	"prabogo/utils/redis"
 )
 
 var databaseDriverList = []string{"postgres"}
@@ -85,9 +86,30 @@ func (a *App) Run(option string) {
 		a.messageInbound()
 	case "workflow":
 		a.workflowInbound()
+	case "migrate":
+		a.runMigrations()
 	default:
 		a.commandInbound()
 	}
+}
+
+func (a *App) runMigrations() {
+	if outboundDatabaseDriver != "postgres" {
+		log.WithContext(a.ctx).Fatal("Migration only supports postgres driver")
+	}
+
+	db := database.InitDatabase(a.ctx, outboundDatabaseDriver)
+	defer db.Close()
+
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.WithContext(a.ctx).Fatalf("failed to set goose dialect: %v", err)
+	}
+
+	if err := goose.Up(db, "."); err != nil {
+		log.WithContext(a.ctx).Fatalf("failed to run migrations: %v", err)
+	}
+
+	log.WithContext(a.ctx).Info("Migrations completed successfully")
 }
 
 func databaseOutbound(ctx context.Context) outbound_port.DatabasePort {
@@ -165,7 +187,7 @@ func (a *App) httpInbound() {
 
 	switch inboundHttpDriver {
 	case "fiber":
-		engine := html.New("../web/templates", ".html")
+		engine := html.New("./web/templates", ".html")
 		app := fiber.New(fiber.Config{
 			Views: engine,
 		})

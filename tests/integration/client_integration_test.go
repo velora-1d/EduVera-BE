@@ -15,8 +15,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 
-	postgres_outbound_adapter "eduvera/internal/adapter/outbound/postgres"
-	"eduvera/internal/model"
+	postgres_outbound_adapter "prabogo/internal/adapter/outbound/postgres"
+	"prabogo/internal/model"
 )
 
 func TestClientIntegration(t *testing.T) {

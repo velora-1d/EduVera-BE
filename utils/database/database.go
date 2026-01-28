@@ -7,8 +7,8 @@ import (
 
 	"github.com/pressly/goose/v3"
 
-	"eduvera/utils"
-	"eduvera/utils/log"
+	"prabogo/utils"
+	"prabogo/utils/log"
 )
 
 func InitDatabase(ctx context.Context, outboundDatabaseDriver string) *sql.DB {

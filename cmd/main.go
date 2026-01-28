@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"eduvera/internal"
+	"prabogo/internal"
 
 	_ "github.com/joho/godotenv/autoload"
 )

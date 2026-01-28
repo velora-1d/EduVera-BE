@@ -3,12 +3,12 @@ package client_temporal_inbound_adapter
 import (
 	"go.temporal.io/sdk/worker"
 
-	"eduvera/internal/domain"
-	"eduvera/internal/model"
-	inbound_port "eduvera/internal/port/inbound"
-	"eduvera/utils/activity"
-	"eduvera/utils/log"
-	"eduvera/utils/temporal"
+	"prabogo/internal/domain"
+	"prabogo/internal/model"
+	inbound_port "prabogo/internal/port/inbound"
+	"prabogo/utils/activity"
+	"prabogo/utils/log"
+	"prabogo/utils/temporal"
 )
 
 type clientAdapter struct {

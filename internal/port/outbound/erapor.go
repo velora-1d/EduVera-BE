@@ -3,7 +3,7 @@ package outbound_port
 import (
 	"context"
 
-	"eduvera/internal/model"
+	"prabogo/internal/model"
 )
 
 // ERaporDatabasePort defines the interface for E-Rapor database operations

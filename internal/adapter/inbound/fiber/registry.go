@@ -1,10 +1,10 @@
 package fiber_inbound_adapter
 
 import (
-	"eduvera/internal/adapter/inbound/fiber/pesantren"
-	"eduvera/internal/adapter/inbound/fiber/sekolah"
-	"eduvera/internal/domain"
-	inbound_port "eduvera/internal/port/inbound"
+	"prabogo/internal/adapter/inbound/fiber/pesantren"
+	"prabogo/internal/adapter/inbound/fiber/sekolah"
+	"prabogo/internal/domain"
+	inbound_port "prabogo/internal/port/inbound"
 )
 
 type adapter struct {
@@ -73,4 +73,8 @@ func (a *adapter) ERapor() inbound_port.ERaporHttpPort {
 
 func (a *adapter) SDM() inbound_port.SDMHttpPort {
 	return NewSDMAdapter(a.domain)
+}
+
+func (a *adapter) Subscription() inbound_port.SubscriptionHttpPort {
+	return NewSubscriptionAdapter(a.domain)
 }

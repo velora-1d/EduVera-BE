@@ -7,8 +7,8 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	postgres_outbound_adapter "eduvera/internal/adapter/outbound/postgres"
-	"eduvera/internal/model"
+	postgres_outbound_adapter "prabogo/internal/adapter/outbound/postgres"
+	"prabogo/internal/model"
 )
 
 func TestClientAdapter(t *testing.T) {
