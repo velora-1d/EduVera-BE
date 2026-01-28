@@ -9,6 +9,7 @@ type DatabasePort interface {
 	Client() ClientDatabasePort
 	Tenant() TenantDatabasePort
 	User() UserDatabasePort
+	Content() ContentDatabasePort
 	Payment() PaymentDatabasePort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }

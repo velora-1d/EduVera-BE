@@ -44,3 +44,11 @@ func (s *adapter) Auth() inbound_port.AuthHttpPort {
 func (s *adapter) Payment() inbound_port.PaymentHttpPort {
 	return NewPaymentAdapter(s.domain)
 }
+
+func (s *adapter) Owner() inbound_port.OwnerHttpPort {
+	return NewOwnerAdapter(s.domain)
+}
+
+func (a *adapter) Content() inbound_port.ContentHttpPort {
+	return NewContentAdapter(a.domain)
+}

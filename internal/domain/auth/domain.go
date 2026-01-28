@@ -17,6 +17,7 @@ type AuthDomain interface {
 	Login(ctx context.Context, input *model.LoginInput) (*model.LoginResponse, error)
 	ValidateToken(ctx context.Context, tokenString string) (*Claims, error)
 	GetCurrentUser(ctx context.Context, userID string) (*model.User, error)
+	GenerateToken(user *model.User) (string, int64, error)
 }
 
 type Claims struct {
@@ -89,6 +90,19 @@ func (d *authDomain) Login(ctx context.Context, input *model.LoginInput) (*model
 	_ = d.databasePort.User().UpdateLastLogin(user.ID)
 
 	// Generate JWT
+	signedToken, expiresAt, err := d.GenerateToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.LoginResponse{
+		User:        *user,
+		AccessToken: signedToken,
+		ExpiresAt:   expiresAt,
+	}, nil
+}
+
+func (d *authDomain) GenerateToken(user *model.User) (string, int64, error) {
 	expiresAt := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		UserID:   user.ID,
@@ -105,14 +119,10 @@ func (d *authDomain) Login(ctx context.Context, input *model.LoginInput) (*model
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(getJWTSecret()))
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "failed to sign token")
+		return "", 0, stacktrace.Propagate(err, "failed to sign token")
 	}
 
-	return &model.LoginResponse{
-		User:        *user,
-		AccessToken: signedToken,
-		ExpiresAt:   expiresAt.Unix(),
-	}, nil
+	return signedToken, expiresAt.Unix(), nil
 }
 
 func (d *authDomain) ValidateToken(ctx context.Context, tokenString string) (*Claims, error) {

@@ -49,6 +49,49 @@ func (mr *MockDatabasePortMockRecorder) Client() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Client", reflect.TypeOf((*MockDatabasePort)(nil).Client))
 }
 
+// Content mocks base method.
+func (m *MockDatabasePort) Content() outbound_port.ContentDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Content")
+	ret0, _ := ret[0].(outbound_port.ContentDatabasePort)
+	return ret0
+}
+
+// Content indicates an expected call of Content.
+func (mr *MockDatabasePortMockRecorder) Content() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Content", reflect.TypeOf((*MockDatabasePort)(nil).Content))
+}
+
+// DoInTransaction mocks base method.
+func (m *MockDatabasePort) DoInTransaction(txFunc outbound_port.InTransaction) (interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DoInTransaction", txFunc)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DoInTransaction indicates an expected call of DoInTransaction.
+func (mr *MockDatabasePortMockRecorder) DoInTransaction(txFunc interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoInTransaction", reflect.TypeOf((*MockDatabasePort)(nil).DoInTransaction), txFunc)
+}
+
+// Payment mocks base method.
+func (m *MockDatabasePort) Payment() outbound_port.PaymentDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Payment")
+	ret0, _ := ret[0].(outbound_port.PaymentDatabasePort)
+	return ret0
+}
+
+// Payment indicates an expected call of Payment.
+func (mr *MockDatabasePortMockRecorder) Payment() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Payment", reflect.TypeOf((*MockDatabasePort)(nil).Payment))
+}
+
 // Tenant mocks base method.
 func (m *MockDatabasePort) Tenant() outbound_port.TenantDatabasePort {
 	m.ctrl.T.Helper()
@@ -75,35 +118,6 @@ func (m *MockDatabasePort) User() outbound_port.UserDatabasePort {
 func (mr *MockDatabasePortMockRecorder) User() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockDatabasePort)(nil).User))
-}
-
-// Payment mocks base method.
-func (m *MockDatabasePort) Payment() outbound_port.PaymentDatabasePort {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Payment")
-	ret0, _ := ret[0].(outbound_port.PaymentDatabasePort)
-	return ret0
-}
-
-// Payment indicates an expected call of Payment.
-func (mr *MockDatabasePortMockRecorder) Payment() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Payment", reflect.TypeOf((*MockDatabasePort)(nil).Payment))
-}
-
-// DoInTransaction mocks base method.
-func (m *MockDatabasePort) DoInTransaction(txFunc outbound_port.InTransaction) (interface{}, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DoInTransaction", txFunc)
-	ret0, _ := ret[0].(interface{})
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DoInTransaction indicates an expected call of DoInTransaction.
-func (mr *MockDatabasePortMockRecorder) DoInTransaction(txFunc interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoInTransaction", reflect.TypeOf((*MockDatabasePort)(nil).DoInTransaction), txFunc)
 }
 
 // MockDatabaseExecutor is a mock of DatabaseExecutor interface.

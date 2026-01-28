@@ -17,6 +17,7 @@ type TenantDomain interface {
 	UpdateInstitution(ctx context.Context, id string, input *model.TenantInput) error
 	UpdateBankAccount(ctx context.Context, id string, bankName, accountNumber, accountHolder string) error
 	Activate(ctx context.Context, id string) error
+	GetAll(ctx context.Context) ([]model.Tenant, error)
 }
 
 type tenantDomain struct {
@@ -96,4 +97,13 @@ func (d *tenantDomain) UpdateBankAccount(ctx context.Context, id string, bankNam
 
 func (d *tenantDomain) Activate(ctx context.Context, id string) error {
 	return d.databasePort.Tenant().UpdateStatus(id, model.TenantStatusActive)
+}
+
+func (d *tenantDomain) GetAll(ctx context.Context) ([]model.Tenant, error) {
+	// Call without filter to get everything
+	tenants, err := d.databasePort.Tenant().FindByFilter(model.TenantFilter{})
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to get all tenants")
+	}
+	return tenants, nil
 }

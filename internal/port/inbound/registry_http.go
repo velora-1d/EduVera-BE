@@ -8,4 +8,6 @@ type HttpPort interface {
 	Onboarding() OnboardingHttpPort
 	Auth() AuthHttpPort
 	Payment() PaymentHttpPort
+	Owner() OwnerHttpPort
+	Content() ContentHttpPort
 }

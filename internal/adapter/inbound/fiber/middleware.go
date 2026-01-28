@@ -20,6 +20,7 @@ const (
 type MiddlewareAdapter interface {
 	InternalAuth(a any) error
 	ClientAuth(a any) error
+	OwnerAuth(a any) error
 }
 
 type middlewareAdapter struct {
@@ -32,6 +33,44 @@ func NewMiddlewareAdapter(
 	return &middlewareAdapter{
 		domain: domain,
 	}
+}
+
+func (h *middlewareAdapter) OwnerAuth(a any) error {
+	c := a.(*fiber.Ctx)
+	ctx := activity.NewContext("owner_auth")
+
+	authHeader := c.Get(authorizationHeader)
+	var bearerToken string
+	if len(authHeader) > bearerPrefixLen && authHeader[:bearerPrefixLen] == bearerPrefix {
+		bearerToken = authHeader[bearerPrefixLen:]
+	}
+
+	if bearerToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized",
+		})
+	}
+
+	// Use Auth Domain to validate token
+	claims, err := h.domain.Auth().ValidateToken(ctx, bearerToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid token",
+		})
+	}
+
+	// Check Role
+	if claims.Role != model.RoleSuperAdmin {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Forbidden: Owner access required",
+		})
+	}
+
+	// Store user info in context for handlers
+	c.Locals("user_id", claims.UserID)
+	c.Locals("role", claims.Role)
+
+	return c.Next()
 }
 
 func (h *middlewareAdapter) InternalAuth(a any) error {

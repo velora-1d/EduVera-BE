@@ -91,6 +91,33 @@ func InitRoute(
 		return port.Auth().Logout(c)
 	})
 
+	// Owner Routes
+	owner := api.Group("/owner")
+	owner.Post("/login", func(c *fiber.Ctx) error {
+		return port.Owner().Login(c)
+	})
+
+	// Public Content Route
+	publicApi := api.Group("/public")
+	publicApi.Get("/content/:key", func(c *fiber.Ctx) error {
+		return port.Content().Get(c)
+	})
+
+	// Protected Owner Routes
+	ownerProtected := owner.Group("/")
+	ownerProtected.Use(func(c *fiber.Ctx) error {
+		return port.Middleware().OwnerAuth(c)
+	})
+	ownerProtected.Get("/tenants", func(c *fiber.Ctx) error {
+		return port.Owner().GetTenants(c)
+	})
+	ownerProtected.Get("/stats", func(c *fiber.Ctx) error {
+		return port.Owner().GetStats(c)
+	})
+	ownerProtected.Post("/content", func(c *fiber.Ctx) error {
+		return port.Content().Upsert(c)
+	})
+
 	// Payment Routes (Midtrans)
 	payment := api.Group("/payment")
 	payment.Post("/create", func(c *fiber.Ctx) error {

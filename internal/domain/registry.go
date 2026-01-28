@@ -3,6 +3,7 @@ package domain
 import (
 	"eduvera/internal/domain/auth"
 	"eduvera/internal/domain/client"
+	"eduvera/internal/domain/content"
 	"eduvera/internal/domain/payment"
 	"eduvera/internal/domain/tenant"
 	outbound_port "eduvera/internal/port/outbound"
@@ -13,6 +14,7 @@ type Domain interface {
 	Tenant() tenant.TenantDomain
 	Auth() auth.AuthDomain
 	Payment() payment.PaymentDomain
+	Content() content.ContentDomain
 }
 
 type domain struct {
@@ -50,4 +52,8 @@ func (d *domain) Auth() auth.AuthDomain {
 
 func (d *domain) Payment() payment.PaymentDomain {
 	return payment.NewPaymentDomain(d.databasePort, d.messagePort)
+}
+
+func (d *domain) Content() content.ContentDomain {
+	return content.NewContentDomain(d.databasePort)
 }

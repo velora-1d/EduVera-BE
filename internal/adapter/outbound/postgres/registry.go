@@ -85,6 +85,13 @@ func (s *adapter) User() outbound_port.UserDatabasePort {
 	return NewUserAdapter(s.db)
 }
 
+func (s *adapter) Content() outbound_port.ContentDatabasePort {
+	if s.dbexecutor != nil {
+		return NewContentAdapter(s.dbexecutor)
+	}
+	return NewContentAdapter(s.db)
+}
+
 func (s *adapter) Payment() outbound_port.PaymentDatabasePort {
 	if s.dbexecutor != nil {
 		return NewPaymentAdapter(s.dbexecutor)
