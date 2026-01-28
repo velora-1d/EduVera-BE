@@ -34,3 +34,7 @@ bin/
 # Local Dev Tools
 cloudflared-bin
 start-dev.sh
+
+# Binary artifacts
+*.tar.gz
+wget-log

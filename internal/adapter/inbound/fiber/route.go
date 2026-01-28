@@ -60,6 +60,9 @@ func InitRoute(
 	onboarding.Post("/institution", func(c *fiber.Ctx) error {
 		return port.Onboarding().Institution(c)
 	})
+	onboarding.Post("/check-subdomain", func(c *fiber.Ctx) error {
+		return port.Onboarding().CheckSubdomain(c)
+	})
 	onboarding.Post("/subdomain", func(c *fiber.Ctx) error {
 		return port.Onboarding().Subdomain(c)
 	})

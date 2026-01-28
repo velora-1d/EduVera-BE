@@ -2,21 +2,41 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
+	"eduvera/internal/adapter/outbound/notification"
 	"eduvera/internal/domain"
 	"eduvera/internal/model"
 	inbound_port "eduvera/internal/port/inbound"
 )
 
+// Subdomain blacklist - reserved names that cannot be used
+var subdomainBlacklist = []string{
+	"admin", "api", "www", "app", "dashboard", "help", "support",
+	"mail", "ftp", "smtp", "pop", "imap", "webmail",
+	"billing", "payment", "checkout", "login", "register", "signup",
+	"account", "settings", "config", "system", "root", "super",
+	"test", "demo", "staging", "dev", "development", "prod", "production",
+	"static", "assets", "cdn", "media", "images", "files",
+	"eduvera", "velora", "sekolah", "pesantren", "madrasah",
+}
+
+// Subdomain validation regex: lowercase letters, numbers, and dashes only
+// Must start and end with alphanumeric, 3-30 characters
+var subdomainRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$`)
+
 type onboardingAdapter struct {
-	domain domain.Domain
+	domain   domain.Domain
+	telegram *notification.TelegramNotifier
 }
 
 func NewOnboardingAdapter(domain domain.Domain) inbound_port.OnboardingHttpPort {
 	return &onboardingAdapter{
-		domain: domain,
+		domain:   domain,
+		telegram: notification.NewTelegramNotifier(),
 	}
 }
 
@@ -30,11 +50,16 @@ type RegisterInput struct {
 
 // InstitutionInput is the request body for the institution endpoint
 type InstitutionInput struct {
-	TenantID        string `json:"tenant_id"`
+	UserID          string `json:"user_id"`
 	InstitutionName string `json:"institution_name"`
-	InstitutionType string `json:"institution_type"`
-	PlanType        string `json:"plan_type"`
+	InstitutionType string `json:"institution_type"` // sekolah, pesantren, hybrid
 	Address         string `json:"address"`
+	Subdomain       string `json:"subdomain"` // Custom subdomain input
+}
+
+// SubdomainCheckInput is the request body for checking subdomain availability
+type SubdomainCheckInput struct {
+	Subdomain string `json:"subdomain"`
 }
 
 // SubdomainInput is the request body for the subdomain endpoint
@@ -49,12 +74,132 @@ type BankAccountInput struct {
 	BankName      string `json:"bank_name"`
 	AccountNumber string `json:"account_number"`
 	AccountHolder string `json:"account_holder"`
+	AccountType   string `json:"account_type"` // pribadi, yayasan
 }
 
 // ConfirmInput is the request body for the confirm endpoint
 type ConfirmInput struct {
 	TenantID string `json:"tenant_id"`
 	UserID   string `json:"user_id"`
+}
+
+// validateSubdomainFormat checks if subdomain has valid format
+func validateSubdomainFormat(subdomain string) (bool, string) {
+	subdomain = strings.ToLower(strings.TrimSpace(subdomain))
+
+	if len(subdomain) < 3 {
+		return false, "Subdomain minimal 3 karakter"
+	}
+
+	if len(subdomain) > 30 {
+		return false, "Subdomain maksimal 30 karakter"
+	}
+
+	if !subdomainRegex.MatchString(subdomain) {
+		return false, "Subdomain hanya boleh huruf kecil, angka, dan dash (-). Harus diawali dan diakhiri huruf/angka"
+	}
+
+	return true, ""
+}
+
+// isSubdomainBlacklisted checks if subdomain is in blacklist
+func isSubdomainBlacklisted(subdomain string) bool {
+	subdomain = strings.ToLower(subdomain)
+	for _, blocked := range subdomainBlacklist {
+		if subdomain == blocked {
+			return true
+		}
+	}
+	return false
+}
+
+// generateSubdomainRecommendations generates alternative subdomain suggestions
+func generateSubdomainRecommendations(base string) []string {
+	base = strings.ToLower(strings.TrimSpace(base))
+	// Clean base to valid format
+	cleanBase := ""
+	for _, c := range base {
+		if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
+			cleanBase += string(c)
+		}
+	}
+
+	if len(cleanBase) > 20 {
+		cleanBase = cleanBase[:20]
+	}
+
+	recommendations := []string{
+		cleanBase + "1",
+		cleanBase + "-id",
+		cleanBase + "-edu",
+		cleanBase + "-sch",
+		cleanBase + "2025",
+		"my" + cleanBase,
+		cleanBase + "-app",
+	}
+
+	return recommendations
+}
+
+// POST /api/v1/onboarding/check-subdomain - Check subdomain availability (realtime validation)
+func (h *onboardingAdapter) CheckSubdomain(a any) error {
+	c := a.(*fiber.Ctx)
+	ctx := context.Background()
+
+	var input SubdomainCheckInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	subdomain := strings.ToLower(strings.TrimSpace(input.Subdomain))
+
+	// Step 1: Validate format
+	valid, errorMsg := validateSubdomainFormat(subdomain)
+	if !valid {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"available":       false,
+			"subdomain":       subdomain,
+			"error":           errorMsg,
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Step 2: Check blacklist
+	if isSubdomainBlacklisted(subdomain) {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"available":       false,
+			"subdomain":       subdomain,
+			"error":           "Subdomain ini tidak tersedia (reserved)",
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Step 3: Check if already taken in database
+	exists, err := h.domain.Tenant().SubdomainExists(ctx, subdomain)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal mengecek subdomain",
+		})
+	}
+
+	if exists {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"available":       false,
+			"subdomain":       subdomain,
+			"error":           "Subdomain sudah digunakan",
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Subdomain is available!
+	return c.JSON(fiber.Map{
+		"available": true,
+		"subdomain": subdomain,
+		"message":   "Subdomain tersedia!",
+		"full_url":  "https://" + subdomain + ".eduvera.ve-lora.my.id",
+	})
 }
 
 // POST /api/v1/onboarding/register
@@ -116,11 +261,62 @@ func (h *onboardingAdapter) Institution(a any) error {
 		})
 	}
 
+	// Validate institution type
+	validTypes := []string{"sekolah", "pesantren", "hybrid"}
+	isValidType := false
+	for _, t := range validTypes {
+		if input.InstitutionType == t {
+			isValidType = true
+			break
+		}
+	}
+	if !isValidType {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Institution type must be: sekolah, pesantren, or hybrid",
+		})
+	}
+
+	// Determine subdomain: use custom input or generate from name
+	subdomain := strings.ToLower(strings.TrimSpace(input.Subdomain))
+	if subdomain == "" {
+		subdomain = generateSubdomain(input.InstitutionName)
+	}
+
+	// Validate subdomain format
+	valid, errorMsg := validateSubdomainFormat(subdomain)
+	if !valid {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":           errorMsg,
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Check blacklist
+	if isSubdomainBlacklisted(subdomain) {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":           "Subdomain tidak tersedia (reserved)",
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Check if subdomain already taken
+	exists, err := h.domain.Tenant().SubdomainExists(ctx, subdomain)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to check subdomain",
+		})
+	}
+	if exists {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error":           "Subdomain sudah digunakan",
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
 	// Create tenant with institution info
 	tenant, err := h.domain.Tenant().Create(ctx, &model.TenantInput{
 		Name:            input.InstitutionName,
-		Subdomain:       generateSubdomain(input.InstitutionName),
-		PlanType:        input.PlanType,
+		Subdomain:       subdomain,
 		InstitutionType: input.InstitutionType,
 		Address:         input.Address,
 	})
@@ -130,12 +326,18 @@ func (h *onboardingAdapter) Institution(a any) error {
 		})
 	}
 
+	// TODO: Link user to tenant (method needs to be added to Auth domain)
+	// if input.UserID != "" {
+	// 	_ = h.domain.Auth().LinkUserToTenant(ctx, input.UserID, tenant.ID)
+	// }
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":              "success",
-		"message":             "Institution created",
-		"tenant_id":           tenant.ID,
-		"suggested_subdomain": tenant.Subdomain,
-		"next_step":           "/api/v1/onboarding/subdomain",
+		"status":    "success",
+		"message":   "Institution created",
+		"tenant_id": tenant.ID,
+		"subdomain": tenant.Subdomain,
+		"full_url":  "https://" + tenant.Subdomain + ".eduvera.ve-lora.my.id",
+		"next_step": "/api/v1/onboarding/modules",
 	})
 }
 
@@ -151,8 +353,29 @@ func (h *onboardingAdapter) Subdomain(a any) error {
 		})
 	}
 
-	// Check subdomain availability
-	exists, err := h.domain.Tenant().SubdomainExists(ctx, input.Subdomain)
+	subdomain := strings.ToLower(strings.TrimSpace(input.Subdomain))
+
+	// Validate format
+	valid, errorMsg := validateSubdomainFormat(subdomain)
+	if !valid {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"available":       false,
+			"error":           errorMsg,
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Check blacklist
+	if isSubdomainBlacklisted(subdomain) {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"available":       false,
+			"error":           "Subdomain tidak tersedia (reserved)",
+			"recommendations": generateSubdomainRecommendations(subdomain),
+		})
+	}
+
+	// Check availability
+	exists, err := h.domain.Tenant().SubdomainExists(ctx, subdomain)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to check subdomain",
@@ -161,16 +384,27 @@ func (h *onboardingAdapter) Subdomain(a any) error {
 
 	if exists {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error":     "Subdomain already taken",
-			"available": false,
+			"available":       false,
+			"error":           "Subdomain sudah digunakan",
+			"recommendations": generateSubdomainRecommendations(subdomain),
 		})
 	}
 
+	// TODO: Update tenant subdomain (method needs to be added to Tenant domain)
+	// err = h.domain.Tenant().UpdateSubdomain(ctx, input.TenantID, subdomain)
+	// if err != nil {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+	// 		"error": "Failed to update subdomain",
+	// 	})
+	// }
+	_ = input.TenantID // Placeholder until UpdateSubdomain is implemented
+
 	return c.JSON(fiber.Map{
 		"status":    "success",
-		"message":   "Subdomain available",
-		"subdomain": input.Subdomain,
+		"message":   "Subdomain updated",
+		"subdomain": subdomain,
 		"available": true,
+		"full_url":  "https://" + subdomain + ".eduvera.ve-lora.my.id",
 		"next_step": "/api/v1/onboarding/bank-account",
 	})
 }
@@ -191,6 +425,13 @@ func (h *onboardingAdapter) BankAccount(a any) error {
 	if input.BankName == "" || input.AccountNumber == "" || input.AccountHolder == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Bank name, account number, and account holder are required",
+		})
+	}
+
+	// Validate account type
+	if input.AccountType != "" && input.AccountType != "pribadi" && input.AccountType != "yayasan" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Account type must be: pribadi or yayasan",
 		})
 	}
 
@@ -242,11 +483,23 @@ func (h *onboardingAdapter) Confirm(a any) error {
 		})
 	}
 
+	// Send Telegram notification to owner (async, don't block response)
+	go func() {
+		data := notification.RegistrationData{
+			InstitutionName: tenant.Name,
+			PlanType:        tenant.InstitutionType,
+			Subdomain:       tenant.Subdomain,
+			Address:         tenant.Address,
+			// Note: User data will be added when we implement user lookup
+		}
+		_ = h.telegram.SendNewRegistration(data)
+	}()
+
 	return c.JSON(fiber.Map{
 		"status":    "success",
 		"message":   "Registration complete! Your account is now active.",
-		"subdomain": tenant.Subdomain + ".eduvera.id",
-		"login_url": "https://" + tenant.Subdomain + ".eduvera.id/login",
+		"subdomain": tenant.Subdomain + ".eduvera.ve-lora.my.id",
+		"login_url": "https://" + tenant.Subdomain + ".eduvera.ve-lora.my.id/login",
 	})
 }
 
@@ -270,12 +523,13 @@ func (h *onboardingAdapter) Status(a any) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"tenant_id": tenant.ID,
-		"name":      tenant.Name,
-		"subdomain": tenant.Subdomain,
-		"plan_type": tenant.PlanType,
-		"status":    tenant.Status,
-		"is_active": tenant.Status == model.TenantStatusActive,
+		"tenant_id":        tenant.ID,
+		"name":             tenant.Name,
+		"subdomain":        tenant.Subdomain,
+		"institution_type": tenant.InstitutionType,
+		"status":           tenant.Status,
+		"is_active":        tenant.Status == model.TenantStatusActive,
+		"full_url":         "https://" + tenant.Subdomain + ".eduvera.ve-lora.my.id",
 	})
 }
 
@@ -291,6 +545,9 @@ func generateSubdomain(name string) string {
 	}
 	if len(subdomain) > 30 {
 		subdomain = subdomain[:30]
+	}
+	if len(subdomain) < 3 {
+		subdomain = subdomain + "app"
 	}
 	return subdomain
 }
