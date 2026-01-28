@@ -186,6 +186,25 @@ func (a *userAdapter) Activate(id string) error {
 	return err
 }
 
+func (a *userAdapter) LinkToTenant(userID string, tenantID string) error {
+	now := time.Now()
+	dialect := goqu.Dialect("postgres")
+	dataset := dialect.Update(tableUser).
+		Set(goqu.Record{
+			"tenant_id":  tenantID,
+			"updated_at": now,
+		}).
+		Where(goqu.Ex{"id": userID})
+
+	query, _, err := dataset.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = a.db.Exec(query)
+	return err
+}
+
 func addUserFilter(dataset *goqu.SelectDataset, filter model.UserFilter) *goqu.SelectDataset {
 	if len(filter.IDs) > 0 {
 		dataset = dataset.Where(goqu.Ex{"id": filter.IDs})

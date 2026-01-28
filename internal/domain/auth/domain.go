@@ -18,6 +18,7 @@ type AuthDomain interface {
 	ValidateToken(ctx context.Context, tokenString string) (*Claims, error)
 	GetCurrentUser(ctx context.Context, userID string) (*model.User, error)
 	GenerateToken(user *model.User) (string, int64, error)
+	LinkUserToTenant(ctx context.Context, userID string, tenantID string) error
 }
 
 type Claims struct {
@@ -151,6 +152,18 @@ func (d *authDomain) GetCurrentUser(ctx context.Context, userID string) (*model.
 		return nil, stacktrace.Propagate(err, "failed to find user")
 	}
 	return user, nil
+}
+
+func (d *authDomain) LinkUserToTenant(ctx context.Context, userID string, tenantID string) error {
+	// Optional: Check if user exists
+	// Optional: Check if tenant exists (usually ensured by caller)
+
+	err := d.databasePort.User().LinkToTenant(userID, tenantID)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to link user to tenant")
+	}
+
+	return nil
 }
 
 func getJWTSecret() string {

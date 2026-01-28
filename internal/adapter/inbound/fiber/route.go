@@ -2,9 +2,11 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 
 	inbound_port "eduvera/internal/port/inbound"
 )
@@ -19,6 +21,21 @@ func InitRoute(
 		AllowOrigins: "http://localhost:5173, https://eduvera.ve-lora.my.id",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+	}))
+
+	// Rate Limiting (Public API Protection)
+	// 60 requests per minute per IP for general endpoints
+	app.Use(limiter.New(limiter.Config{
+		Max:        60,
+		Expiration: 60 * time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Too many requests, please try again later",
+			})
+		},
 	}))
 
 	// Internal routes (API key protected)
@@ -151,6 +168,21 @@ func InitRoute(
 		return port.PesantrenDashboard().GetStats(c)
 	})
 
+	// Tenant SPP Routes
+	tenantSPP := pesantren.Group("/spp")
+	tenantSPP.Get("/", func(c *fiber.Ctx) error {
+		return port.SPP().List(c)
+	})
+	tenantSPP.Post("/", func(c *fiber.Ctx) error {
+		return port.SPP().Create(c)
+	})
+	tenantSPP.Post("/:id/pay", func(c *fiber.Ctx) error {
+		return port.SPP().RecordPayment(c)
+	})
+	tenantSPP.Get("/stats", func(c *fiber.Ctx) error {
+		return port.SPP().GetStats(c)
+	})
+
 	// Notification logs
 	ownerProtected.Get("/notifications", func(c *fiber.Ctx) error {
 		return port.Owner().GetNotificationLogs(c)
@@ -166,6 +198,30 @@ func InitRoute(
 	})
 	payment.Get("/status/:order_id", func(c *fiber.Ctx) error {
 		return port.Payment().GetStatus(c)
+	})
+
+	// Sekolah Routes (Protected)
+	sekolah := api.Group("/sekolah")
+	sekolah.Use(func(c *fiber.Ctx) error {
+		return port.Middleware().ClientAuth(c)
+	})
+
+	// Akademik
+	akademik := sekolah.Group("/akademik")
+	akademik.Get("/siswa", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetSiswaList(c)
+	})
+	akademik.Post("/siswa", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateSiswa(c)
+	})
+	akademik.Get("/guru", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetGuruList(c)
+	})
+	akademik.Post("/guru", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateGuru(c)
+	})
+	akademik.Get("/mapel", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetMapelList(c)
 	})
 
 	// ========================================

@@ -326,10 +326,17 @@ func (h *onboardingAdapter) Institution(a any) error {
 		})
 	}
 
-	// TODO: Link user to tenant (method needs to be added to Auth domain)
-	// if input.UserID != "" {
-	// 	_ = h.domain.Auth().LinkUserToTenant(ctx, input.UserID, tenant.ID)
-	// }
+	// Link user to tenant
+	if input.UserID != "" {
+		err = h.domain.Auth().LinkUserToTenant(ctx, input.UserID, tenant.ID)
+		if err != nil {
+			// In production, we should rollback tenant creation or retry
+			// For now, we return error but tenant exists (partial success/failure state)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Failed to link user to tenant: " + err.Error(),
+			})
+		}
+	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"status":    "success",

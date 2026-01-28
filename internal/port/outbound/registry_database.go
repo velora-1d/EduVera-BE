@@ -11,6 +11,10 @@ type DatabasePort interface {
 	User() UserDatabasePort
 	Content() ContentDatabasePort
 	Payment() PaymentDatabasePort
+	Disbursement() DisbursementDatabasePort
+	SPP() SPPDatabasePort
+	Notification() NotificationDatabasePort
+	Sekolah() SekolahPort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }
 

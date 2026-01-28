@@ -98,3 +98,24 @@ func (s *adapter) Payment() outbound_port.PaymentDatabasePort {
 	}
 	return NewPaymentAdapter(s.db)
 }
+
+func (s *adapter) Disbursement() outbound_port.DisbursementDatabasePort {
+	// Currently disbursement adapter only supports non-transactional db
+	// TODO: Update disbursement adapter to support DatabaseExecutor for transactions
+	return NewDisbursementAdapter(s.db)
+}
+
+func (s *adapter) SPP() outbound_port.SPPDatabasePort {
+	return NewSPPAdapter(s.db)
+}
+
+func (s *adapter) Notification() outbound_port.NotificationDatabasePort {
+	return NewNotificationAdapter(s.db)
+}
+
+func (s *adapter) Sekolah() outbound_port.SekolahPort {
+	if s.dbexecutor != nil {
+		return NewSekolahAdapter(s.dbexecutor)
+	}
+	return NewSekolahAdapter(s.db)
+}

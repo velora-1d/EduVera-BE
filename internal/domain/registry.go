@@ -4,8 +4,12 @@ import (
 	"eduvera/internal/domain/auth"
 	"eduvera/internal/domain/client"
 	"eduvera/internal/domain/content"
+	disbursement_domain "eduvera/internal/domain/disbursement"
+	notification_domain "eduvera/internal/domain/notification"
 	"eduvera/internal/domain/payment"
 	dashboard "eduvera/internal/domain/pesantren/dashboard"
+	"eduvera/internal/domain/sekolah"
+	spp_domain "eduvera/internal/domain/spp"
 	"eduvera/internal/domain/tenant"
 	outbound_port "eduvera/internal/port/outbound"
 )
@@ -16,7 +20,12 @@ type Domain interface {
 	Auth() auth.AuthDomain
 	Payment() payment.PaymentDomain
 	Content() content.ContentDomain
+
+	Disbursement() disbursement_domain.Service
+	SPP() spp_domain.Service
 	PesantrenDashboard() dashboard.Service
+	Notification() notification_domain.Service
+	Sekolah() sekolah.AkademikDomain
 }
 
 type domain struct {
@@ -60,7 +69,23 @@ func (d *domain) Content() content.ContentDomain {
 	return content.NewContentDomain(d.databasePort)
 }
 
+func (d *domain) Disbursement() disbursement_domain.Service {
+	return disbursement_domain.NewService(d.databasePort.Disbursement())
+}
+
+func (d *domain) SPP() spp_domain.Service {
+	return spp_domain.NewService(d.databasePort.SPP())
+}
+
 func (d *domain) PesantrenDashboard() dashboard.Service {
 	// Use Mock Service for now
 	return dashboard.NewMockService()
+}
+
+func (d *domain) Notification() notification_domain.Service {
+	return notification_domain.NewService(d.databasePort.Notification())
+}
+
+func (d *domain) Sekolah() sekolah.AkademikDomain {
+	return sekolah.NewAkademikDomain(d.databasePort)
 }

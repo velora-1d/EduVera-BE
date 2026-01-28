@@ -12,4 +12,5 @@ type UserDatabasePort interface {
 	EmailExists(email string) (bool, error)
 	UpdateLastLogin(id string) error
 	Activate(id string) error
+	LinkToTenant(userID string, tenantID string) error
 }

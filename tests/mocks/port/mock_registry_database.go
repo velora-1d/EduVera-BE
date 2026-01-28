@@ -63,6 +63,20 @@ func (mr *MockDatabasePortMockRecorder) Content() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Content", reflect.TypeOf((*MockDatabasePort)(nil).Content))
 }
 
+// Disbursement mocks base method.
+func (m *MockDatabasePort) Disbursement() outbound_port.DisbursementDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Disbursement")
+	ret0, _ := ret[0].(outbound_port.DisbursementDatabasePort)
+	return ret0
+}
+
+// Disbursement indicates an expected call of Disbursement.
+func (mr *MockDatabasePortMockRecorder) Disbursement() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Disbursement", reflect.TypeOf((*MockDatabasePort)(nil).Disbursement))
+}
+
 // DoInTransaction mocks base method.
 func (m *MockDatabasePort) DoInTransaction(txFunc outbound_port.InTransaction) (interface{}, error) {
 	m.ctrl.T.Helper()
@@ -76,6 +90,20 @@ func (m *MockDatabasePort) DoInTransaction(txFunc outbound_port.InTransaction) (
 func (mr *MockDatabasePortMockRecorder) DoInTransaction(txFunc interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoInTransaction", reflect.TypeOf((*MockDatabasePort)(nil).DoInTransaction), txFunc)
+}
+
+// Notification mocks base method.
+func (m *MockDatabasePort) Notification() outbound_port.NotificationDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Notification")
+	ret0, _ := ret[0].(outbound_port.NotificationDatabasePort)
+	return ret0
+}
+
+// Notification indicates an expected call of Notification.
+func (mr *MockDatabasePortMockRecorder) Notification() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notification", reflect.TypeOf((*MockDatabasePort)(nil).Notification))
 }
 
 // Payment mocks base method.
@@ -92,6 +120,20 @@ func (mr *MockDatabasePortMockRecorder) Payment() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Payment", reflect.TypeOf((*MockDatabasePort)(nil).Payment))
 }
 
+// SPP mocks base method.
+func (m *MockDatabasePort) SPP() outbound_port.SPPDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SPP")
+	ret0, _ := ret[0].(outbound_port.SPPDatabasePort)
+	return ret0
+}
+
+// SPP indicates an expected call of SPP.
+func (mr *MockDatabasePortMockRecorder) SPP() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SPP", reflect.TypeOf((*MockDatabasePort)(nil).SPP))
+}
+
 // Tenant mocks base method.
 func (m *MockDatabasePort) Tenant() outbound_port.TenantDatabasePort {
 	m.ctrl.T.Helper()
@@ -104,6 +146,20 @@ func (m *MockDatabasePort) Tenant() outbound_port.TenantDatabasePort {
 func (mr *MockDatabasePortMockRecorder) Tenant() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tenant", reflect.TypeOf((*MockDatabasePort)(nil).Tenant))
+}
+
+// Sekolah mocks base method.
+func (m *MockDatabasePort) Sekolah() outbound_port.SekolahPort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sekolah")
+	ret0, _ := ret[0].(outbound_port.SekolahPort)
+	return ret0
+}
+
+// Sekolah indicates an expected call of Sekolah.
+func (mr *MockDatabasePortMockRecorder) Sekolah() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sekolah", reflect.TypeOf((*MockDatabasePort)(nil).Sekolah))
 }
 
 // User mocks base method.
