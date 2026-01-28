@@ -417,3 +417,72 @@ func (a *eraporAdapter) GetGradeStats(ctx context.Context, tenantID, semesterID 
 		"semester_id":         semesterID,
 	}, nil
 }
+
+// ==========================================
+// SNAPSHOT OPERATIONS
+// ==========================================
+
+func (a *eraporAdapter) GetOrCreateRaporPeriode(tenantID, name string) (*model.RaporPeriode, error) {
+	ctx := context.Background()
+	var periode model.RaporPeriode
+
+	found, err := a.db.From("sekolah_rapor_periode").
+		Where(goqu.C("tenant_id").Eq(tenantID)).
+		Where(goqu.C("nama").Eq(name)).
+		ScanStructContext(ctx, &periode)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if found {
+		return &periode, nil
+	}
+
+	// Create new
+	var newPeriode model.RaporPeriode
+	_, err = a.db.Insert("sekolah_rapor_periode").Rows(
+		goqu.Record{
+			"tenant_id": tenantID,
+			"nama":      name,
+			"is_active": true,
+		},
+	).Returning("id", "created_at", "updated_at").Executor().ScanStructContext(ctx, &newPeriode)
+
+	if err != nil {
+		return nil, err
+	}
+	newPeriode.TenantID = tenantID
+	newPeriode.Nama = name
+	newPeriode.IsActive = true
+
+	return &newPeriode, nil
+}
+
+func (a *eraporAdapter) CreateRapor(m *model.Rapor) error {
+	ctx := context.Background()
+	_, err := a.db.Insert("sekolah_rapor").Rows(goqu.Record{
+		"tenant_id":          m.TenantID,
+		"periode_id":         m.PeriodeID,
+		"santri_id":          m.SantriID,
+		"status":             m.Status,
+		"catatan_wali_kelas": m.CatatanWaliKelas,
+	}).Returning("id", "created_at", "updated_at").
+		Executor().ScanStructContext(ctx, m)
+
+	return err
+}
+
+func (a *eraporAdapter) CreateRaporNilai(m *model.RaporNilai) error {
+	ctx := context.Background()
+	_, err := a.db.Insert("sekolah_rapor_nilai").Rows(goqu.Record{
+		"rapor_id":   m.RaporID,
+		"kategori":   m.Kategori,
+		"jenis":      m.Jenis,
+		"nilai":      m.Nilai,
+		"keterangan": m.Keterangan,
+	}).Returning("id", "created_at", "updated_at").
+		Executor().ScanStructContext(ctx, m)
+
+	return err
+}

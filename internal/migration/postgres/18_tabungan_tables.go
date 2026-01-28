@@ -16,7 +16,7 @@ func upTabungan(ctx context.Context, tx *sql.Tx) error {
 	query := `
 			-- Tabungan Account per Siswa
 			CREATE TABLE IF NOT EXISTS sekolah_tabungan (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				santri_id UUID NOT NULL REFERENCES sekolah_siswa(id),
 				saldo BIGINT DEFAULT 0,
@@ -32,7 +32,7 @@ func upTabungan(ctx context.Context, tx *sql.Tx) error {
 
 			-- Mutasi Tabungan (Transactions)
 			CREATE TABLE IF NOT EXISTS sekolah_tabungan_mutasi (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tabungan_id UUID NOT NULL REFERENCES sekolah_tabungan(id) ON DELETE CASCADE,
 				tenant_id UUID NOT NULL,
 				tipe VARCHAR(20) NOT NULL, -- Debit (Masuk), Kredit (Keluar)

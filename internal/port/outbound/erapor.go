@@ -24,4 +24,9 @@ type ERaporDatabasePort interface {
 
 	// Stats
 	GetGradeStats(ctx context.Context, tenantID, semesterID string) (map[string]interface{}, error)
+
+	// Snapshot Operations (Rapor)
+	GetOrCreateRaporPeriode(tenantID, name string) (*model.RaporPeriode, error)
+	CreateRapor(m *model.Rapor) error
+	CreateRaporNilai(m *model.RaporNilai) error
 }

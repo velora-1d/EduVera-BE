@@ -2,6 +2,7 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"prabogo/internal/domain"
 	"prabogo/internal/model"
 	inbound_port "prabogo/internal/port/inbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 // Subdomain blacklist - reserved names that cannot be used
@@ -31,12 +33,14 @@ var subdomainRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$`)
 type onboardingAdapter struct {
 	domain   domain.Domain
 	telegram *notification.TelegramNotifier
+	whatsapp outbound_port.WhatsAppMessagePort
 }
 
-func NewOnboardingAdapter(domain domain.Domain) inbound_port.OnboardingHttpPort {
+func NewOnboardingAdapter(domain domain.Domain, whatsapp outbound_port.WhatsAppMessagePort) inbound_port.OnboardingHttpPort {
 	return &onboardingAdapter{
 		domain:   domain,
 		telegram: notification.NewTelegramNotifier(),
+		whatsapp: whatsapp,
 	}
 }
 
@@ -516,6 +520,17 @@ func (h *onboardingAdapter) Confirm(a any) error {
 		})
 	}
 
+	// Get user info for WhatsApp notification
+	var userPhone string
+	if input.UserID != "" {
+		user, err := h.domain.Auth().GetCurrentUser(ctx, input.UserID)
+		if err == nil && user != nil && user.WhatsApp != "" {
+			userPhone = user.WhatsApp
+		}
+	}
+
+	loginURL := "https://" + tenant.Subdomain + ".eduvera.ve-lora.my.id/login"
+
 	// Send Telegram notification to owner (async, don't block response)
 	go func() {
 		data := notification.RegistrationData{
@@ -523,16 +538,32 @@ func (h *onboardingAdapter) Confirm(a any) error {
 			PlanType:        tenant.InstitutionType,
 			Subdomain:       tenant.Subdomain,
 			Address:         tenant.Address,
-			// Note: User data will be added when we implement user lookup
 		}
 		_ = h.telegram.SendNewRegistration(data)
 	}()
+
+	// Send WhatsApp notification to user (async)
+	if userPhone != "" && h.whatsapp != nil {
+		go func() {
+			message := fmt.Sprintf(
+				"🎉 *Selamat datang di EduVera!*\n\n"+
+					"Akun *%s* sudah aktif!\n\n"+
+					"📌 *Link Dashboard:*\n%s\n\n"+
+					"Silakan login menggunakan email yang sudah didaftarkan.\n\n"+
+					"Butuh bantuan? Balas pesan ini.\n\n"+
+					"_Tim EduVera_",
+				tenant.Name,
+				loginURL,
+			)
+			_ = h.whatsapp.Send(userPhone, message)
+		}()
+	}
 
 	return c.JSON(fiber.Map{
 		"status":    "success",
 		"message":   "Registration complete! Your account is now active.",
 		"subdomain": tenant.Subdomain + ".eduvera.ve-lora.my.id",
-		"login_url": "https://" + tenant.Subdomain + ".eduvera.ve-lora.my.id/login",
+		"login_url": loginURL,
 	})
 }
 

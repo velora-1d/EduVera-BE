@@ -54,4 +54,7 @@ type SekolahHttpPort interface {
 
 	// Laporan
 	GetReportData(c *fiber.Ctx) error
+
+	// Dashboard Stats
+	GetDashboardStats(c *fiber.Ctx) error
 }

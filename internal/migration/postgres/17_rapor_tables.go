@@ -16,7 +16,7 @@ func upRapor(ctx context.Context, tx *sql.Tx) error {
 	// 1. Rapor Periode (e.g. "Ganjil 2023/2024")
 	query := `
 			CREATE TABLE IF NOT EXISTS sekolah_rapor_periode (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				nama VARCHAR(100) NOT NULL, -- e.g. "Ganjil 2023/2024"
 				tanggal_mulai DATE,
@@ -32,7 +32,7 @@ func upRapor(ctx context.Context, tx *sql.Tx) error {
 
 			-- 2. Rapor (The Report Card Header per Santri per Periode)
 			CREATE TABLE IF NOT EXISTS sekolah_rapor (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				periode_id UUID NOT NULL REFERENCES sekolah_rapor_periode(id),
 				santri_id UUID NOT NULL REFERENCES sekolah_siswa(id),
@@ -49,7 +49,7 @@ func upRapor(ctx context.Context, tx *sql.Tx) error {
 
 			-- 3. Rapor Nilai (The specific grades inside the rapor)
 			CREATE TABLE IF NOT EXISTS sekolah_rapor_nilai (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				rapor_id UUID NOT NULL REFERENCES sekolah_rapor(id) ON DELETE CASCADE,
 				kategori VARCHAR(50) NOT NULL, -- Tahfidz, Diniyah, Musyrif, Akademik
 				jenis VARCHAR(100), -- e.g. "Hifdzul Quran", "Fiqih", "Akhlak"

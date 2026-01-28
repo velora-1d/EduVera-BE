@@ -223,3 +223,48 @@ func (a *sekolahAdapter) UpdateProfil(tenantID string, m *model.ProfilUpdate) er
 	}
 	return nil
 }
+
+// ------ Dashboard Stats ------
+
+func (a *sekolahAdapter) GetDashboardStats(tenantID string) (*model.SekolahDashboardStats, error) {
+	stats := &model.SekolahDashboardStats{}
+
+	// 1. Count Siswa
+	q1 := "SELECT COUNT(*) FROM sekolah_siswa WHERE tenant_id = $1"
+	a.db.QueryRow(q1, tenantID).Scan(&stats.TotalSiswa)
+
+	// 2. Count Guru
+	q2 := "SELECT COUNT(*) FROM sekolah_guru WHERE tenant_id = $1"
+	a.db.QueryRow(q2, tenantID).Scan(&stats.TotalGuru)
+
+	// 3. Count Kelas
+	q3 := "SELECT COUNT(*) FROM sekolah_kelas WHERE tenant_id = $1"
+	a.db.QueryRow(q3, tenantID).Scan(&stats.TotalKelas)
+
+	// 4. Count Mapel
+	q4 := "SELECT COUNT(*) FROM sekolah_mapel WHERE tenant_id = $1"
+	a.db.QueryRow(q4, tenantID).Scan(&stats.TotalMapel)
+
+	// 5. Tagihan bulan ini (from spp_bills with current month)
+	q5 := `SELECT COALESCE(SUM(amount), 0) FROM spp_bills 
+		   WHERE tenant_id = $1 
+		   AND billing_month = EXTRACT(MONTH FROM CURRENT_DATE)
+		   AND billing_year = EXTRACT(YEAR FROM CURRENT_DATE)`
+	a.db.QueryRow(q5, tenantID).Scan(&stats.TagihanBulan)
+
+	// 6. Count Lunas
+	q6 := `SELECT COUNT(*) FROM spp_bills 
+		   WHERE tenant_id = $1 AND status = 'paid' 
+		   AND billing_month = EXTRACT(MONTH FROM CURRENT_DATE)
+		   AND billing_year = EXTRACT(YEAR FROM CURRENT_DATE)`
+	a.db.QueryRow(q6, tenantID).Scan(&stats.LunasCount)
+
+	// 7. Count Belum Lunas
+	q7 := `SELECT COUNT(*) FROM spp_bills 
+		   WHERE tenant_id = $1 AND status = 'pending' 
+		   AND billing_month = EXTRACT(MONTH FROM CURRENT_DATE)
+		   AND billing_year = EXTRACT(YEAR FROM CURRENT_DATE)`
+	a.db.QueryRow(q7, tenantID).Scan(&stats.BelumLunas)
+
+	return stats, nil
+}

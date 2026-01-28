@@ -13,10 +13,28 @@ func init() {
 }
 
 func upKepesantrenan(ctx context.Context, tx *sql.Tx) error {
+	// 0. Sekolah Guru (Dependency for Perizinan)
+	if _, err := tx.Exec(`
+		CREATE TABLE IF NOT EXISTS sekolah_guru (
+			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+			tenant_id UUID NOT NULL,
+			nip VARCHAR(50),
+			nama VARCHAR(255) NOT NULL,
+			jenis VARCHAR(50), -- Guru Mapel, Guru Kelas
+			status VARCHAR(50), -- PNS, Honorer
+			created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+			updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+		);
+		CREATE INDEX IF NOT EXISTS idx_sekolah_guru_tenant ON sekolah_guru(tenant_id);
+		CREATE TRIGGER update_sekolah_guru_updated_at BEFORE UPDATE ON sekolah_guru FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+	`); err != nil {
+		return fmt.Errorf("failed to create sekolah_guru: %w", err)
+	}
+
 	// 1. Pelanggaran Aturan (Master Data)
 	query := `
 			CREATE TABLE IF NOT EXISTS sekolah_pelanggaran_aturan (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				judul VARCHAR(255) NOT NULL,
 				kategori VARCHAR(100) NOT NULL,
@@ -37,7 +55,7 @@ func upKepesantrenan(ctx context.Context, tx *sql.Tx) error {
 	// 2. Pelanggaran Siswa (Records)
 	query = `
 			CREATE TABLE IF NOT EXISTS sekolah_pelanggaran_siswa (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				santri_id UUID NOT NULL REFERENCES sekolah_siswa(id),
 				aturan_id UUID REFERENCES sekolah_pelanggaran_aturan(id),
@@ -61,7 +79,7 @@ func upKepesantrenan(ctx context.Context, tx *sql.Tx) error {
 	// 3. Perizinan (Permissions)
 	query = `
 			CREATE TABLE IF NOT EXISTS sekolah_perizinan (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				santri_id UUID NOT NULL REFERENCES sekolah_siswa(id),
 				tipe VARCHAR(50) NOT NULL, -- Izin Pulang, Izin Keluar, Izin Sakit

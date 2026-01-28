@@ -226,6 +226,37 @@ func (h *eraporAdapter) GetStudentRapor(c *fiber.Ctx) error {
 	})
 }
 
+// POST /api/v1/sekolah/erapor/generate
+func (h *eraporAdapter) GenerateRapor(c *fiber.Ctx) error {
+	ctx := context.Background()
+	tenantID := c.Locals("tenant_id").(string)
+
+	var input struct {
+		StudentID   string `json:"student_id"`
+		SemesterID  string `json:"semester_id"`
+		CatatanWali string `json:"catatan_wali"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	rapor, err := h.domain.ERapor().GenerateRapor(ctx, tenantID, input.StudentID, input.SemesterID, input.CatatanWali)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal generate rapor: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Rapor berhasil digenerate",
+		"data":    rapor,
+	})
+}
+
 // GET /api/v1/sekolah/erapor/stats
 func (h *eraporAdapter) GetStats(c *fiber.Ctx) error {
 	ctx := context.Background()

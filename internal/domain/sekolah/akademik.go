@@ -58,6 +58,8 @@ type AkademikDomain interface {
 	UpdateProfil(ctx context.Context, tenantID string, m *model.ProfilUpdate) error
 	// Laporan
 	GetReportData(ctx context.Context, tenantID string, req model.ReportRequest) ([]model.ReportData, error)
+	// Dashboard Stats
+	GetDashboardStats(ctx context.Context, tenantID string) (*model.SekolahDashboardStats, error)
 }
 
 // Implementation
@@ -237,4 +239,10 @@ func (d *akademikDomain) UpdateProfil(ctx context.Context, tenantID string, m *m
 
 func (d *akademikDomain) GetReportData(ctx context.Context, tenantID string, req model.ReportRequest) ([]model.ReportData, error) {
 	return d.databasePort.Sekolah().GetReportData(tenantID, req)
+}
+
+// ------ Dashboard Stats Implementation ------
+
+func (d *akademikDomain) GetDashboardStats(ctx context.Context, tenantID string) (*model.SekolahDashboardStats, error) {
+	return d.databasePort.Sekolah().GetDashboardStats(tenantID)
 }

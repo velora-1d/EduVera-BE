@@ -15,3 +15,15 @@ type DashboardStats struct {
 	IncomeMonth  float64 `json:"income_month"`  // Pemasukan bulan ini
 	ExpenseMonth float64 `json:"expense_month"` // Pengeluaran bulan ini
 }
+
+// SekolahDashboardStats holds statistics for Sekolah dashboard
+type SekolahDashboardStats struct {
+	TotalSiswa   int64   `json:"total_siswa"`
+	TotalGuru    int64   `json:"total_guru"`
+	TotalKelas   int64   `json:"total_kelas"`
+	TagihanBulan float64 `json:"tagihan_bulan"` // Tagihan SPP bulan ini
+	LunasCount   int64   `json:"lunas_count"`   // Jumlah yang sudah lunas
+	BelumLunas   int64   `json:"belum_lunas"`   // Jumlah yang belum lunas
+	TotalMapel   int64   `json:"total_mapel"`
+	TotalJurusan int64   `json:"total_jurusan"`
+}

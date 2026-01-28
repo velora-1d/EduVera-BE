@@ -16,7 +16,7 @@ func upTahfidz(ctx context.Context, tx *sql.Tx) error {
 	// 1. Tahfidz Setoran (Records of Memorization)
 	query := `
 			CREATE TABLE IF NOT EXISTS sekolah_tahfidz_setoran (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				santri_id UUID NOT NULL REFERENCES sekolah_siswa(id),
 				ustadz_id UUID REFERENCES sekolah_guru(id),

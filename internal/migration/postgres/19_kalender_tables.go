@@ -15,7 +15,7 @@ func init() {
 func upKalender(ctx context.Context, tx *sql.Tx) error {
 	query := `
 			CREATE TABLE IF NOT EXISTS sekolah_kalender (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				title VARCHAR(255) NOT NULL,
 				start_date DATE NOT NULL,

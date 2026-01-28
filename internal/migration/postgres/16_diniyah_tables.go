@@ -16,7 +16,7 @@ func upDiniyah(ctx context.Context, tx *sql.Tx) error {
 	// 1. Diniyah Kitab (Subject/Book)
 	query := `
 			CREATE TABLE IF NOT EXISTS sekolah_diniyah_kitab (
-				id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 				tenant_id UUID NOT NULL,
 				nama_kitab VARCHAR(255) NOT NULL,
 				bidang_studi VARCHAR(100), -- Fiqih, Nahwu, Akhlak

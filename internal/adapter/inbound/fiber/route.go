@@ -208,6 +208,11 @@ func InitRoute(
 		return port.Middleware().ClientAuth(c)
 	})
 
+	// Dashboard Stats
+	sekolah.Get("/dashboard/stats", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetDashboardStats(c)
+	})
+
 	// Akademik
 	akademik := sekolah.Group("/akademik")
 	akademik.Get("/siswa", func(c *fiber.Ctx) error {
@@ -344,6 +349,9 @@ func InitRoute(
 	// Rapor
 	erapor.Get("/rapor/:student_id/:semester", func(c *fiber.Ctx) error {
 		return port.ERapor().GetStudentRapor(c)
+	})
+	erapor.Post("/generate", func(c *fiber.Ctx) error {
+		return port.ERapor().GenerateRapor(c)
 	})
 
 	// Stats

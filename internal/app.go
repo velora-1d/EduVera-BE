@@ -49,8 +49,9 @@ var inboundMessageDriver string
 var inboundWorkflowDriver string
 
 type App struct {
-	ctx    context.Context
-	domain domain.Domain
+	ctx     context.Context
+	domain  domain.Domain
+	message outbound_port.MessagePort
 }
 
 func NewApp() *App {
@@ -65,16 +66,19 @@ func NewApp() *App {
 	inboundHttpDriver = os.Getenv("INBOUND_HTTP_DRIVER")
 	inboundMessageDriver = os.Getenv("INBOUND_MESSAGE_DRIVER")
 	inboundWorkflowDriver = os.Getenv("INBOUND_WORKFLOW_DRIVER")
+
+	messagePort := messageOutbound(ctx)
 	domain := domain.NewDomain(
 		databaseOutbound(ctx),
-		messageOutbound(ctx),
+		messagePort,
 		cacheOutbound(ctx),
 		workflowOutbound(ctx),
 	)
 
 	return &App{
-		ctx:    ctx,
-		domain: domain,
+		ctx:     ctx,
+		domain:  domain,
+		message: messagePort,
 	}
 }
 
@@ -191,7 +195,7 @@ func (a *App) httpInbound() {
 		app := fiber.New(fiber.Config{
 			Views: engine,
 		})
-		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain)
+		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain, a.message)
 		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter)
 		go func() {
 			port := os.Getenv("SERVER_PORT")

@@ -53,4 +53,7 @@ type SekolahPort interface {
 
 	// Laporan
 	GetReportData(tenantID string, req model.ReportRequest) ([]model.ReportData, error)
+
+	// Dashboard Stats
+	GetDashboardStats(tenantID string) (*model.SekolahDashboardStats, error)
 }

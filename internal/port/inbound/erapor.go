@@ -18,6 +18,7 @@ type ERaporHttpPort interface {
 
 	// Rapor
 	GetStudentRapor(c *fiber.Ctx) error
+	GenerateRapor(c *fiber.Ctx) error
 
 	// Stats
 	GetStats(c *fiber.Ctx) error

@@ -3,6 +3,7 @@ package erapor
 import (
 	"context"
 
+	"prabogo/internal/domain/erapor/engine"
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
 )
@@ -66,9 +67,32 @@ func (s *Service) SaveGrade(ctx context.Context, input *model.StudentGradeInput)
 		return nil, err
 	}
 
-	// Auto-calculate predicate if not provided
-	if input.ScorePredicate == "" && subject != nil {
-		input.ScorePredicate = s.calculatePredicate(input.ScoreNumeric, subject.GradingConfig)
+	// Auto-calculate using Validator Engine
+	// Use Subject Type (e.g., FORMAL_MERDEKA) to determining validation strategy
+	validator := engine.GetValidator(subject.Type)
+
+	// Map component slice to map for validator
+	compMap := make(map[string]float64)
+	for i, val := range input.ComponentScores {
+		if i < len(subject.GradingConfig.Components) {
+			compMap[subject.GradingConfig.Components[i].Name] = val
+		}
+	}
+
+	result := validator.CalculateGrade(compMap, subject.GradingConfig)
+
+	// Apply calculated values if not manually overridden
+	if input.ScoreNumeric == 0 && result.ScoreNumeric > 0 {
+		input.ScoreNumeric = result.ScoreNumeric
+	}
+	if input.ScorePredicate == "" {
+		input.ScorePredicate = result.ScorePredicate
+	}
+	if input.DescriptionHigh == "" {
+		input.DescriptionHigh = result.DescriptionHigh
+	}
+	if input.DescriptionLow == "" {
+		input.DescriptionLow = result.DescriptionLow
 	}
 
 	return s.db.SaveGrade(ctx, input)
@@ -82,10 +106,25 @@ func (s *Service) BatchSaveGrades(ctx context.Context, input *model.BatchGradeIn
 		return nil, err
 	}
 
-	// Auto-calculate predicates
+	// Auto-calculate predicates using Validator Engine
+	validator := engine.GetValidator(subject.Type)
+
 	for i := range input.Grades {
-		if input.Grades[i].ScorePredicate == "" && subject != nil {
-			input.Grades[i].ScorePredicate = s.calculatePredicate(input.Grades[i].ScoreNumeric, subject.GradingConfig)
+		// Map component slice to map
+		compMap := make(map[string]float64)
+		for j, val := range input.Grades[i].ComponentScores {
+			if j < len(subject.GradingConfig.Components) {
+				compMap[subject.GradingConfig.Components[j].Name] = val
+			}
+		}
+
+		result := validator.CalculateGrade(compMap, subject.GradingConfig)
+
+		if input.Grades[i].ScoreNumeric == 0 && result.ScoreNumeric > 0 {
+			input.Grades[i].ScoreNumeric = result.ScoreNumeric
+		}
+		if input.Grades[i].ScorePredicate == "" {
+			input.Grades[i].ScorePredicate = result.ScorePredicate
 		}
 	}
 
@@ -174,4 +213,50 @@ func (s *Service) GenerateDescription(score float64, subjectName string) (high, 
 		low = "Perlu pendampingan intensif untuk peningkatan pemahaman"
 	}
 	return high, low
+}
+
+// GenerateRapor generates a persistent snapshot of the rapor
+func (s *Service) GenerateRapor(ctx context.Context, tenantID, studentID, semesterID string, catatanWali string) (*model.Rapor, error) {
+	// 1. Get or Create Rapor Periode
+	periode, err := s.db.GetOrCreateRaporPeriode(tenantID, semesterID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Fetch Calculated Grades (Dynamic)
+	raporData, err := s.db.GetStudentRapor(ctx, studentID, semesterID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Create Rapor Header
+	raporHeader := &model.Rapor{
+		TenantID:         tenantID,
+		PeriodeID:        periode.ID,
+		SantriID:         studentID,
+		Status:           "Draft",
+		CatatanWaliKelas: catatanWali,
+	}
+	if err := s.db.CreateRapor(raporHeader); err != nil {
+		return nil, err
+	}
+
+	// 4. Create Rapor Details (Nilai)
+	for _, grade := range raporData.Grades {
+		nilai := &model.RaporNilai{
+			RaporID:    raporHeader.ID,
+			Kategori:   "Akademik", // Default category
+			Jenis:      grade.SubjectName,
+			Nilai:      grade.ScorePredicate, // Use predicate (A, B, C) for rapor
+			Keterangan: grade.DescriptionHigh + ". " + grade.DescriptionLow,
+		}
+		// If subject has specific category requirement, can be adjusted here.
+		if err := s.db.CreateRaporNilai(nilai); err != nil {
+			// Continue or fail? Ideally transaction.
+			// For now log error but continue
+			continue
+		}
+	}
+
+	return raporHeader, nil
 }

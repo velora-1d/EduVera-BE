@@ -5,17 +5,21 @@ import (
 	"prabogo/internal/adapter/inbound/fiber/sekolah"
 	"prabogo/internal/domain"
 	inbound_port "prabogo/internal/port/inbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type adapter struct {
-	domain domain.Domain
+	domain  domain.Domain
+	message outbound_port.MessagePort
 }
 
 func NewAdapter(
 	domain domain.Domain,
+	message outbound_port.MessagePort,
 ) inbound_port.HttpPort {
 	return &adapter{
-		domain: domain,
+		domain:  domain,
+		message: message,
 	}
 }
 
@@ -36,7 +40,11 @@ func (s *adapter) Landing() inbound_port.LandingHttpPort {
 }
 
 func (s *adapter) Onboarding() inbound_port.OnboardingHttpPort {
-	return NewOnboardingAdapter(s.domain)
+	var whatsapp outbound_port.WhatsAppMessagePort
+	if s.message != nil && s.message.WhatsApp() != nil {
+		whatsapp = s.message.WhatsApp()
+	}
+	return NewOnboardingAdapter(s.domain, whatsapp)
 }
 
 func (s *adapter) Auth() inbound_port.AuthHttpPort {
@@ -44,7 +52,11 @@ func (s *adapter) Auth() inbound_port.AuthHttpPort {
 }
 
 func (s *adapter) Payment() inbound_port.PaymentHttpPort {
-	return NewPaymentAdapter(s.domain)
+	var whatsapp outbound_port.WhatsAppMessagePort
+	if s.message != nil && s.message.WhatsApp() != nil {
+		whatsapp = s.message.WhatsApp()
+	}
+	return NewPaymentAdapter(s.domain, whatsapp)
 }
 
 func (s *adapter) Owner() inbound_port.OwnerHttpPort {

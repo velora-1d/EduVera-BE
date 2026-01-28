@@ -2,23 +2,28 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 
 	"prabogo/internal/domain"
 	"prabogo/internal/model"
 	inbound_port "prabogo/internal/port/inbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 type paymentAdapter struct {
 	domainRegistry domain.Domain
+	whatsapp       outbound_port.WhatsAppMessagePort
 }
 
 func NewPaymentAdapter(
 	domainRegistry domain.Domain,
+	whatsapp outbound_port.WhatsAppMessagePort,
 ) inbound_port.PaymentHttpPort {
 	return &paymentAdapter{
 		domainRegistry: domainRegistry,
+		whatsapp:       whatsapp,
 	}
 }
 
@@ -97,8 +102,38 @@ func (a *paymentAdapter) Webhook(c *fiber.Ctx) error {
 			// Renew subscription
 			if err := a.domainRegistry.Subscription().RenewSubscription(ctx, payment.TenantID, notification.OrderID); err != nil {
 				// Log error but don't fail the webhook response
-				// In real world, we might want to alert admin
-				// log.Printf("Failed to renew subscription for tenant %s: %v", payment.TenantID, err)
+			}
+
+			// Get tenant info for notification
+			tenant, tenantErr := a.domainRegistry.Tenant().FindByID(ctx, payment.TenantID)
+			if tenantErr == nil && tenant != nil && a.whatsapp != nil {
+				// Get admin user phone from tenant (find owner)
+				users, _ := a.domainRegistry.Auth().GetCurrentUser(ctx, "")
+				// For now, use tenant-level notification if we have contact
+				// TODO: Get owner phone from users table
+
+				// Send WhatsApp notification (use payment email as fallback lookup)
+				if users != nil && users.WhatsApp != "" {
+					go func() {
+						loginURL := "https://" + tenant.Subdomain + ".eduvera.ve-lora.my.id/login"
+						amountStr := fmt.Sprintf("Rp %d", payment.Amount)
+
+						message := fmt.Sprintf(
+							"✅ *Pembayaran Berhasil!*\n\n"+
+								"Terima kasih! Pembayaran untuk *%s* telah kami terima.\n\n"+
+								"💰 *Total:* %s\n"+
+								"📋 *Order ID:* %s\n\n"+
+								"Langganan Anda sudah aktif!\n\n"+
+								"📌 *Dashboard:*\n%s\n\n"+
+								"_Tim EduVera_",
+							tenant.Name,
+							amountStr,
+							payment.OrderID,
+							loginURL,
+						)
+						_ = a.whatsapp.Send(users.WhatsApp, message)
+					}()
+				}
 			}
 		}
 	}
