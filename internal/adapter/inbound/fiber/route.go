@@ -111,6 +111,12 @@ func InitRoute(
 	ownerProtected.Get("/tenants", func(c *fiber.Ctx) error {
 		return port.Owner().GetTenants(c)
 	})
+	ownerProtected.Get("/tenants/:id", func(c *fiber.Ctx) error {
+		return port.Owner().GetTenantDetail(c)
+	})
+	ownerProtected.Put("/tenants/:id/status", func(c *fiber.Ctx) error {
+		return port.Owner().UpdateTenantStatus(c)
+	})
 	ownerProtected.Get("/stats", func(c *fiber.Ctx) error {
 		return port.Owner().GetStats(c)
 	})

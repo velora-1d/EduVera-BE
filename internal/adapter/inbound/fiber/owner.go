@@ -130,3 +130,57 @@ func (h *ownerAdapter) GetStats(c *fiber.Ctx) error {
 		"total_revenue":  totalRevenue,
 	})
 }
+
+// GET /api/v1/owner/tenants/:id
+func (h *ownerAdapter) GetTenantDetail(c *fiber.Ctx) error {
+	ctx := context.Background()
+	id := c.Params("id")
+
+	tenant, err := h.domain.Tenant().FindByID(ctx, id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Tenant not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"data": tenant,
+	})
+}
+
+// PUT /api/v1/owner/tenants/:id/status
+func (h *ownerAdapter) UpdateTenantStatus(c *fiber.Ctx) error {
+	ctx := context.Background()
+	id := c.Params("id")
+
+	var input struct {
+		Status string `json:"status"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	// Validate status
+	if input.Status != model.TenantStatusActive &&
+		input.Status != model.TenantStatusPending &&
+		input.Status != model.TenantStatusSuspended {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid status. Must be: active, pending, or suspended",
+		})
+	}
+
+	err := h.domain.Tenant().UpdateStatus(ctx, id, input.Status)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Status updated successfully",
+		"status":  input.Status,
+	})
+}

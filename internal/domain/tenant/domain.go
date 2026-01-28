@@ -16,6 +16,7 @@ type TenantDomain interface {
 	SubdomainExists(ctx context.Context, subdomain string) (bool, error)
 	UpdateInstitution(ctx context.Context, id string, input *model.TenantInput) error
 	UpdateBankAccount(ctx context.Context, id string, bankName, accountNumber, accountHolder string) error
+	UpdateStatus(ctx context.Context, id string, status string) error
 	Activate(ctx context.Context, id string) error
 	GetAll(ctx context.Context) ([]model.Tenant, error)
 }
@@ -93,6 +94,10 @@ func (d *tenantDomain) UpdateBankAccount(ctx context.Context, id string, bankNam
 	tenant.AccountHolder = accountHolder
 
 	return d.databasePort.Tenant().Update(tenant)
+}
+
+func (d *tenantDomain) UpdateStatus(ctx context.Context, id string, status string) error {
+	return d.databasePort.Tenant().UpdateStatus(id, status)
 }
 
 func (d *tenantDomain) Activate(ctx context.Context, id string) error {
