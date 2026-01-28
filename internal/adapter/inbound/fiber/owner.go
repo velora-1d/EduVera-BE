@@ -179,6 +179,19 @@ func (h *ownerAdapter) UpdateTenantStatus(c *fiber.Ctx) error {
 		})
 	}
 
+	// Log Admin Action
+	_ = h.domain.AuditLog().LogAction(ctx, &model.AuditLogInput{
+		AdminID:     "owner-super-admin",
+		AdminEmail:  "owner@eduvera.id",
+		Action:      model.AuditActionTenantStatusUpdate,
+		TargetType:  "tenant",
+		TargetID:    id,
+		NewValue:    input.Status,
+		IPAddress:   c.IP(),
+		UserAgent:   string(c.Request().Header.UserAgent()),
+		Description: "Tenant status updated to " + input.Status,
+	})
+
 	return c.JSON(fiber.Map{
 		"message": "Status updated successfully",
 		"status":  input.Status,
@@ -273,6 +286,19 @@ func (h *ownerAdapter) ApproveDisbursement(c *fiber.Ctx) error {
 		})
 	}
 
+	// Log Admin Action
+	_ = h.domain.AuditLog().LogAction(ctx, &model.AuditLogInput{
+		AdminID:     "owner-super-admin",
+		AdminEmail:  "owner@eduvera.id",
+		Action:      model.AuditActionDisbursementApprove,
+		TargetType:  "disbursement",
+		TargetID:    id,
+		NewValue:    "approved",
+		IPAddress:   c.IP(),
+		UserAgent:   string(c.Request().Header.UserAgent()),
+		Description: "Disbursement approved",
+	})
+
 	return c.JSON(fiber.Map{
 		"message": "Disbursement approved successfully",
 		"id":      id,
@@ -295,6 +321,19 @@ func (h *ownerAdapter) RejectDisbursement(c *fiber.Ctx) error {
 			"error": err.Error(),
 		})
 	}
+
+	// Log Admin Action
+	_ = h.domain.AuditLog().LogAction(ctx, &model.AuditLogInput{
+		AdminID:     "owner-super-admin",
+		AdminEmail:  "owner@eduvera.id",
+		Action:      model.AuditActionDisbursementReject,
+		TargetType:  "disbursement",
+		TargetID:    id,
+		NewValue:    "rejected: " + input.Reason,
+		IPAddress:   c.IP(),
+		UserAgent:   string(c.Request().Header.UserAgent()),
+		Description: "Disbursement rejected with reason: " + input.Reason,
+	})
 
 	return c.JSON(fiber.Map{
 		"message": "Disbursement rejected",

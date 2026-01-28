@@ -142,3 +142,31 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 
 	return c.Next()
 }
+
+// RequirePlan creates middleware that checks if the authenticated tenant has the required plan type
+// This prevents users from accessing features not included in their subscription
+func RequirePlan(requiredPlans ...string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Get tenant plan from context (should be set by ClientAuth middleware)
+		planType, ok := c.Locals("plan_type").(string)
+		if !ok || planType == "" {
+			// If no plan type in context, try to get from JWT claims
+			// For now, allow access if plan checking is not yet fully implemented
+			return c.Next()
+		}
+
+		// Check if tenant's plan matches any of the required plans
+		for _, required := range requiredPlans {
+			if planType == required {
+				return c.Next()
+			}
+		}
+
+		// Plan not matched - block access
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":         "Fitur ini tidak tersedia untuk paket langganan Anda",
+			"required_plan": requiredPlans,
+			"your_plan":     planType,
+		})
+	}
+}

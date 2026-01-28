@@ -15,6 +15,7 @@ type DatabasePort interface {
 	SPP() SPPDatabasePort
 	Notification() NotificationDatabasePort
 	Sekolah() SekolahPort
+	AuditLog() AuditLogDatabasePort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }
 

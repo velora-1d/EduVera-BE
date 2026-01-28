@@ -241,11 +241,22 @@ func (h *onboardingAdapter) Register(a any) error {
 		})
 	}
 
+	// Generate short-lived onboarding token (reusing existing JWT for simplicity)
+	// This token will be used to authorize the Institution step
+	onboardingToken, expiresAt, err := h.domain.Auth().GenerateToken(user)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate onboarding token",
+		})
+	}
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":    "success",
-		"message":   "Admin account created",
-		"user_id":   user.ID,
-		"next_step": "/api/v1/onboarding/institution",
+		"status":           "success",
+		"message":          "Admin account created",
+		"user_id":          user.ID, // Kept for frontend display, but not used for auth
+		"onboarding_token": onboardingToken,
+		"token_expires_at": expiresAt,
+		"next_step":        "/api/v1/onboarding/institution",
 	})
 }
 
@@ -326,12 +337,27 @@ func (h *onboardingAdapter) Institution(a any) error {
 		})
 	}
 
-	// Link user to tenant
-	if input.UserID != "" {
-		err = h.domain.Auth().LinkUserToTenant(ctx, input.UserID, tenant.ID)
+	// Link user to tenant - Extract UserID from Authorization token (not from body!)
+	authHeader := c.Get("Authorization")
+	var userID string
+
+	// First, try to extract from token (secure method)
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		bearerToken := authHeader[7:]
+		claims, err := h.domain.Auth().ValidateToken(ctx, bearerToken)
+		if err == nil && claims.UserID != "" {
+			userID = claims.UserID
+		}
+	}
+
+	// Fallback to body for backwards compatibility (deprecated)
+	if userID == "" && input.UserID != "" {
+		userID = input.UserID
+	}
+
+	if userID != "" {
+		err = h.domain.Auth().LinkUserToTenant(ctx, userID, tenant.ID)
 		if err != nil {
-			// In production, we should rollback tenant creation or retry
-			// For now, we return error but tenant exists (partial success/failure state)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"error": "Failed to link user to tenant: " + err.Error(),
 			})

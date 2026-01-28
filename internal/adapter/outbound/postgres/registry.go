@@ -119,3 +119,7 @@ func (s *adapter) Sekolah() outbound_port.SekolahPort {
 	}
 	return NewSekolahAdapter(s.db)
 }
+
+func (s *adapter) AuditLog() outbound_port.AuditLogDatabasePort {
+	return NewAuditLogAdapter(s.db)
+}

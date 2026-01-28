@@ -163,7 +163,9 @@ func InitRoute(
 	})
 
 	// Pesantren / Tenant Routes
+	// Feature Gating: Only allow pesantren and hybrid plans
 	pesantren := api.Group("/pesantren")
+	pesantren.Use(RequirePlan("pesantren", "hybrid"))
 	pesantren.Get("/dashboard/stats", func(c *fiber.Ctx) error {
 		return port.PesantrenDashboard().GetStats(c)
 	})

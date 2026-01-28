@@ -1,6 +1,7 @@
 package domain
 
 import (
+	audit_log_domain "eduvera/internal/domain/audit_log"
 	"eduvera/internal/domain/auth"
 	"eduvera/internal/domain/client"
 	"eduvera/internal/domain/content"
@@ -26,6 +27,7 @@ type Domain interface {
 	PesantrenDashboard() dashboard.Service
 	Notification() notification_domain.Service
 	Sekolah() sekolah.AkademikDomain
+	AuditLog() audit_log_domain.Service
 }
 
 type domain struct {
@@ -88,4 +90,8 @@ func (d *domain) Notification() notification_domain.Service {
 
 func (d *domain) Sekolah() sekolah.AkademikDomain {
 	return sekolah.NewAkademikDomain(d.databasePort)
+}
+
+func (d *domain) AuditLog() audit_log_domain.Service {
+	return audit_log_domain.NewService(d.databasePort.AuditLog())
 }
