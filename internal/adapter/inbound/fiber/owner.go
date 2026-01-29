@@ -30,7 +30,7 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			"error": "Data tidak valid. Silakan coba lagi.",
 		})
 	}
 
@@ -41,13 +41,13 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 	if envEmail == "" || envPassword == "" {
 		// Fallback for safety if env not set
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Owner credentials not configured",
+			"error": "Konfigurasi owner belum diatur. Hubungi administrator.",
 		})
 	}
 
 	if input.Email != envEmail || input.Password != envPassword {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid email or password",
+			"error": "Email atau password salah. Silakan coba lagi.",
 		})
 	}
 
@@ -64,7 +64,7 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 	token, expiresAt, err := h.domain.Auth().GenerateToken(ownerUser)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generate token",
+			"error": "Gagal membuat token. Silakan coba lagi.",
 		})
 	}
 
@@ -82,7 +82,7 @@ func (h *ownerAdapter) GetTenants(c *fiber.Ctx) error {
 	tenants, err := h.domain.Tenant().GetAll(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal memuat data tenant. " + err.Error(),
 		})
 	}
 
@@ -98,7 +98,7 @@ func (h *ownerAdapter) GetStats(c *fiber.Ctx) error {
 	tenants, err := h.domain.Tenant().GetAll(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal memuat statistik. " + err.Error(),
 		})
 	}
 
@@ -139,7 +139,7 @@ func (h *ownerAdapter) GetTenantDetail(c *fiber.Ctx) error {
 	tenant, err := h.domain.Tenant().FindByID(ctx, id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Tenant not found",
+			"error": "Tenant tidak ditemukan.",
 		})
 	}
 
@@ -159,7 +159,7 @@ func (h *ownerAdapter) UpdateTenantStatus(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			"error": "Data tidak valid. Silakan coba lagi.",
 		})
 	}
 
@@ -168,14 +168,14 @@ func (h *ownerAdapter) UpdateTenantStatus(c *fiber.Ctx) error {
 		input.Status != model.TenantStatusPending &&
 		input.Status != model.TenantStatusSuspended {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid status. Must be: active, pending, or suspended",
+			"error": "Status tidak valid. Pilih: active, pending, atau suspended",
 		})
 	}
 
 	err := h.domain.Tenant().UpdateStatus(ctx, id, input.Status)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal mengubah status tenant. " + err.Error(),
 		})
 	}
 

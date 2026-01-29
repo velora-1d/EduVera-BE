@@ -25,14 +25,14 @@ func (h *sppAdapter) List(c *fiber.Ctx) error {
 	tenantID := c.Query("tenant_id")
 	if tenantID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "tenant_id is required",
+			"error": "ID tenant wajib diisi.",
 		})
 	}
 
 	transactions, err := h.domain.SPP().ListByTenant(ctx, tenantID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal memuat data SPP. " + err.Error(),
 		})
 	}
 
@@ -55,7 +55,7 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			"error": "Data tidak valid. Silakan coba lagi.",
 		})
 	}
 
@@ -69,7 +69,7 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 
 	if err := h.domain.SPP().Create(ctx, spp); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal membuat tagihan SPP. " + err.Error(),
 		})
 	}
 
@@ -91,7 +91,7 @@ func (h *sppAdapter) RecordPayment(c *fiber.Ctx) error {
 
 	if err := h.domain.SPP().RecordPayment(ctx, id, input.PaymentMethod); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal mencatat pembayaran. " + err.Error(),
 		})
 	}
 

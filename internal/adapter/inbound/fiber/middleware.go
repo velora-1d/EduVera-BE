@@ -47,7 +47,7 @@ func (h *middlewareAdapter) OwnerAuth(a any) error {
 
 	if bearerToken == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Unauthorized",
+			"error": "Sesi Anda telah berakhir. Silakan login kembali.",
 		})
 	}
 
@@ -55,14 +55,14 @@ func (h *middlewareAdapter) OwnerAuth(a any) error {
 	claims, err := h.domain.Auth().ValidateToken(ctx, bearerToken)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid token",
+			"error": "Token tidak valid. Silakan login kembali.",
 		})
 	}
 
 	// Check Role
 	if claims.Role != model.RoleSuperAdmin {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-			"error": "Forbidden: Owner access required",
+			"error": "Anda tidak memiliki akses ke halaman ini.",
 		})
 	}
 
@@ -83,13 +83,13 @@ func (h *middlewareAdapter) InternalAuth(a any) error {
 
 	if bearerToken == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Unauthorized",
+			"error": "Akses ditolak. Token tidak ditemukan.",
 		})
 	}
 
 	if bearerToken != os.Getenv("INTERNAL_KEY") {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Unauthorized",
+			"error": "Akses ditolak. Token tidak valid.",
 		})
 	}
 
@@ -108,7 +108,7 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 	if bearerToken == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 			Success: false,
-			Error:   "Unauthorized",
+			Error:   "Sesi Anda telah berakhir. Silakan login kembali.",
 		})
 	}
 
@@ -120,7 +120,7 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 				Success: false,
-				Error:   "Unauthorized: " + err.Error(),
+				Error:   "Token tidak valid. Silakan login kembali.",
 			})
 		}
 	} else {
@@ -135,7 +135,7 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 		if !exists {
 			return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 				Success: false,
-				Error:   "Unauthorized",
+				Error:   "Akses ditolak. Silakan login kembali.",
 			})
 		}
 	}

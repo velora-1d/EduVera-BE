@@ -29,20 +29,20 @@ func (h *authAdapter) Login(a any) error {
 	var input model.LoginInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			"error": "Data tidak valid. Silakan coba lagi.",
 		})
 	}
 
 	if input.Email == "" || input.Password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Email and password are required",
+			"error": "Email dan password wajib diisi.",
 		})
 	}
 
 	response, err := h.domain.Auth().Login(ctx, &input)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Email atau password salah. Silakan coba lagi.",
 		})
 	}
 
@@ -64,28 +64,28 @@ func (h *authAdapter) Me(a any) error {
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Authorization header required",
+			"error": "Sesi Anda telah berakhir. Silakan login kembali.",
 		})
 	}
 
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenString == authHeader {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid authorization header format",
+			"error": "Format authorization tidak valid.",
 		})
 	}
 
 	claims, err := h.domain.Auth().ValidateToken(ctx, tokenString)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid or expired token",
+			"error": "Sesi Anda telah berakhir. Silakan login kembali.",
 		})
 	}
 
 	user, err := h.domain.Auth().GetCurrentUser(ctx, claims.UserID)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
+			"error": "Data pengguna tidak ditemukan.",
 		})
 	}
 
