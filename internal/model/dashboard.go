@@ -9,6 +9,7 @@ type DashboardStats struct {
 	// Status Kepesantrenan
 	AttendanceRate   float64 `json:"attendance_rate"`   // Percentage
 	ActiveViolations int64   `json:"active_violations"` // Pelanggaran yang belum selesai
+	ActivePerizinan  int64   `json:"active_perizinan"`  // Perizinan yang sedang berjalan
 
 	// Financial
 	CashBalance  float64 `json:"cash_balance"`

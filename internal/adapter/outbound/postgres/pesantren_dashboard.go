@@ -76,11 +76,40 @@ func (a *pesantrenDashboardAdapter) GetDashboardStats(ctx context.Context, tenan
 
 	stats.CashBalance = stats.IncomeMonth - stats.ExpenseMonth
 
-	// 5. Asrama (Pending table)
-	stats.TotalAsrama = 0
+	// 5. Total Asrama
+	queryAsrama, _, _ := dialect.From("pesantren_asrama").
+		Where(goqu.Ex{"tenant_id": tenantID}).
+		Select(goqu.COUNT("*")).ToSQL()
 
-	// 6. Attendance (Pending table logic)
-	stats.AttendanceRate = 95.0 // Mock for now until attendance logic refined
+	if err := a.db.QueryRow(queryAsrama).Scan(&stats.TotalAsrama); err != nil && err != sql.ErrNoRows {
+		// If table doesn't exist, just set to 0
+		stats.TotalAsrama = 0
+	}
+
+	// 6. Active Violations (not completed)
+	queryViolations, _, _ := dialect.From("sekolah_pelanggaran_siswa").
+		Where(goqu.Ex{"tenant_id": tenantID}).
+		Where(goqu.C("status").Neq("selesai")).
+		Select(goqu.COUNT("*")).ToSQL()
+
+	if err := a.db.QueryRow(queryViolations).Scan(&stats.ActiveViolations); err != nil && err != sql.ErrNoRows {
+		stats.ActiveViolations = 0
+	}
+
+	// 7. Perizinan Berjalan (approved but not returned)
+	queryPerizinan, _, _ := dialect.From("sekolah_perizinan_siswa").
+		Where(goqu.Ex{"tenant_id": tenantID, "status": "approved"}).
+		Select(goqu.COUNT("*")).ToSQL()
+
+	if err := a.db.QueryRow(queryPerizinan).Scan(&stats.ActivePerizinan); err != nil && err != sql.ErrNoRows {
+		stats.ActivePerizinan = 0
+	}
+
+	// 8. Attendance Rate - count present today vs total santri
+	// For now, calculate based on mock until attendance table is ready
+	if stats.TotalSantri > 0 {
+		stats.AttendanceRate = 95.0 // Default until attendance module is complete
+	}
 
 	return stats, nil
 }

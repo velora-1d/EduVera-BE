@@ -40,7 +40,7 @@ func TestClientAdapter(t *testing.T) {
 		mockWorkflowPort.EXPECT().Client().Return(mockClientWorkflowPort).AnyTimes()
 
 		dom := domain.NewDomain(mockDatabasePort, mockMessagePort, mockCachePort, mockWorkflowPort)
-		adapter := fiber_inbound_adapter.NewAdapter(dom)
+		adapter := fiber_inbound_adapter.NewAdapter(dom, mockMessagePort)
 
 		app := fiber.New()
 		app.Post("/client-upsert", func(c *fiber.Ctx) error {

@@ -280,3 +280,82 @@ func (h *eraporAdapter) GetStats(c *fiber.Ctx) error {
 		"data": stats,
 	})
 }
+
+// GET /api/v1/sekolah/erapor/curriculum
+func (h *eraporAdapter) GetCurriculum(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+
+	profil, err := h.domain.Sekolah().GetProfil(c.Context(), tenantID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal mengambil data profil",
+		})
+	}
+
+	curriculum := "K13" // Default
+	if profil != nil && profil.Curriculum != "" {
+		curriculum = profil.Curriculum
+	}
+
+	return c.JSON(fiber.Map{
+		"data": fiber.Map{
+			"curriculum": curriculum,
+		},
+	})
+}
+
+// PUT /api/v1/sekolah/erapor/curriculum
+func (h *eraporAdapter) SetCurriculum(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+
+	var input struct {
+		Curriculum string `json:"curriculum"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	// Validate curriculum value
+	validCurriculums := map[string]bool{"K13": true, "MERDEKA": true, "PESANTREN": true}
+	if !validCurriculums[input.Curriculum] {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Curriculum harus K13, MERDEKA, atau PESANTREN",
+		})
+	}
+
+	// Update profil
+	update := &model.ProfilUpdate{
+		Curriculum: input.Curriculum,
+	}
+	if err := h.domain.Sekolah().UpdateProfil(c.Context(), tenantID, update); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal menyimpan setting curriculum",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Curriculum berhasil diupdate",
+		"data": fiber.Map{
+			"curriculum": input.Curriculum,
+		},
+	})
+}
+
+// GET /api/v1/sekolah/erapor/rapor/history
+func (h *eraporAdapter) GetRaporHistory(c *fiber.Ctx) error {
+	tenantID := c.Locals("tenant_id").(string)
+
+	rapors, err := h.domain.Sekolah().GetRaporList(c.Context(), tenantID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal mengambil riwayat rapor",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"data": rapors,
+	})
+}

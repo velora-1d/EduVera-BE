@@ -188,14 +188,19 @@ func (a *sekolahAdapter) getProfilSafe(tenantID string) (*model.Profil, error) {
 }
 
 func (a *sekolahAdapter) UpdateProfil(tenantID string, m *model.ProfilUpdate) error {
-	// Update Tenants Table (Name, Address)
-	q1, _, _ := goqu.Dialect("postgres").Update("tenants").Set(goqu.Record{
-		"name":    m.NamaPesantren,
-		"address": m.Alamat,
-	}).Where(goqu.C("id").Eq(tenantID)).ToSQL()
-
-	if _, err := a.db.Exec(q1); err != nil {
-		return err
+	// Update Tenants Table (Name, Address) only if provided
+	if m.NamaPesantren != "" || m.Alamat != "" {
+		record := goqu.Record{}
+		if m.NamaPesantren != "" {
+			record["name"] = m.NamaPesantren
+		}
+		if m.Alamat != "" {
+			record["address"] = m.Alamat
+		}
+		q1, _, _ := goqu.Dialect("postgres").Update("tenants").Set(record).Where(goqu.C("id").Eq(tenantID)).ToSQL()
+		if _, err := a.db.Exec(q1); err != nil {
+			return err
+		}
 	}
 
 	// Update or Insert Sekolah Profil
@@ -203,20 +208,30 @@ func (a *sekolahAdapter) UpdateProfil(tenantID string, m *model.ProfilUpdate) er
 	var exists bool
 	a.db.QueryRow("SELECT EXISTS(SELECT 1 FROM sekolah_profil WHERE tenant_id = $1)", tenantID).Scan(&exists)
 
+	// Build record with non-empty fields only
+	profilRecord := goqu.Record{}
+	if m.JenisPesantren != "" {
+		profilRecord["jenis_pesantren"] = m.JenisPesantren
+	}
+	if m.Deskripsi != "" {
+		profilRecord["deskripsi"] = m.Deskripsi
+	}
+	if m.Curriculum != "" {
+		profilRecord["curriculum"] = m.Curriculum
+	}
+
+	if len(profilRecord) == 0 {
+		return nil // Nothing to update
+	}
+
 	if exists {
-		q2, _, _ := goqu.Dialect("postgres").Update("sekolah_profil").Set(goqu.Record{
-			"jenis_pesantren": m.JenisPesantren,
-			"deskripsi":       m.Deskripsi,
-		}).Where(goqu.C("tenant_id").Eq(tenantID)).ToSQL()
+		q2, _, _ := goqu.Dialect("postgres").Update("sekolah_profil").Set(profilRecord).Where(goqu.C("tenant_id").Eq(tenantID)).ToSQL()
 		if _, err := a.db.Exec(q2); err != nil {
 			return err
 		}
 	} else {
-		q2, _, _ := goqu.Dialect("postgres").Insert("sekolah_profil").Rows(goqu.Record{
-			"tenant_id":       tenantID,
-			"jenis_pesantren": m.JenisPesantren,
-			"deskripsi":       m.Deskripsi,
-		}).ToSQL()
+		profilRecord["tenant_id"] = tenantID
+		q2, _, _ := goqu.Dialect("postgres").Insert("sekolah_profil").Rows(profilRecord).ToSQL()
 		if _, err := a.db.Exec(q2); err != nil {
 			return err
 		}

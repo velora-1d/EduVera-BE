@@ -258,6 +258,27 @@ func InitRoute(
 		return port.Sekolah().CreatePerizinan(c)
 	})
 
+	// Asrama
+	asrama := sekolah.Group("/asrama")
+	asrama.Get("/gedung", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetAsramaList(c)
+	})
+	asrama.Post("/gedung", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateAsrama(c)
+	})
+	asrama.Get("/kamar", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetKamarList(c)
+	})
+	asrama.Post("/kamar", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreateKamar(c)
+	})
+	asrama.Get("/penempatan", func(c *fiber.Ctx) error {
+		return port.Sekolah().GetPenempatanList(c)
+	})
+	asrama.Post("/penempatan", func(c *fiber.Ctx) error {
+		return port.Sekolah().CreatePenempatan(c)
+	})
+
 	// Tahfidz
 	tahfidz := sekolah.Group("/tahfidz")
 	tahfidz.Get("/setoran", func(c *fiber.Ctx) error {
@@ -357,6 +378,19 @@ func InitRoute(
 	// Stats
 	erapor.Get("/stats", func(c *fiber.Ctx) error {
 		return port.ERapor().GetStats(c)
+	})
+
+	// Curriculum Settings
+	erapor.Get("/curriculum", func(c *fiber.Ctx) error {
+		return port.ERapor().GetCurriculum(c)
+	})
+	erapor.Put("/curriculum", func(c *fiber.Ctx) error {
+		return port.ERapor().SetCurriculum(c)
+	})
+
+	// Rapor History
+	erapor.Get("/rapor/history", func(c *fiber.Ctx) error {
+		return port.ERapor().GetRaporHistory(c)
 	})
 
 	// SDM Routes (Employee, Payroll, Attendance)
