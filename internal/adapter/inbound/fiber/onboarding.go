@@ -240,12 +240,14 @@ func (h *onboardingAdapter) Register(a any) error {
 		Role:     model.RoleAdmin,
 	})
 	if err != nil {
+		fmt.Printf("DEBUG: Registration error: %v\n", err)
 		errMsg := "Terjadi kesalahan saat membuat akun."
 		if strings.Contains(err.Error(), "email already registered") {
 			errMsg = "Email ini sudah terdaftar. Silakan gunakan email lain atau login ke akun yang sudah ada."
 		}
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": errMsg,
+			"error":  errMsg,
+			"detail": err.Error(), // DEBUG: remove in production
 		})
 	}
 

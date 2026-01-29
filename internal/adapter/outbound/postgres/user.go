@@ -27,8 +27,17 @@ func NewUserAdapter(
 
 func (a *userAdapter) Create(user *model.User) error {
 	dialect := goqu.Dialect("postgres")
+
+	// Handle empty TenantID as NULL (avoiding invalid UUID error)
+	var tenantID interface{}
+	if user.TenantID == "" {
+		tenantID = nil
+	} else {
+		tenantID = user.TenantID
+	}
+
 	dataset := dialect.Insert(tableUser).Rows(goqu.Record{
-		"tenant_id":     user.TenantID,
+		"tenant_id":     tenantID,
 		"name":          user.Name,
 		"email":         user.Email,
 		"whatsapp":      user.WhatsApp,
