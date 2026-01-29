@@ -175,7 +175,7 @@ func (h *onboardingAdapter) CheckSubdomain(a any) error {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"available":       false,
 			"subdomain":       subdomain,
-			"error":           "Subdomain ini tidak tersedia (reserved)",
+			"error":           "Maaf, subdomain '" + subdomain + "' sudah dicadangkan oleh sistem. Silakan pilih nama lain.",
 			"recommendations": generateSubdomainRecommendations(subdomain),
 		})
 	}
@@ -192,7 +192,7 @@ func (h *onboardingAdapter) CheckSubdomain(a any) error {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"available":       false,
 			"subdomain":       subdomain,
-			"error":           "Subdomain sudah digunakan",
+			"error":           "Subdomain '" + subdomain + "' sudah digunakan oleh institusi lain. Silakan pilih nama lain.",
 			"recommendations": generateSubdomainRecommendations(subdomain),
 		})
 	}
@@ -214,20 +214,20 @@ func (h *onboardingAdapter) Register(a any) error {
 	var input RegisterInput
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
+			"error": "Data yang dikirim tidak valid. Silakan coba lagi.",
 		})
 	}
 
 	// Validate required fields
 	if input.Name == "" || input.Email == "" || input.Password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Name, email, and password are required",
+			"error": "Mohon lengkapi semua data: Nama, Email, dan Password wajib diisi.",
 		})
 	}
 
 	if len(input.Password) < 8 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Password must be at least 8 characters",
+			"error": "Password minimal 8 karakter untuk keamanan akun Anda.",
 		})
 	}
 
@@ -240,8 +240,12 @@ func (h *onboardingAdapter) Register(a any) error {
 		Role:     model.RoleAdmin,
 	})
 	if err != nil {
+		errMsg := "Terjadi kesalahan saat membuat akun."
+		if strings.Contains(err.Error(), "email already registered") {
+			errMsg = "Email ini sudah terdaftar. Silakan gunakan email lain atau login ke akun yang sudah ada."
+		}
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": errMsg,
 		})
 	}
 

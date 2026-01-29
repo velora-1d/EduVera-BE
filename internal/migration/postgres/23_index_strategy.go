@@ -9,12 +9,13 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upIndexStrategy, downIndexStrategy)
+	goose.AddMigrationNoTxContext(upIndexStrategy, downIndexStrategy)
 }
 
 // upIndexStrategy adds performance indexes for common query patterns
 // Based on Phase 3: Database Optimization roadmap
-func upIndexStrategy(ctx context.Context, tx *sql.Tx) error {
+// Using NoTx so individual index failures don't abort entire migration
+func upIndexStrategy(ctx context.Context, db *sql.DB) error {
 	queries := []struct {
 		name  string
 		query string
@@ -146,7 +147,7 @@ func upIndexStrategy(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	for _, q := range queries {
-		if _, err := tx.Exec(q.query); err != nil {
+		if _, err := db.Exec(q.query); err != nil {
 			// Log but don't fail - table might not exist yet
 			fmt.Printf("Warning: index %s failed: %v\n", q.name, err)
 		}
@@ -155,7 +156,7 @@ func upIndexStrategy(ctx context.Context, tx *sql.Tx) error {
 	return nil
 }
 
-func downIndexStrategy(ctx context.Context, tx *sql.Tx) error {
+func downIndexStrategy(ctx context.Context, db *sql.DB) error {
 	// Drop indexes in reverse order
 	indexes := []string{
 		"idx_sdm_payroll_tenant_period",
@@ -178,7 +179,7 @@ func downIndexStrategy(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	for _, idx := range indexes {
-		if _, err := tx.Exec("DROP INDEX IF EXISTS " + idx); err != nil {
+		if _, err := db.Exec("DROP INDEX IF EXISTS " + idx); err != nil {
 			fmt.Printf("Warning: dropping index %s failed: %v\n", idx, err)
 		}
 	}

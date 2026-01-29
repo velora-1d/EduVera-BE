@@ -9,12 +9,13 @@ import (
 )
 
 func init() {
-	goose.AddMigrationContext(upCacheFields, downCacheFields)
+	goose.AddMigrationNoTxContext(upCacheFields, downCacheFields)
 }
 
 // upCacheFields adds denormalized cache fields to reduce JOINs in common queries
 // Based on Phase 3.3: Denormalized Cache roadmap
-func upCacheFields(ctx context.Context, tx *sql.Tx) error {
+// Using NoTx so individual failures don't abort entire migration
+func upCacheFields(ctx context.Context, db *sql.DB) error {
 	// Add cached fields to sekolah_siswa for faster lookups without JOINs
 	queries := []struct {
 		name  string
@@ -102,7 +103,7 @@ func upCacheFields(ctx context.Context, tx *sql.Tx) error {
 	}
 
 	for _, q := range queries {
-		if _, err := tx.Exec(q.query); err != nil {
+		if _, err := db.Exec(q.query); err != nil {
 			// Log but don't fail - table might not exist yet
 			fmt.Printf("Warning: cache field %s failed: %v\n", q.name, err)
 		}
@@ -121,7 +122,7 @@ func upCacheFields(ctx context.Context, tx *sql.Tx) error {
 		END;
 		$$ LANGUAGE plpgsql;
 	`
-	if _, err := tx.Exec(cacheFunction); err != nil {
+	if _, err := db.Exec(cacheFunction); err != nil {
 		fmt.Printf("Warning: cache function failed: %v\n", err)
 	}
 
@@ -133,17 +134,17 @@ func upCacheFields(ctx context.Context, tx *sql.Tx) error {
 		FOR EACH ROW
 		EXECUTE FUNCTION sync_siswa_kelas_cache();
 	`
-	if _, err := tx.Exec(cacheTrigger); err != nil {
+	if _, err := db.Exec(cacheTrigger); err != nil {
 		fmt.Printf("Warning: cache trigger failed: %v\n", err)
 	}
 
 	return nil
 }
 
-func downCacheFields(ctx context.Context, tx *sql.Tx) error {
+func downCacheFields(ctx context.Context, db *sql.DB) error {
 	// Drop trigger and function first
-	tx.Exec("DROP TRIGGER IF EXISTS sync_siswa_kelas_cache_trigger ON sekolah_siswa")
-	tx.Exec("DROP FUNCTION IF EXISTS sync_siswa_kelas_cache")
+	db.Exec("DROP TRIGGER IF EXISTS sync_siswa_kelas_cache_trigger ON sekolah_siswa")
+	db.Exec("DROP FUNCTION IF EXISTS sync_siswa_kelas_cache")
 
 	// Drop cached columns
 	columns := []struct {
@@ -166,7 +167,7 @@ func downCacheFields(ctx context.Context, tx *sql.Tx) error {
 
 	for _, c := range columns {
 		query := fmt.Sprintf("ALTER TABLE %s DROP COLUMN IF EXISTS %s", c.table, c.column)
-		if _, err := tx.Exec(query); err != nil {
+		if _, err := db.Exec(query); err != nil {
 			fmt.Printf("Warning: dropping %s.%s failed: %v\n", c.table, c.column, err)
 		}
 	}
