@@ -111,3 +111,67 @@ func (h *authAdapter) Logout(a any) error {
 		"message": "Logged out successfully",
 	})
 }
+
+// POST /api/v1/auth/forgot-password
+func (h *authAdapter) ForgotPassword(a any) error {
+	c := a.(*fiber.Ctx)
+	ctx := context.Background()
+
+	var input model.ForgotPasswordInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Data tidak valid. Silakan coba lagi.",
+		})
+	}
+
+	if input.Email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Email wajib diisi.",
+		})
+	}
+
+	// Process forgot password (always return success to not reveal email existence)
+	_ = h.domain.Auth().ForgotPassword(ctx, &input)
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Jika email terdaftar, link reset password akan dikirim ke WhatsApp Anda.",
+	})
+}
+
+// POST /api/v1/auth/reset-password
+func (h *authAdapter) ResetPassword(a any) error {
+	c := a.(*fiber.Ctx)
+	ctx := context.Background()
+
+	var input model.ResetPasswordInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Data tidak valid. Silakan coba lagi.",
+		})
+	}
+
+	if input.Token == "" || input.NewPassword == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Token dan password baru wajib diisi.",
+		})
+	}
+
+	if len(input.NewPassword) < 8 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Password minimal 8 karakter.",
+		})
+	}
+
+	err := h.domain.Auth().ResetPassword(ctx, &input)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Token tidak valid atau sudah kadaluarsa. Silakan request reset password baru.",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Password berhasil diubah. Silakan login dengan password baru Anda.",
+	})
+}

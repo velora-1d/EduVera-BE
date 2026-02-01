@@ -5,4 +5,6 @@ type AuthHttpPort interface {
 	Me(a any) error
 	Refresh(a any) error
 	Logout(a any) error
+	ForgotPassword(a any) error
+	ResetPassword(a any) error
 }

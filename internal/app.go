@@ -27,6 +27,7 @@ import (
 	"prabogo/internal/domain"
 	_ "prabogo/internal/migration/postgres"
 	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/internal/scheduler"
 	"prabogo/utils"
 	"prabogo/utils/activity"
 	"prabogo/utils/database"
@@ -49,9 +50,11 @@ var inboundMessageDriver string
 var inboundWorkflowDriver string
 
 type App struct {
-	ctx     context.Context
-	domain  domain.Domain
-	message outbound_port.MessagePort
+	ctx       context.Context
+	domain    domain.Domain
+	db        outbound_port.DatabasePort
+	message   outbound_port.MessagePort
+	scheduler *scheduler.Scheduler
 }
 
 func NewApp() *App {
@@ -67,9 +70,10 @@ func NewApp() *App {
 	inboundMessageDriver = os.Getenv("INBOUND_MESSAGE_DRIVER")
 	inboundWorkflowDriver = os.Getenv("INBOUND_WORKFLOW_DRIVER")
 
+	dbPort := databaseOutbound(ctx)
 	messagePort := messageOutbound(ctx)
-	domain := domain.NewDomain(
-		databaseOutbound(ctx),
+	dom := domain.NewDomain(
+		dbPort,
 		messagePort,
 		cacheOutbound(ctx),
 		workflowOutbound(ctx),
@@ -77,7 +81,8 @@ func NewApp() *App {
 
 	return &App{
 		ctx:     ctx,
-		domain:  domain,
+		domain:  dom,
+		db:      dbPort,
 		message: messagePort,
 	}
 }
@@ -209,6 +214,10 @@ func (a *App) httpInbound() {
 				log.WithContext(ctx).Fatalf("failed to listen fiber: %v", err)
 			}
 		}()
+
+		// Start scheduler for subscription reminders
+		a.scheduler = scheduler.NewScheduler(ctx, a.domain, a.db)
+		a.scheduler.Start()
 	}
 
 	ctx, shutdown := context.WithTimeout(ctx, 5*time.Second)

@@ -229,3 +229,103 @@ func addUserFilter(dataset *goqu.SelectDataset, filter model.UserFilter) *goqu.S
 	}
 	return dataset
 }
+
+// UpdatePassword updates user's password hash
+func (a *userAdapter) UpdatePassword(id string, hashedPassword string) error {
+	now := time.Now()
+	dialect := goqu.Dialect("postgres")
+	dataset := dialect.Update(tableUser).
+		Set(goqu.Record{
+			"password_hash": hashedPassword,
+			"updated_at":    now,
+		}).
+		Where(goqu.Ex{"id": id})
+
+	query, _, err := dataset.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = a.db.Exec(query)
+	return err
+}
+
+const tableResetToken = "reset_tokens"
+
+// CreateResetToken creates a new reset token
+func (a *userAdapter) CreateResetToken(token *model.ResetToken) error {
+	dialect := goqu.Dialect("postgres")
+	dataset := dialect.Insert(tableResetToken).Rows(goqu.Record{
+		"user_id":    token.UserID,
+		"token":      token.Token,
+		"expires_at": token.ExpiresAt,
+		"created_at": token.CreatedAt,
+	}).Returning("id")
+
+	query, _, err := dataset.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	return a.db.QueryRow(query).Scan(&token.ID)
+}
+
+// GetResetToken retrieves a reset token by token string
+func (a *userAdapter) GetResetToken(tokenStr string) (*model.ResetToken, error) {
+	dialect := goqu.Dialect("postgres")
+	dataset := dialect.From(tableResetToken).
+		Where(goqu.Ex{"token": tokenStr})
+
+	query, _, err := dataset.ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	var token model.ResetToken
+	err = a.db.QueryRow(query).Scan(
+		&token.ID, &token.UserID, &token.Token,
+		&token.ExpiresAt, &token.UsedAt, &token.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
+}
+
+// MarkResetTokenUsed marks a reset token as used
+func (a *userAdapter) MarkResetTokenUsed(id string) error {
+	now := time.Now()
+	dialect := goqu.Dialect("postgres")
+	dataset := dialect.Update(tableResetToken).
+		Set(goqu.Record{
+			"used_at": now,
+		}).
+		Where(goqu.Ex{"id": id})
+
+	query, _, err := dataset.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = a.db.Exec(query)
+	return err
+}
+
+// DeleteExpiredResetTokens deletes all expired and used reset tokens
+func (a *userAdapter) DeleteExpiredResetTokens() error {
+	dialect := goqu.Dialect("postgres")
+	dataset := dialect.Delete(tableResetToken).
+		Where(goqu.Or(
+			goqu.C("expires_at").Lt(time.Now()),
+			goqu.C("used_at").IsNotNull(),
+		))
+
+	query, _, err := dataset.ToSQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = a.db.Exec(query)
+	return err
+}

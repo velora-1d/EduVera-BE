@@ -107,6 +107,12 @@ func InitRoute(
 	auth.Post("/logout", func(c *fiber.Ctx) error {
 		return port.Auth().Logout(c)
 	})
+	auth.Post("/forgot-password", func(c *fiber.Ctx) error {
+		return port.Auth().ForgotPassword(c)
+	})
+	auth.Post("/reset-password", func(c *fiber.Ctx) error {
+		return port.Auth().ResetPassword(c)
+	})
 
 	// Owner Routes
 	owner := api.Group("/owner")

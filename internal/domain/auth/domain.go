@@ -2,11 +2,13 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/palantir/stacktrace"
+	"golang.org/x/crypto/bcrypt"
 
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
@@ -19,6 +21,8 @@ type AuthDomain interface {
 	GetCurrentUser(ctx context.Context, userID string) (*model.User, error)
 	GenerateToken(user *model.User) (string, int64, error)
 	LinkUserToTenant(ctx context.Context, userID string, tenantID string) error
+	ForgotPassword(ctx context.Context, input *model.ForgotPasswordInput) error
+	ResetPassword(ctx context.Context, input *model.ResetPasswordInput) error
 }
 
 type Claims struct {
@@ -161,6 +165,91 @@ func (d *authDomain) LinkUserToTenant(ctx context.Context, userID string, tenant
 	err := d.databasePort.User().LinkToTenant(userID, tenantID)
 	if err != nil {
 		return stacktrace.Propagate(err, "failed to link user to tenant")
+	}
+
+	return nil
+}
+
+func (d *authDomain) ForgotPassword(ctx context.Context, input *model.ForgotPasswordInput) error {
+	// Find user by email
+	user, err := d.databasePort.User().FindByEmail(input.Email)
+	if err != nil {
+		// Don't reveal if email exists or not for security
+		return nil
+	}
+
+	// Generate reset token
+	tokenStr, err := model.GenerateResetToken()
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to generate reset token")
+	}
+
+	// Create reset token record
+	resetToken := &model.ResetToken{
+		UserID:    user.ID,
+		Token:     tokenStr,
+		ExpiresAt: time.Now().Add(model.ResetTokenExpiry),
+		CreatedAt: time.Now(),
+	}
+
+	err = d.databasePort.User().CreateResetToken(resetToken)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to create reset token")
+	}
+
+	// Build reset link
+	baseURL := os.Getenv("FRONTEND_URL")
+	if baseURL == "" {
+		baseURL = "https://eduvera.ve-lora.my.id"
+	}
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", baseURL, tokenStr)
+
+	// Send WhatsApp notification
+	if d.messagePort != nil && user.WhatsApp != "" {
+		message := fmt.Sprintf(
+			"🔐 *Reset Password EduVera*\n\n"+
+				"Halo %s,\n\n"+
+				"Kami menerima permintaan untuk reset password akun Anda.\n\n"+
+				"Klik link berikut untuk membuat password baru:\n%s\n\n"+
+				"Link ini berlaku selama 24 jam.\n\n"+
+				"Jika Anda tidak meminta reset password, abaikan pesan ini.\n\n"+
+				"Terima kasih,\nTim EduVera",
+			user.Name, resetLink,
+		)
+		_ = d.messagePort.WhatsApp().Send(user.WhatsApp, message)
+	}
+
+	return nil
+}
+
+func (d *authDomain) ResetPassword(ctx context.Context, input *model.ResetPasswordInput) error {
+	// Get reset token
+	resetToken, err := d.databasePort.User().GetResetToken(input.Token)
+	if err != nil {
+		return stacktrace.NewError("token tidak valid atau sudah kadaluarsa")
+	}
+
+	// Validate token
+	if !resetToken.IsValid() {
+		return stacktrace.NewError("token tidak valid atau sudah digunakan")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to hash password")
+	}
+
+	// Update password
+	err = d.databasePort.User().UpdatePassword(resetToken.UserID, string(hashedPassword))
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to update password")
+	}
+
+	// Mark token as used
+	err = d.databasePort.User().MarkResetTokenUsed(resetToken.ID)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to mark token as used")
 	}
 
 	return nil

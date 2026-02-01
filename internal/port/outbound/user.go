@@ -13,4 +13,11 @@ type UserDatabasePort interface {
 	UpdateLastLogin(id string) error
 	Activate(id string) error
 	LinkToTenant(userID string, tenantID string) error
+	UpdatePassword(id string, hashedPassword string) error
+
+	// Reset Token operations
+	CreateResetToken(token *model.ResetToken) error
+	GetResetToken(token string) (*model.ResetToken, error)
+	MarkResetTokenUsed(id string) error
+	DeleteExpiredResetTokens() error
 }
