@@ -148,3 +148,112 @@ func (a *sppAdapter) GetStatsByTenant(ctx context.Context, tenantID string) (*mo
 	}
 	return &stats, nil
 }
+
+// Update updates an SPP transaction
+func (a *sppAdapter) Update(ctx context.Context, spp *model.SPPTransaction) error {
+	query := `
+		UPDATE spp_transactions 
+		SET student_name = $1, amount = $2, description = $3, due_date = $4, period = $5, updated_at = NOW()
+		WHERE id = $6
+	`
+	_, err := a.db.ExecContext(ctx, query, spp.StudentName, spp.Amount, spp.Description, spp.DueDate, spp.Period, spp.ID)
+	return err
+}
+
+// Delete removes an SPP transaction
+func (a *sppAdapter) Delete(ctx context.Context, id string) error {
+	query := `DELETE FROM spp_transactions WHERE id = $1`
+	_, err := a.db.ExecContext(ctx, query, id)
+	return err
+}
+
+// UploadProof saves the payment proof URL
+func (a *sppAdapter) UploadProof(ctx context.Context, id string, proofURL string) error {
+	query := `
+		UPDATE spp_transactions 
+		SET payment_proof = $1, updated_at = NOW()
+		WHERE id = $2
+	`
+	_, err := a.db.ExecContext(ctx, query, proofURL, id)
+	return err
+}
+
+// ConfirmPayment marks payment as paid by admin
+func (a *sppAdapter) ConfirmPayment(ctx context.Context, id string, confirmedBy string) error {
+	query := `
+		UPDATE spp_transactions 
+		SET status = 'paid', confirmed_by = $1, paid_at = NOW(), updated_at = NOW()
+		WHERE id = $2
+	`
+	_, err := a.db.ExecContext(ctx, query, confirmedBy, id)
+	return err
+}
+
+// ListByPeriod returns transactions for a specific period (e.g., "2024-01")
+func (a *sppAdapter) ListByPeriod(ctx context.Context, tenantID string, period string) ([]model.SPPTransaction, error) {
+	query := `
+		SELECT id, tenant_id, student_id, student_name, amount, payment_method, status, 
+		       gateway_ref, description, payment_proof, confirmed_by, paid_at, due_date, period, created_at, updated_at
+		FROM spp_transactions
+		WHERE tenant_id = $1 AND period = $2
+		ORDER BY student_name ASC
+	`
+	rows, err := a.db.QueryContext(ctx, query, tenantID, period)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanSPPTransactions(rows)
+}
+
+// ListOverdue returns pending transactions past due date
+func (a *sppAdapter) ListOverdue(ctx context.Context, tenantID string) ([]model.SPPTransaction, error) {
+	query := `
+		SELECT id, tenant_id, student_id, student_name, amount, payment_method, status, 
+		       gateway_ref, description, payment_proof, confirmed_by, paid_at, due_date, period, created_at, updated_at
+		FROM spp_transactions
+		WHERE tenant_id = $1 AND status = 'pending' AND due_date < NOW()
+		ORDER BY due_date ASC
+	`
+	rows, err := a.db.QueryContext(ctx, query, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return scanSPPTransactions(rows)
+}
+
+// Helper function to scan SPP transactions with all fields
+func scanSPPTransactions(rows *sql.Rows) ([]model.SPPTransaction, error) {
+	var transactions []model.SPPTransaction
+	for rows.Next() {
+		var t model.SPPTransaction
+		var studentID, paymentMethod, gatewayRef, description, paymentProof, confirmedBy, period sql.NullString
+		var paidAt, dueDate sql.NullTime
+		if err := rows.Scan(
+			&t.ID, &t.TenantID, &studentID, &t.StudentName, &t.Amount,
+			&paymentMethod, &t.Status, &gatewayRef, &description,
+			&paymentProof, &confirmedBy, &paidAt, &dueDate, &period,
+			&t.CreatedAt, &t.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		t.StudentID = studentID.String
+		t.PaymentMethod = paymentMethod.String
+		t.GatewayRef = gatewayRef.String
+		t.Description = description.String
+		t.PaymentProof = paymentProof.String
+		t.ConfirmedBy = confirmedBy.String
+		t.Period = period.String
+		if paidAt.Valid {
+			t.PaidAt = &paidAt.Time
+		}
+		if dueDate.Valid {
+			t.DueDate = &dueDate.Time
+		}
+		transactions = append(transactions, t)
+	}
+	return transactions, nil
+}

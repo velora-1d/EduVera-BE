@@ -7,4 +7,7 @@ type PaymentHttpPort interface {
 	CreateTransaction(c *fiber.Ctx) error
 	Webhook(c *fiber.Ctx) error
 	GetStatus(c *fiber.Ctx) error
+	// SPP Payment (Premium tier only)
+	CreateSPPPayment(c *fiber.Ctx) error
+	SPPWebhook(c *fiber.Ctx) error
 }

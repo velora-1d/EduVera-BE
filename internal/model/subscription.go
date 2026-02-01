@@ -31,6 +31,7 @@ type Subscription struct {
 	ID                 string     `json:"id" db:"id"`
 	TenantID           string     `json:"tenant_id" db:"tenant_id"`
 	PlanType           string     `json:"plan_type" db:"plan_type"`
+	SubscriptionTier   string     `json:"subscription_tier" db:"subscription_tier"` // basic or premium
 	BillingCycle       string     `json:"billing_cycle" db:"billing_cycle"`
 	Status             string     `json:"status" db:"status"`
 	CurrentPeriodStart time.Time  `json:"current_period_start" db:"current_period_start"`

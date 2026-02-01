@@ -85,6 +85,11 @@ func GenerateOrderID(tenantID string) string {
 	return fmt.Sprintf("EDV-%d-%s", timestamp, tenantID[:8])
 }
 
+// GenerateTimestamp returns current timestamp as string for order IDs
+func GenerateTimestamp() string {
+	return fmt.Sprintf("%d", time.Now().UnixMilli())
+}
+
 // GetPlanPrice returns price based on plan and billing cycle
 func GetPlanPrice(planType string, isAnnual bool) int64 {
 	if prices, ok := PlanPricing[planType]; ok {

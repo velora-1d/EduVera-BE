@@ -28,17 +28,18 @@ func NewTenantAdapter(
 func (a *tenantAdapter) Create(tenant *model.Tenant) error {
 	dialect := goqu.Dialect("postgres")
 	dataset := dialect.Insert(tableTenant).Rows(goqu.Record{
-		"name":             tenant.Name,
-		"subdomain":        tenant.Subdomain,
-		"plan_type":        tenant.PlanType,
-		"institution_type": tenant.InstitutionType,
-		"address":          tenant.Address,
-		"bank_name":        tenant.BankName,
-		"account_number":   tenant.AccountNumber,
-		"account_holder":   tenant.AccountHolder,
-		"status":           tenant.Status,
-		"created_at":       tenant.CreatedAt,
-		"updated_at":       tenant.UpdatedAt,
+		"name":              tenant.Name,
+		"subdomain":         tenant.Subdomain,
+		"plan_type":         tenant.PlanType,
+		"subscription_tier": tenant.SubscriptionTier,
+		"institution_type":  tenant.InstitutionType,
+		"address":           tenant.Address,
+		"bank_name":         tenant.BankName,
+		"account_number":    tenant.AccountNumber,
+		"account_holder":    tenant.AccountHolder,
+		"status":            tenant.Status,
+		"created_at":        tenant.CreatedAt,
+		"updated_at":        tenant.UpdatedAt,
 	}).Returning("id")
 
 	query, _, err := dataset.ToSQL()
@@ -54,16 +55,17 @@ func (a *tenantAdapter) Update(tenant *model.Tenant) error {
 	dialect := goqu.Dialect("postgres")
 	dataset := dialect.Update(tableTenant).
 		Set(goqu.Record{
-			"name":             tenant.Name,
-			"subdomain":        tenant.Subdomain,
-			"plan_type":        tenant.PlanType,
-			"institution_type": tenant.InstitutionType,
-			"address":          tenant.Address,
-			"bank_name":        tenant.BankName,
-			"account_number":   tenant.AccountNumber,
-			"account_holder":   tenant.AccountHolder,
-			"status":           tenant.Status,
-			"updated_at":       tenant.UpdatedAt,
+			"name":              tenant.Name,
+			"subdomain":         tenant.Subdomain,
+			"plan_type":         tenant.PlanType,
+			"subscription_tier": tenant.SubscriptionTier,
+			"institution_type":  tenant.InstitutionType,
+			"address":           tenant.Address,
+			"bank_name":         tenant.BankName,
+			"account_number":    tenant.AccountNumber,
+			"account_holder":    tenant.AccountHolder,
+			"status":            tenant.Status,
+			"updated_at":        tenant.UpdatedAt,
 		}).
 		Where(goqu.Ex{"id": tenant.ID})
 
@@ -78,7 +80,12 @@ func (a *tenantAdapter) Update(tenant *model.Tenant) error {
 
 func (a *tenantAdapter) FindByFilter(filter model.TenantFilter) ([]model.Tenant, error) {
 	dialect := goqu.Dialect("postgres")
-	dataset := dialect.From(tableTenant)
+	dataset := dialect.From(tableTenant).Select(
+		"id", "name", "subdomain", "plan_type", "subscription_tier",
+		"institution_type", "address", "bank_name",
+		"account_number", "account_holder", "status",
+		"created_at", "updated_at",
+	)
 	dataset = addTenantFilter(dataset, filter)
 
 	query, _, err := dataset.ToSQL()
@@ -96,7 +103,7 @@ func (a *tenantAdapter) FindByFilter(filter model.TenantFilter) ([]model.Tenant,
 	for rows.Next() {
 		var t model.Tenant
 		err := rows.Scan(
-			&t.ID, &t.Name, &t.Subdomain, &t.PlanType,
+			&t.ID, &t.Name, &t.Subdomain, &t.PlanType, &t.SubscriptionTier,
 			&t.InstitutionType, &t.Address, &t.BankName,
 			&t.AccountNumber, &t.AccountHolder, &t.Status,
 			&t.CreatedAt, &t.UpdatedAt,

@@ -18,7 +18,7 @@ func InitRoute(
 ) {
 	// Enable CORS for frontend access
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173, https://eduvera.ve-lora.my.id",
+		AllowOrigins: "http://localhost:5173, http://localhost:3000, https://eduvera.ve-lora.my.id",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
@@ -164,7 +164,13 @@ func InitRoute(
 
 	// Pesantren / Tenant Routes
 	// Feature Gating: Only allow pesantren and hybrid plans
+	// Pesantren / Tenant Routes
+	// Feature Gating: Only allow pesantren and hybrid plans
 	pesantren := api.Group("/pesantren")
+	// ADDED: Authentication required before checking plan
+	pesantren.Use(func(c *fiber.Ctx) error {
+		return port.Middleware().ClientAuth(c)
+	})
 	pesantren.Use(RequirePlan("pesantren", "hybrid"))
 	pesantren.Get("/dashboard/stats", func(c *fiber.Ctx) error {
 		return port.PesantrenDashboard().GetStats(c)
@@ -184,6 +190,22 @@ func InitRoute(
 	tenantSPP.Get("/stats", func(c *fiber.Ctx) error {
 		return port.SPP().GetStats(c)
 	})
+	// Manual payment confirmation routes
+	tenantSPP.Get("/overdue", func(c *fiber.Ctx) error {
+		return port.SPP().ListOverdue(c)
+	})
+	tenantSPP.Put("/:id", func(c *fiber.Ctx) error {
+		return port.SPP().Update(c)
+	})
+	tenantSPP.Delete("/:id", func(c *fiber.Ctx) error {
+		return port.SPP().Delete(c)
+	})
+	tenantSPP.Post("/:id/upload-proof", func(c *fiber.Ctx) error {
+		return port.SPP().UploadProof(c)
+	})
+	tenantSPP.Post("/:id/confirm", func(c *fiber.Ctx) error {
+		return port.SPP().ConfirmPayment(c)
+	})
 
 	// Notification logs
 	ownerProtected.Get("/notifications", func(c *fiber.Ctx) error {
@@ -200,6 +222,13 @@ func InitRoute(
 	})
 	payment.Get("/status/:order_id", func(c *fiber.Ctx) error {
 		return port.Payment().GetStatus(c)
+	})
+	// SPP Payment Routes (Premium tier only)
+	payment.Post("/spp/create", func(c *fiber.Ctx) error {
+		return port.Payment().CreateSPPPayment(c)
+	})
+	payment.Post("/spp/webhook", func(c *fiber.Ctx) error {
+		return port.Payment().SPPWebhook(c)
 	})
 
 	// Sekolah Routes (Protected)

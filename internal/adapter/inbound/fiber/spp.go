@@ -122,3 +122,126 @@ func (h *sppAdapter) GetStats(c *fiber.Ctx) error {
 		"data": stats,
 	})
 }
+
+// PUT /api/v1/tenant/spp/:id
+func (h *sppAdapter) Update(c *fiber.Ctx) error {
+	ctx := context.Background()
+	id := c.Params("id")
+
+	var input struct {
+		StudentName string `json:"student_name"`
+		Amount      int64  `json:"amount"`
+		Description string `json:"description"`
+		DueDate     string `json:"due_date"` // Format: 2024-01-31
+		Period      string `json:"period"`   // Format: 2024-01
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Data tidak valid. Silakan coba lagi.",
+		})
+	}
+
+	if err := h.domain.SPP().Update(ctx, id, input.StudentName, input.Amount, input.Description, input.DueDate, input.Period); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal memperbarui tagihan. " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Tagihan berhasil diperbarui",
+	})
+}
+
+// DELETE /api/v1/tenant/spp/:id
+func (h *sppAdapter) Delete(c *fiber.Ctx) error {
+	ctx := context.Background()
+	id := c.Params("id")
+
+	if err := h.domain.SPP().Delete(ctx, id); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal menghapus tagihan. " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Tagihan berhasil dihapus",
+	})
+}
+
+// POST /api/v1/tenant/spp/:id/upload-proof
+func (h *sppAdapter) UploadProof(c *fiber.Ctx) error {
+	ctx := context.Background()
+	id := c.Params("id")
+
+	var input struct {
+		ProofURL string `json:"proof_url"` // URL dari uploaded image
+	}
+
+	if err := c.BodyParser(&input); err != nil || input.ProofURL == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "URL bukti pembayaran wajib diisi.",
+		})
+	}
+
+	if err := h.domain.SPP().UploadProof(ctx, id, input.ProofURL); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal menyimpan bukti pembayaran. " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Bukti pembayaran berhasil diupload",
+	})
+}
+
+// POST /api/v1/tenant/spp/:id/confirm
+func (h *sppAdapter) ConfirmPayment(c *fiber.Ctx) error {
+	ctx := context.Background()
+	id := c.Params("id")
+
+	// Get user ID from JWT context
+	userID := c.Locals("user_id")
+	confirmedBy := ""
+	if userID != nil {
+		confirmedBy = userID.(string)
+	}
+
+	var input struct {
+		PaymentMethod string `json:"payment_method"` // cash, transfer
+	}
+	c.BodyParser(&input)
+
+	if err := h.domain.SPP().ConfirmPayment(ctx, id, confirmedBy, input.PaymentMethod); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal konfirmasi pembayaran. " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Pembayaran berhasil dikonfirmasi",
+		"status":  "paid",
+	})
+}
+
+// GET /api/v1/tenant/spp/overdue
+func (h *sppAdapter) ListOverdue(c *fiber.Ctx) error {
+	ctx := context.Background()
+	tenantID := c.Query("tenant_id")
+	if tenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "tenant_id is required",
+		})
+	}
+
+	transactions, err := h.domain.SPP().ListOverdue(ctx, tenantID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal memuat data tunggakan. " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"data": transactions,
+	})
+}

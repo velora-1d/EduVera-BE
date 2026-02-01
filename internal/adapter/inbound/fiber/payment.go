@@ -170,3 +170,119 @@ func (a *paymentAdapter) GetStatus(c *fiber.Ctx) error {
 		"paid_at":        payment.PaidAt,
 	})
 }
+
+// CreateSPPPaymentRequest for SPP payment creation
+type CreateSPPPaymentRequest struct {
+	SPPID       string `json:"spp_id"`
+	TenantID    string `json:"tenant_id"`
+	Amount      int64  `json:"amount"`
+	StudentName string `json:"student_name"`
+	ParentEmail string `json:"parent_email"`
+}
+
+// CreateSPPPayment creates Midtrans Snap for SPP (Premium tier only)
+// POST /api/v1/payment/spp/create
+func (a *paymentAdapter) CreateSPPPayment(c *fiber.Ctx) error {
+	var req CreateSPPPaymentRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	// Validate required fields
+	if req.SPPID == "" || req.TenantID == "" || req.Amount <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "spp_id, tenant_id, dan amount wajib diisi",
+		})
+	}
+
+	// Check tenant tier - only Premium can use PG
+	ctx := context.Background()
+	tenant, err := a.domainRegistry.Tenant().FindByID(ctx, req.TenantID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Tenant tidak ditemukan",
+		})
+	}
+
+	if !model.HasFeature(tenant.SubscriptionTier, model.FeaturePaymentGateway) {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error":       "Fitur Payment Gateway hanya tersedia untuk paket Premium",
+			"upgrade_url": "/pricing",
+		})
+	}
+
+	// Create Midtrans Snap transaction for SPP
+	payment, snapResp, err := a.domainRegistry.Payment().CreateSPPSnapTransaction(
+		ctx, req.SPPID, req.TenantID, req.Amount, req.StudentName, req.ParentEmail,
+	)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal membuat transaksi pembayaran. " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":       "success",
+		"order_id":     payment.OrderID,
+		"snap_token":   snapResp.Token,
+		"redirect_url": snapResp.RedirectURL,
+		"amount":       payment.Amount,
+	})
+}
+
+// SPPWebhook handles Midtrans callback for SPP payments
+// POST /api/v1/payment/spp/webhook
+func (a *paymentAdapter) SPPWebhook(c *fiber.Ctx) error {
+	var notification model.MidtransNotification
+	if err := c.BodyParser(&notification); err != nil {
+		fmt.Printf("SPP Webhook: Failed to parse notification: %v\n", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid notification payload",
+		})
+	}
+
+	fmt.Printf("SPP Webhook received: OrderID=%s, Status=%s\n", notification.OrderID, notification.TransactionStatus)
+
+	ctx := context.Background()
+	if err := a.domainRegistry.Payment().HandleSPPWebhook(ctx, &notification); err != nil {
+		fmt.Printf("SPP Webhook: Error handling notification: %v\n", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// If payment successful, update SPP status
+	if notification.TransactionStatus == "settlement" || notification.TransactionStatus == "capture" {
+		// Extract SPP ID from order ID (format: SPP-{sppID}-{timestamp})
+		parts := splitOrderID(notification.OrderID)
+		if len(parts) >= 2 {
+			sppID := parts[1]
+			// Update SPP status to paid
+			_ = a.domainRegistry.SPP().ConfirmPayment(ctx, sppID, "system", "midtrans")
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "ok",
+	})
+}
+
+// splitOrderID splits SPP order ID into parts
+func splitOrderID(orderID string) []string {
+	var parts []string
+	current := ""
+	for _, c := range orderID {
+		if c == '-' {
+			parts = append(parts, current)
+			current = ""
+		} else {
+			current += string(c)
+		}
+	}
+	if current != "" {
+		parts = append(parts, current)
+	}
+	return parts
+}

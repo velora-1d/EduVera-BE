@@ -4,11 +4,17 @@ import (
 	"time"
 )
 
-// Plan types for tenant
+// Plan types for tenant (horizontal - which modules)
 const (
 	PlanTypeSekolah   = "sekolah"
 	PlanTypePesantren = "pesantren"
 	PlanTypeHybrid    = "hybrid"
+)
+
+// Subscription tiers (vertical - feature level)
+const (
+	TierBasic   = "basic"   // Manual payment confirmation
+	TierPremium = "premium" // Auto payment gateway
 )
 
 // Tenant status
@@ -26,18 +32,19 @@ const (
 )
 
 type Tenant struct {
-	ID              string    `json:"id" db:"id"`
-	Name            string    `json:"name" db:"name"`
-	Subdomain       string    `json:"subdomain" db:"subdomain"`
-	PlanType        string    `json:"plan_type" db:"plan_type"`
-	InstitutionType string    `json:"institution_type,omitempty" db:"institution_type"`
-	Address         string    `json:"address,omitempty" db:"address"`
-	BankName        string    `json:"bank_name,omitempty" db:"bank_name"`
-	AccountNumber   string    `json:"account_number,omitempty" db:"account_number"`
-	AccountHolder   string    `json:"account_holder,omitempty" db:"account_holder"`
-	Status          string    `json:"status" db:"status"`
-	CreatedAt       time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at" db:"updated_at"`
+	ID               string    `json:"id" db:"id"`
+	Name             string    `json:"name" db:"name"`
+	Subdomain        string    `json:"subdomain" db:"subdomain"`
+	PlanType         string    `json:"plan_type" db:"plan_type"`
+	SubscriptionTier string    `json:"subscription_tier" db:"subscription_tier"` // basic or premium
+	InstitutionType  string    `json:"institution_type,omitempty" db:"institution_type"`
+	Address          string    `json:"address,omitempty" db:"address"`
+	BankName         string    `json:"bank_name,omitempty" db:"bank_name"`
+	AccountNumber    string    `json:"account_number,omitempty" db:"account_number"`
+	AccountHolder    string    `json:"account_holder,omitempty" db:"account_holder"`
+	Status           string    `json:"status" db:"status"`
+	CreatedAt        time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at" db:"updated_at"`
 }
 
 type TenantInput struct {

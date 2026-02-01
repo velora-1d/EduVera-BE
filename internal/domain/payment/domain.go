@@ -16,7 +16,9 @@ import (
 
 type PaymentDomain interface {
 	CreateSnapTransaction(ctx context.Context, input *model.CreatePaymentInput, customerName, customerEmail string) (*model.Payment, *model.SnapTransactionResponse, error)
+	CreateSPPSnapTransaction(ctx context.Context, sppID, tenantID string, amount int64, studentName, parentEmail string) (*model.Payment, *model.SnapTransactionResponse, error)
 	HandleWebhook(ctx context.Context, notification *model.MidtransNotification) error
+	HandleSPPWebhook(ctx context.Context, notification *model.MidtransNotification) error
 	GetPaymentByOrderID(ctx context.Context, orderID string) (*model.Payment, error)
 }
 
@@ -107,6 +109,119 @@ func (d *paymentDomain) CreateSnapTransaction(ctx context.Context, input *model.
 		Token:       snapResp.Token,
 		RedirectURL: snapResp.RedirectURL,
 	}, nil
+}
+
+// CreateSPPSnapTransaction creates Midtrans Snap for SPP payment (Premium tier only)
+func (d *paymentDomain) CreateSPPSnapTransaction(ctx context.Context, sppID, tenantID string, amount int64, studentName, parentEmail string) (*model.Payment, *model.SnapTransactionResponse, error) {
+	// Generate SPP-specific order ID format: SPP-{sppID}-{timestamp}
+	orderID := "SPP-" + sppID + "-" + model.GenerateTimestamp()
+
+	// Create Snap request
+	snapReq := &snap.Request{
+		TransactionDetails: midtrans.TransactionDetails{
+			OrderID:  orderID,
+			GrossAmt: amount,
+		},
+		CustomerDetail: &midtrans.CustomerDetails{
+			FName: studentName,
+			Email: parentEmail,
+		},
+		Items: &[]midtrans.ItemDetails{
+			{
+				ID:    sppID,
+				Name:  "Pembayaran SPP - " + studentName,
+				Price: amount,
+				Qty:   1,
+			},
+		},
+	}
+
+	// Create Snap transaction
+	snapResp, midtransErr := d.snapClient.CreateTransaction(snapReq)
+	if midtransErr != nil {
+		return nil, nil, stacktrace.Propagate(midtransErr, "failed to create SPP snap transaction")
+	}
+
+	// Save payment record with SPP reference
+	payment := &model.Payment{
+		TenantID:  tenantID,
+		OrderID:   orderID,
+		Amount:    amount,
+		Status:    model.PaymentStatusPending,
+		SnapToken: snapResp.Token,
+	}
+
+	err := d.databasePort.Payment().Create(payment)
+	if err != nil {
+		return nil, nil, stacktrace.Propagate(err, "failed to save SPP payment")
+	}
+
+	return payment, &model.SnapTransactionResponse{
+		Token:       snapResp.Token,
+		RedirectURL: snapResp.RedirectURL,
+	}, nil
+}
+
+// HandleSPPWebhook handles Midtrans callback for SPP payments
+func (d *paymentDomain) HandleSPPWebhook(ctx context.Context, notification *model.MidtransNotification) error {
+	// Verify signature
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	signatureInput := notification.OrderID + notification.StatusCode + notification.GrossAmount + serverKey
+	hash := sha512.Sum512([]byte(signatureInput))
+	expectedSignature := hex.EncodeToString(hash[:])
+
+	if notification.SignatureKey != expectedSignature {
+		return stacktrace.NewError("invalid signature for SPP payment")
+	}
+
+	// Check if this is an SPP payment (order ID starts with "SPP-")
+	if len(notification.OrderID) < 4 || notification.OrderID[:4] != "SPP-" {
+		return stacktrace.NewError("not an SPP payment order")
+	}
+
+	// Extract SPP ID from order ID (format: SPP-{sppID}-{timestamp})
+	// We'll update payment record and then the SPP status
+	switch notification.TransactionStatus {
+	case "capture", "settlement":
+		if notification.FraudStatus == "accept" || notification.FraudStatus == "" {
+			// Mark payment as paid
+			err := d.databasePort.Payment().MarkAsPaid(
+				notification.OrderID,
+				notification.PaymentType,
+				notification.TransactionID,
+			)
+			if err != nil {
+				return stacktrace.Propagate(err, "failed to mark SPP payment as paid")
+			}
+
+			// Note: SPP status update should be done via SPP domain
+			// The caller should handle updating SPP transaction status after this returns
+			return nil
+		}
+	case "pending":
+		return d.databasePort.Payment().UpdateStatus(
+			notification.OrderID,
+			model.PaymentStatusPending,
+			notification.PaymentType,
+			notification.TransactionID,
+		)
+	case "deny", "cancel":
+		return d.databasePort.Payment().UpdateStatus(
+			notification.OrderID,
+			model.PaymentStatusFailed,
+			notification.PaymentType,
+			notification.TransactionID,
+		)
+	case "expire":
+		return d.databasePort.Payment().UpdateStatus(
+			notification.OrderID,
+			model.PaymentStatusExpired,
+			notification.PaymentType,
+			notification.TransactionID,
+		)
+	}
+
+	return nil
 }
 
 func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.MidtransNotification) error {

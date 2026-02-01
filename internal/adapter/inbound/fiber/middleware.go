@@ -149,11 +149,15 @@ func RequirePlan(requiredPlans ...string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Get tenant plan from context (should be set by ClientAuth middleware)
 		planType, ok := c.Locals("plan_type").(string)
+		// If no plan type in context, it means user is not authenticated or context not set properly
+		// STRICT SECURITY: Deny access if we cannot verify the plan
 		if !ok || planType == "" {
-			// If no plan type in context, try to get from JWT claims
-			// For now, allow access if plan checking is not yet fully implemented
-			return c.Next()
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Akses ditolak. Informasi paket langganan tidak ditemukan.",
+			})
 		}
+
+		// Continue with plan validation logic below...
 
 		// Check if tenant's plan matches any of the required plans
 		for _, required := range requiredPlans {
