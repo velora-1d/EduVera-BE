@@ -94,3 +94,7 @@ func (a *adapter) Subscription() inbound_port.SubscriptionHttpPort {
 func (a *adapter) Analytics() inbound_port.AnalyticsHttpPort {
 	return NewAnalyticsAdapter(a.domain)
 }
+
+func (a *adapter) Export() inbound_port.ExportHttpPort {
+	return NewExportHandler(a.domain.Export())
+}

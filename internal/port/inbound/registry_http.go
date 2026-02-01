@@ -17,4 +17,5 @@ type HttpPort interface {
 	SDM() SDMHttpPort
 	Subscription() SubscriptionHttpPort
 	Analytics() AnalyticsHttpPort
+	Export() ExportHttpPort
 }

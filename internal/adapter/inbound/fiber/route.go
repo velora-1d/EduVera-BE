@@ -502,6 +502,18 @@ func InitRoute(
 		return port.SDM().GetAttendanceSummary(c)
 	})
 
+	// Export Routes (Protected)
+	export := api.Group("/export")
+	export.Use(func(c *fiber.Ctx) error {
+		return port.Middleware().ClientAuth(c)
+	})
+	export.Get("/students", func(c *fiber.Ctx) error {
+		return port.Export().ExportStudents(c)
+	})
+	export.Get("/payments", func(c *fiber.Ctx) error {
+		return port.Export().ExportPayments(c)
+	})
+
 	// ========================================
 	// LEGACY ROUTES (Keep for backward compatibility)
 	// ========================================

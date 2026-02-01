@@ -8,6 +8,7 @@ import (
 	"prabogo/internal/domain/content"
 	disbursement_domain "prabogo/internal/domain/disbursement"
 	erapor_domain "prabogo/internal/domain/erapor"
+	export_domain "prabogo/internal/domain/export"
 	notification_domain "prabogo/internal/domain/notification"
 	"prabogo/internal/domain/payment"
 	dashboard "prabogo/internal/domain/pesantren/dashboard"
@@ -36,6 +37,7 @@ type Domain interface {
 	SDM() sdm_domain.SDMDomain
 	Subscription() subscription.SubscriptionDomain
 	Analytics() analytics_domain.AnalyticsDomain
+	Export() export_domain.ExportDomain
 }
 
 type domain struct {
@@ -117,4 +119,8 @@ func (d *domain) Subscription() subscription.SubscriptionDomain {
 
 func (d *domain) Analytics() analytics_domain.AnalyticsDomain {
 	return analytics_domain.NewAnalyticsDomain(d.databasePort)
+}
+
+func (d *domain) Export() export_domain.ExportDomain {
+	return export_domain.NewExportDomain(d.databasePort)
 }
