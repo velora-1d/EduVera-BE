@@ -1,6 +1,7 @@
 package domain
 
 import (
+	analytics_domain "prabogo/internal/domain/analytics"
 	audit_log_domain "prabogo/internal/domain/audit_log"
 	"prabogo/internal/domain/auth"
 	"prabogo/internal/domain/client"
@@ -34,6 +35,7 @@ type Domain interface {
 	ERapor() *erapor_domain.Service
 	SDM() sdm_domain.SDMDomain
 	Subscription() subscription.SubscriptionDomain
+	Analytics() analytics_domain.AnalyticsDomain
 }
 
 type domain struct {
@@ -111,4 +113,8 @@ func (d *domain) SDM() sdm_domain.SDMDomain {
 
 func (d *domain) Subscription() subscription.SubscriptionDomain {
 	return subscription.NewSubscriptionDomain(d.databasePort.Subscription(), d.databasePort)
+}
+
+func (d *domain) Analytics() analytics_domain.AnalyticsDomain {
+	return analytics_domain.NewAnalyticsDomain(d.databasePort)
 }

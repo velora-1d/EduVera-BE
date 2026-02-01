@@ -248,6 +248,11 @@ func InitRoute(
 		return port.Sekolah().GetDashboardStats(c)
 	})
 
+	// Analytics Charts
+	sekolah.Get("/dashboard/analytics", func(c *fiber.Ctx) error {
+		return port.Analytics().GetAnalytics(c)
+	})
+
 	// Akademik
 	akademik := sekolah.Group("/akademik")
 	akademik.Get("/siswa", func(c *fiber.Ctx) error {

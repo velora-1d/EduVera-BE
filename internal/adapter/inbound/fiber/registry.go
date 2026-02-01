@@ -90,3 +90,7 @@ func (a *adapter) SDM() inbound_port.SDMHttpPort {
 func (a *adapter) Subscription() inbound_port.SubscriptionHttpPort {
 	return NewSubscriptionAdapter(a.domain)
 }
+
+func (a *adapter) Analytics() inbound_port.AnalyticsHttpPort {
+	return NewAnalyticsAdapter(a.domain)
+}

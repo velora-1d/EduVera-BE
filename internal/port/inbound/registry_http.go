@@ -16,4 +16,5 @@ type HttpPort interface {
 	ERapor() ERaporHttpPort
 	SDM() SDMHttpPort
 	Subscription() SubscriptionHttpPort
+	Analytics() AnalyticsHttpPort
 }
