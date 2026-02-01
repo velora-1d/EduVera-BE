@@ -124,20 +124,31 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 			})
 		}
 	} else {
-		exists, err := h.domain.Client().IsExists(ctx, bearerToken)
+		// Validate token using Auth domain to get claims
+		claims, err := h.domain.Auth().ValidateToken(ctx, bearerToken)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
+			return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 				Success: false,
-				Error:   err.Error(),
+				Error:   "Token tidak valid. Silakan login kembali.",
 			})
 		}
 
-		if !exists {
+		// SECURITY: Check if token is blacklisted (logged out)
+		isBlacklisted, _ := h.domain.Auth().IsTokenBlacklisted(ctx, bearerToken)
+		if isBlacklisted {
 			return c.Status(fiber.StatusUnauthorized).JSON(model.Response{
 				Success: false,
-				Error:   "Akses ditolak. Silakan login kembali.",
+				Error:   "Sesi telah berakhir. Silakan login kembali.",
 			})
 		}
+
+		// SECURITY: Set user info from JWT claims to context
+		// This prevents IDOR by ensuring tenant_id comes from token, not user input
+		c.Locals("user_id", claims.UserID)
+		c.Locals("tenant_id", claims.TenantID)
+		c.Locals("email", claims.Email)
+		c.Locals("role", claims.Role)
+		c.Locals("bearer_token", bearerToken) // Store token for logout
 	}
 
 	return c.Next()

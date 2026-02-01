@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"os"
+	"time"
 
 	redis "github.com/redis/go-redis/v9"
 )
@@ -24,6 +25,20 @@ func InitDatabase() {
 
 func Set(ctx context.Context, key string, value interface{}) error {
 	return dbClient.Set(ctx, key, value, 24*60*60*1e9).Err() // 1 day in nanoseconds
+}
+
+// SetWithTTL sets a key with custom TTL duration
+func SetWithTTL(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	return dbClient.Set(ctx, key, value, ttl).Err()
+}
+
+// Exists checks if a key exists in Redis
+func Exists(ctx context.Context, key string) (bool, error) {
+	result, err := dbClient.Exists(ctx, key).Result()
+	if err != nil {
+		return false, err
+	}
+	return result > 0, nil
 }
 
 func Get(ctx context.Context, key string) (string, error) {

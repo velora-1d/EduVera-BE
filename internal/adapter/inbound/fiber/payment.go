@@ -3,6 +3,8 @@ package fiber_inbound_adapter
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -87,10 +89,21 @@ func (a *paymentAdapter) Webhook(c *fiber.Ctx) error {
 		})
 	}
 
+	// SECURITY: Verify Midtrans signature to prevent fake webhooks
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	if !notification.VerifySignature(serverKey) {
+		log.Printf("[SECURITY] Invalid webhook signature for order: %s", notification.OrderID)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid signature",
+		})
+	}
+
 	ctx := context.Background()
 	if err := a.domainRegistry.Payment().HandleWebhook(ctx, &notification); err != nil {
+		// Log internal error but return generic message
+		log.Printf("[ERROR] Webhook processing failed: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Failed to process notification",
 		})
 	}
 
@@ -237,19 +250,28 @@ func (a *paymentAdapter) CreateSPPPayment(c *fiber.Ctx) error {
 func (a *paymentAdapter) SPPWebhook(c *fiber.Ctx) error {
 	var notification model.MidtransNotification
 	if err := c.BodyParser(&notification); err != nil {
-		fmt.Printf("SPP Webhook: Failed to parse notification: %v\n", err)
+		log.Printf("[ERROR] SPP Webhook: Failed to parse notification: %v", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid notification payload",
 		})
 	}
 
-	fmt.Printf("SPP Webhook received: OrderID=%s, Status=%s\n", notification.OrderID, notification.TransactionStatus)
+	// SECURITY: Verify Midtrans signature
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	if !notification.VerifySignature(serverKey) {
+		log.Printf("[SECURITY] Invalid SPP webhook signature for order: %s", notification.OrderID)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid signature",
+		})
+	}
+
+	log.Printf("[INFO] SPP Webhook received: OrderID=%s, Status=%s", notification.OrderID, notification.TransactionStatus)
 
 	ctx := context.Background()
 	if err := a.domainRegistry.Payment().HandleSPPWebhook(ctx, &notification); err != nil {
-		fmt.Printf("SPP Webhook: Error handling notification: %v\n", err)
+		log.Printf("[ERROR] SPP Webhook: Error handling notification: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Failed to process notification",
 		})
 	}
 

@@ -2,6 +2,8 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -22,17 +24,19 @@ func NewSPPAdapter(domain domain.Domain) *sppAdapter {
 // GET /api/v1/tenant/spp
 func (h *sppAdapter) List(c *fiber.Ctx) error {
 	ctx := context.Background()
-	tenantID := c.Query("tenant_id")
-	if tenantID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "ID tenant wajib diisi.",
+
+	// SECURITY: Get tenant_id from JWT context, not from query params
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid. Silakan login kembali.",
 		})
 	}
 
 	transactions, err := h.domain.SPP().ListByTenant(ctx, tenantID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat data SPP. " + err.Error(),
+			"error": "Gagal memuat data SPP.",
 		})
 	}
 
@@ -45,8 +49,15 @@ func (h *sppAdapter) List(c *fiber.Ctx) error {
 func (h *sppAdapter) Create(c *fiber.Ctx) error {
 	ctx := context.Background()
 
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid. Silakan login kembali.",
+		})
+	}
+
 	var input struct {
-		TenantID    string `json:"tenant_id"`
 		StudentID   string `json:"student_id"`
 		StudentName string `json:"student_name"`
 		Amount      int64  `json:"amount"`
@@ -60,7 +71,7 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 	}
 
 	spp := &model.SPPTransaction{
-		TenantID:    input.TenantID,
+		TenantID:    tenantID, // From JWT, not user input
 		StudentID:   input.StudentID,
 		StudentName: input.StudentName,
 		Amount:      input.Amount,
@@ -69,7 +80,7 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 
 	if err := h.domain.SPP().Create(ctx, spp); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal membuat tagihan SPP. " + err.Error(),
+			"error": "Gagal membuat tagihan SPP.",
 		})
 	}
 
@@ -104,17 +115,19 @@ func (h *sppAdapter) RecordPayment(c *fiber.Ctx) error {
 // GET /api/v1/tenant/spp/stats
 func (h *sppAdapter) GetStats(c *fiber.Ctx) error {
 	ctx := context.Background()
-	tenantID := c.Query("tenant_id")
-	if tenantID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "tenant_id is required",
+
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid. Silakan login kembali.",
 		})
 	}
 
 	stats, err := h.domain.SPP().GetStats(ctx, tenantID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+			"error": "Gagal memuat statistik.",
 		})
 	}
 
@@ -184,15 +197,60 @@ func (h *sppAdapter) UploadProof(c *fiber.Ctx) error {
 		})
 	}
 
+	// SECURITY: Validate URL format and only allow safe URLs
+	if !isValidProofURL(input.ProofURL) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "URL tidak valid. Hanya URL HTTPS yang diizinkan.",
+		})
+	}
+
 	if err := h.domain.SPP().UploadProof(ctx, id, input.ProofURL); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal menyimpan bukti pembayaran. " + err.Error(),
+			"error": "Gagal menyimpan bukti pembayaran.",
 		})
 	}
 
 	return c.JSON(fiber.Map{
 		"message": "Bukti pembayaran berhasil diupload",
 	})
+}
+
+// isValidProofURL validates that the URL is safe to store
+func isValidProofURL(proofURL string) bool {
+	// Parse URL
+	parsed, err := url.Parse(proofURL)
+	if err != nil {
+		return false
+	}
+
+	// Only allow HTTPS
+	if parsed.Scheme != "https" {
+		return false
+	}
+
+	// Block dangerous protocols and paths
+	if strings.Contains(proofURL, "javascript:") ||
+		strings.Contains(proofURL, "data:") ||
+		strings.Contains(proofURL, "..") {
+		return false
+	}
+
+	// Allowed domains for uploaded images (adjust based on your storage)
+	allowedDomains := []string{
+		"storage.googleapis.com",
+		"res.cloudinary.com",
+		"s3.amazonaws.com",
+		"eduvera.ve-lora.my.id",
+	}
+
+	for _, domain := range allowedDomains {
+		if strings.HasSuffix(parsed.Host, domain) {
+			return true
+		}
+	}
+
+	// If no allowed domain matches, reject
+	return false
 }
 
 // POST /api/v1/tenant/spp/:id/confirm
@@ -227,17 +285,19 @@ func (h *sppAdapter) ConfirmPayment(c *fiber.Ctx) error {
 // GET /api/v1/tenant/spp/overdue
 func (h *sppAdapter) ListOverdue(c *fiber.Ctx) error {
 	ctx := context.Background()
-	tenantID := c.Query("tenant_id")
-	if tenantID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "tenant_id is required",
+
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid. Silakan login kembali.",
 		})
 	}
 
 	transactions, err := h.domain.SPP().ListOverdue(ctx, tenantID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat data tunggakan. " + err.Error(),
+			"error": "Gagal memuat data tunggakan.",
 		})
 	}
 

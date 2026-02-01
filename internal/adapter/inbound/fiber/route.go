@@ -2,6 +2,7 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,8 +18,13 @@ func InitRoute(
 	port inbound_port.HttpPort,
 ) {
 	// Enable CORS for frontend access
+	// In production, only allow the production domain
+	corsOrigins := "https://eduvera.ve-lora.my.id"
+	if os.Getenv("APP_MODE") != "release" {
+		corsOrigins = "http://localhost:5173, http://localhost:3000, https://eduvera.ve-lora.my.id"
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173, http://localhost:3000, https://eduvera.ve-lora.my.id",
+		AllowOrigins: corsOrigins,
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
@@ -93,9 +99,24 @@ func InitRoute(
 		return port.Onboarding().Status(c)
 	})
 
-	// Auth Routes
+	// Auth Routes with stricter rate limiting
 	auth := api.Group("/auth")
-	auth.Post("/login", func(c *fiber.Ctx) error {
+
+	// Stricter rate limit for login (5 req/min per IP) - brute force protection
+	authLimiter := limiter.New(limiter.Config{
+		Max:        5,
+		Expiration: 60 * time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return "auth:" + c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Terlalu banyak percobaan. Silakan coba lagi dalam 1 menit.",
+			})
+		},
+	})
+
+	auth.Post("/login", authLimiter, func(c *fiber.Ctx) error {
 		return port.Auth().Login(c)
 	})
 	auth.Get("/me", func(c *fiber.Ctx) error {
@@ -107,10 +128,23 @@ func InitRoute(
 	auth.Post("/logout", func(c *fiber.Ctx) error {
 		return port.Auth().Logout(c)
 	})
-	auth.Post("/forgot-password", func(c *fiber.Ctx) error {
+	// Stricter rate limit for forgot password (3 req/min) - prevent abuse
+	forgotLimiter := limiter.New(limiter.Config{
+		Max:        3,
+		Expiration: 60 * time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return "forgot:" + c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Terlalu banyak permintaan reset password. Silakan coba lagi nanti.",
+			})
+		},
+	})
+	auth.Post("/forgot-password", forgotLimiter, func(c *fiber.Ctx) error {
 		return port.Auth().ForgotPassword(c)
 	})
-	auth.Post("/reset-password", func(c *fiber.Ctx) error {
+	auth.Post("/reset-password", authLimiter, func(c *fiber.Ctx) error {
 		return port.Auth().ResetPassword(c)
 	})
 

@@ -103,12 +103,39 @@ func (h *authAdapter) Refresh(a any) error {
 	})
 }
 
-// POST /api/v1/auth/logout - placeholder for logout
+// POST /api/v1/auth/logout - blacklist token to invalidate session
 func (h *authAdapter) Logout(a any) error {
 	c := a.(*fiber.Ctx)
+	ctx := context.Background()
+
+	// Get token from header
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.JSON(fiber.Map{
+			"status":  "success",
+			"message": "Berhasil logout",
+		})
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == authHeader || tokenString == "" {
+		return c.JSON(fiber.Map{
+			"status":  "success",
+			"message": "Berhasil logout",
+		})
+	}
+
+	// Validate token to get expiry time
+	claims, err := h.domain.Auth().ValidateToken(ctx, tokenString)
+	if err == nil && claims != nil {
+		// Blacklist the token until its expiry
+		expiresAt := claims.ExpiresAt.Time
+		_ = h.domain.Auth().BlacklistToken(ctx, tokenString, expiresAt)
+	}
+
 	return c.JSON(fiber.Map{
 		"status":  "success",
-		"message": "Logged out successfully",
+		"message": "Berhasil logout",
 	})
 }
 

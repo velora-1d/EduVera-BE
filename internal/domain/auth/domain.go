@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"time"
@@ -12,6 +14,7 @@ import (
 
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils/redis"
 )
 
 type AuthDomain interface {
@@ -23,6 +26,9 @@ type AuthDomain interface {
 	LinkUserToTenant(ctx context.Context, userID string, tenantID string) error
 	ForgotPassword(ctx context.Context, input *model.ForgotPasswordInput) error
 	ResetPassword(ctx context.Context, input *model.ResetPasswordInput) error
+	// Token blacklist for secure logout
+	BlacklistToken(ctx context.Context, token string, expiresAt time.Time) error
+	IsTokenBlacklisted(ctx context.Context, token string) (bool, error)
 }
 
 type Claims struct {
@@ -52,7 +58,7 @@ func (d *authDomain) Register(ctx context.Context, input *model.UserInput) (*mod
 		return nil, stacktrace.Propagate(err, "failed to check email")
 	}
 	if exists {
-		return nil, stacktrace.NewError("email already registered")
+		return nil, stacktrace.NewError("registration failed, please try again")
 	}
 
 	user, err := model.UserPrepare(input)
@@ -258,7 +264,36 @@ func (d *authDomain) ResetPassword(ctx context.Context, input *model.ResetPasswo
 func getJWTSecret() string {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
-		secret = "eduvera-default-secret-change-in-production"
+		panic("CRITICAL: JWT_SECRET environment variable is required but not set")
+	}
+	if len(secret) < 32 {
+		panic("CRITICAL: JWT_SECRET must be at least 32 characters long")
 	}
 	return secret
+}
+
+// Token blacklist prefix for Redis keys
+const tokenBlacklistPrefix = "bl:"
+
+// hashToken creates a short hash of the token for storage
+func hashToken(token string) string {
+	hash := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(hash[:8]) // Use first 8 bytes = 16 hex chars
+}
+
+// BlacklistToken adds a token to the blacklist until its expiry
+func (d *authDomain) BlacklistToken(ctx context.Context, token string, expiresAt time.Time) error {
+	key := tokenBlacklistPrefix + hashToken(token)
+	ttl := time.Until(expiresAt)
+	if ttl <= 0 {
+		// Token already expired, no need to blacklist
+		return nil
+	}
+	return redis.SetWithTTL(ctx, key, "1", ttl)
+}
+
+// IsTokenBlacklisted checks if a token is in the blacklist
+func (d *authDomain) IsTokenBlacklisted(ctx context.Context, token string) (bool, error) {
+	key := tokenBlacklistPrefix + hashToken(token)
+	return redis.Exists(ctx, key)
 }

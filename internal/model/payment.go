@@ -1,6 +1,8 @@
 package model
 
 import (
+	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
 	"time"
 )
@@ -140,4 +142,21 @@ func GetPlanPriceWithTier(planType, tier string, isAnnual bool) int64 {
 
 func (f PaymentFilter) IsEmpty() bool {
 	return len(f.IDs) == 0 && len(f.TenantIDs) == 0 && len(f.OrderIDs) == 0 && len(f.Statuses) == 0
+}
+
+// VerifyMidtransSignature validates webhook signature from Midtrans
+// Signature = SHA512(order_id + status_code + gross_amount + server_key)
+func (n *MidtransNotification) VerifySignature(serverKey string) bool {
+	if n.SignatureKey == "" || serverKey == "" {
+		return false
+	}
+
+	// Build signature string: order_id + status_code + gross_amount + server_key
+	signatureInput := n.OrderID + n.StatusCode + n.GrossAmount + serverKey
+
+	// Calculate SHA512
+	hash := sha512.Sum512([]byte(signatureInput))
+	expectedSignature := hex.EncodeToString(hash[:])
+
+	return n.SignatureKey == expectedSignature
 }

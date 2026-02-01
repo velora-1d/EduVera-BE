@@ -264,12 +264,13 @@ func (a *App) workflowInbound() {
 }
 
 func configureLogging() {
-	logrus.SetLevel(logrus.DebugLevel)
-	logrus.AddHook(utils.LogrusSourceContextHook{})
-
-	if os.Getenv("APP_MODE") != "release" {
-		logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
-	} else {
+	// SECURITY: Use INFO level in production to avoid leaking sensitive data
+	if os.Getenv("APP_MODE") == "release" {
+		logrus.SetLevel(logrus.InfoLevel)
 		logrus.SetFormatter(&joonix.FluentdFormatter{})
+	} else {
+		logrus.SetLevel(logrus.DebugLevel)
+		logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
 	}
+	logrus.AddHook(utils.LogrusSourceContextHook{})
 }
