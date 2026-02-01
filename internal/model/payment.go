@@ -15,18 +15,47 @@ const (
 )
 
 // Plan pricing in Rupiah
+// Structure: plan_tier -> isAnnual -> price
+// Plans: sekolah_basic, pesantren_basic, hybrid_basic, sekolah_premium, pesantren_premium, hybrid_premium
 var PlanPricing = map[string]map[bool]int64{
+	// BASIC PLANS
+	"sekolah_basic": {
+		true:  2999000, // Annual - Rp 2.999.000
+		false: 299000,  // Monthly - Rp 299.000
+	},
+	"pesantren_basic": {
+		true:  2999000, // Annual - Rp 2.999.000
+		false: 299000,  // Monthly - Rp 299.000
+	},
+	"hybrid_basic": {
+		true:  4499000, // Annual - Rp 4.499.000
+		false: 449000,  // Monthly - Rp 449.000
+	},
+	// PREMIUM PLANS
+	"sekolah_premium": {
+		true:  4999000, // Annual - Rp 4.999.000
+		false: 499000,  // Monthly - Rp 499.000
+	},
+	"pesantren_premium": {
+		true:  4999000, // Annual - Rp 4.999.000
+		false: 499000,  // Monthly - Rp 499.000
+	},
+	"hybrid_premium": {
+		true:  6999999, // Annual - Rp 6.999.999 (FLAGSHIP)
+		false: 699000,  // Monthly - Rp 699.000
+	},
+	// Legacy support - map old plan names to premium
 	"sekolah": {
-		true:  4990000, // Annual
-		false: 499000,  // Monthly
+		true:  4999000,
+		false: 499000,
 	},
 	"pesantren": {
-		true:  4990000, // Annual
-		false: 499000,  // Monthly
+		true:  4999000,
+		false: 499000,
 	},
 	"hybrid": {
-		true:  7990000, // Annual
-		false: 799000,  // Monthly
+		true:  6999999,
+		false: 699000,
 	},
 }
 
@@ -46,7 +75,8 @@ type Payment struct {
 
 type CreatePaymentInput struct {
 	TenantID string `json:"tenant_id" validate:"required"`
-	PlanType string `json:"plan_type" validate:"required,oneof=sekolah pesantren hybrid"`
+	PlanType string `json:"plan_type" validate:"required"`
+	PlanTier string `json:"plan_tier"` // basic or premium
 	IsAnnual bool   `json:"is_annual"`
 }
 
@@ -90,12 +120,22 @@ func GenerateTimestamp() string {
 	return fmt.Sprintf("%d", time.Now().UnixMilli())
 }
 
-// GetPlanPrice returns price based on plan and billing cycle
+// GetPlanPrice returns price based on plan type, tier and billing cycle
 func GetPlanPrice(planType string, isAnnual bool) int64 {
 	if prices, ok := PlanPricing[planType]; ok {
 		return prices[isAnnual]
 	}
 	return 0
+}
+
+// GetPlanPriceWithTier returns price with explicit tier
+func GetPlanPriceWithTier(planType, tier string, isAnnual bool) int64 {
+	key := planType + "_" + tier
+	if prices, ok := PlanPricing[key]; ok {
+		return prices[isAnnual]
+	}
+	// Fallback to legacy
+	return GetPlanPrice(planType, isAnnual)
 }
 
 func (f PaymentFilter) IsEmpty() bool {
