@@ -24,11 +24,13 @@ type OnboardingData struct {
 	AdminEmail    string `json:"admin_email"`
 	AdminWhatsApp string `json:"admin_whatsapp"`
 
-	// Step 2: Institution
-	InstitutionName string `json:"institution_name"`
-	InstitutionType string `json:"institution_type"`
-	PlanType        string `json:"plan_type"`
-	Address         string `json:"address"`
+	// Step 2: Institution & Plan
+	InstitutionName  string `json:"institution_name"`
+	InstitutionType  string `json:"institution_type"`  // sekolah, pesantren, hybrid
+	PlanType         string `json:"plan_type"`         // sekolah, pesantren, hybrid
+	SubscriptionTier string `json:"subscription_tier"` // basic, premium
+	BillingCycle     string `json:"billing_cycle"`     // monthly, annual
+	Address          string `json:"address"`
 
 	// Step 3: Subdomain
 	Subdomain string `json:"subdomain"`
