@@ -33,7 +33,9 @@ const (
 
 type Tenant struct {
 	ID               string    `json:"id" db:"id"`
-	Name             string    `json:"name" db:"name"`
+	Name             string    `json:"name" db:"name"`                               // Primary name / Yayasan name
+	SchoolName       string    `json:"school_name,omitempty" db:"school_name"`       // For hybrid: specific school name
+	PesantrenName    string    `json:"pesantren_name,omitempty" db:"pesantren_name"` // For hybrid: specific pesantren name
 	Subdomain        string    `json:"subdomain" db:"subdomain"`
 	PlanType         string    `json:"plan_type" db:"plan_type"`
 	SubscriptionTier string    `json:"subscription_tier" db:"subscription_tier"` // basic or premium
@@ -49,6 +51,8 @@ type Tenant struct {
 
 type TenantInput struct {
 	Name            string `json:"name" validate:"required"`
+	SchoolName      string `json:"school_name,omitempty"`    // For hybrid packages
+	PesantrenName   string `json:"pesantren_name,omitempty"` // For hybrid packages
 	Subdomain       string `json:"subdomain" validate:"required,min=3,max=50"`
 	PlanType        string `json:"plan_type" validate:"required,oneof=sekolah pesantren hybrid"`
 	InstitutionType string `json:"institution_type,omitempty"`
@@ -68,6 +72,8 @@ type TenantFilter struct {
 func TenantPrepare(input *TenantInput) *Tenant {
 	return &Tenant{
 		Name:            input.Name,
+		SchoolName:      input.SchoolName,
+		PesantrenName:   input.PesantrenName,
 		Subdomain:       input.Subdomain,
 		PlanType:        input.PlanType,
 		InstitutionType: input.InstitutionType,

@@ -25,11 +25,13 @@ type OnboardingData struct {
 	AdminWhatsApp string `json:"admin_whatsapp"`
 
 	// Step 2: Institution & Plan
-	InstitutionName  string `json:"institution_name"`
-	InstitutionType  string `json:"institution_type"`  // sekolah, pesantren, hybrid
-	PlanType         string `json:"plan_type"`         // sekolah, pesantren, hybrid
-	SubscriptionTier string `json:"subscription_tier"` // basic, premium
-	BillingCycle     string `json:"billing_cycle"`     // monthly, annual
+	InstitutionName  string `json:"institution_name"`         // Primary name / Yayasan name
+	SchoolName       string `json:"school_name,omitempty"`    // For hybrid: specific school name
+	PesantrenName    string `json:"pesantren_name,omitempty"` // For hybrid: specific pesantren name
+	InstitutionType  string `json:"institution_type"`         // sekolah, pesantren, hybrid
+	PlanType         string `json:"plan_type"`                // sekolah, pesantren, hybrid
+	SubscriptionTier string `json:"subscription_tier"`        // basic, premium
+	BillingCycle     string `json:"billing_cycle"`            // monthly, annual
 	Address          string `json:"address"`
 
 	// Step 3: Subdomain
