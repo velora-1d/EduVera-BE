@@ -110,6 +110,84 @@ _Powered by EduVera SaaS_`
 	return t.sendMessage(message)
 }
 
+// SendPaymentPending sends notification for pending payment
+func (t *TelegramNotifier) SendPaymentPending(institutionName string, amount int64, orderID string) error {
+	message := fmt.Sprintf(`⏳ *PEMBAYARAN PENDING*
+
+🏫 *Lembaga:* %s
+💵 *Jumlah:* Rp %d
+🔖 *Order ID:* %s
+
+Menunggu pembayaran dari user...`,
+		institutionName,
+		amount,
+		orderID,
+	)
+
+	return t.sendMessage(message)
+}
+
+// SendPaymentFailed sends notification for failed payment
+func (t *TelegramNotifier) SendPaymentFailed(institutionName string, amount int64, orderID, reason string) error {
+	message := fmt.Sprintf(`❌ *PEMBAYARAN GAGAL*
+
+🏫 *Lembaga:* %s
+💵 *Jumlah:* Rp %d
+🔖 *Order ID:* %s
+📝 *Alasan:* %s`,
+		institutionName,
+		amount,
+		orderID,
+		reason,
+	)
+
+	return t.sendMessage(message)
+}
+
+// SendPaymentExpired sends notification for expired payment
+func (t *TelegramNotifier) SendPaymentExpired(institutionName string, amount int64, orderID string) error {
+	message := fmt.Sprintf(`⌛ *PEMBAYARAN KADALUARSA*
+
+🏫 *Lembaga:* %s
+💵 *Jumlah:* Rp %d
+🔖 *Order ID:* %s
+
+User tidak menyelesaikan pembayaran.`,
+		institutionName,
+		amount,
+		orderID,
+	)
+
+	return t.sendMessage(message)
+}
+
+// SendSubscriptionReminder sends notification for subscription expiring soon
+func (t *TelegramNotifier) SendSubscriptionReminder(institutionName, subdomain string, daysLeft int, expiryDate string) error {
+	urgencyEmoji := "📅"
+	if daysLeft <= 3 {
+		urgencyEmoji = "🚨"
+	} else if daysLeft <= 7 {
+		urgencyEmoji = "⚠️"
+	}
+
+	message := fmt.Sprintf(`%s *LANGGANAN HAMPIR HABIS*
+
+🏫 *Lembaga:* %s
+🌐 *Subdomain:* %s.eduvera.ve-lora.my.id
+📅 *Berakhir:* %s
+⏳ *Sisa:* %d hari
+
+Segera hubungi untuk perpanjangan!`,
+		urgencyEmoji,
+		institutionName,
+		subdomain,
+		expiryDate,
+		daysLeft,
+	)
+
+	return t.sendMessage(message)
+}
+
 // sendMessage sends a message via Telegram Bot API
 func (t *TelegramNotifier) sendMessage(text string) error {
 	if t.botToken == "" || t.chatID == "" {

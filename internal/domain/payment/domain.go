@@ -323,10 +323,53 @@ func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.M
 		}
 	case "pending":
 		status = model.PaymentStatusPending
+		// Send Telegram notification for pending
+		go func() {
+			payment, err := d.databasePort.Payment().FindByOrderID(notification.OrderID)
+			if err == nil && payment != nil {
+				tenant, _ := d.databasePort.Tenant().FindByID(payment.TenantID)
+				tenantName := "Lembaga"
+				if tenant != nil {
+					tenantName = tenant.Name
+				}
+				amount, _ := strconv.ParseInt(notification.GrossAmount, 10, 64)
+				_ = d.telegram.SendPaymentPending(tenantName, amount, notification.OrderID)
+			}
+		}()
 	case "deny", "cancel":
 		status = model.PaymentStatusFailed
+		// Send Telegram notification for failed
+		go func() {
+			payment, err := d.databasePort.Payment().FindByOrderID(notification.OrderID)
+			if err == nil && payment != nil {
+				tenant, _ := d.databasePort.Tenant().FindByID(payment.TenantID)
+				tenantName := "Lembaga"
+				if tenant != nil {
+					tenantName = tenant.Name
+				}
+				amount, _ := strconv.ParseInt(notification.GrossAmount, 10, 64)
+				reason := "Dibatalkan oleh user atau ditolak"
+				if notification.TransactionStatus == "deny" {
+					reason = "Ditolak oleh payment gateway"
+				}
+				_ = d.telegram.SendPaymentFailed(tenantName, amount, notification.OrderID, reason)
+			}
+		}()
 	case "expire":
 		status = model.PaymentStatusExpired
+		// Send Telegram notification for expired
+		go func() {
+			payment, err := d.databasePort.Payment().FindByOrderID(notification.OrderID)
+			if err == nil && payment != nil {
+				tenant, _ := d.databasePort.Tenant().FindByID(payment.TenantID)
+				tenantName := "Lembaga"
+				if tenant != nil {
+					tenantName = tenant.Name
+				}
+				amount, _ := strconv.ParseInt(notification.GrossAmount, 10, 64)
+				_ = d.telegram.SendPaymentExpired(tenantName, amount, notification.OrderID)
+			}
+		}()
 	default:
 		status = model.PaymentStatusPending
 	}
