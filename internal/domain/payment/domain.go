@@ -4,12 +4,15 @@ import (
 	"context"
 	"crypto/sha512"
 	"encoding/hex"
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
 	"github.com/palantir/stacktrace"
 
+	"prabogo/internal/adapter/outbound/notification"
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
 )
@@ -26,6 +29,7 @@ type paymentDomain struct {
 	databasePort outbound_port.DatabasePort
 	messagePort  outbound_port.MessagePort
 	snapClient   snap.Client
+	telegram     *notification.TelegramNotifier
 }
 
 func NewPaymentDomain(databasePort outbound_port.DatabasePort, messagePort outbound_port.MessagePort) PaymentDomain {
@@ -46,6 +50,7 @@ func NewPaymentDomain(databasePort outbound_port.DatabasePort, messagePort outbo
 		databasePort: databasePort,
 		messagePort:  messagePort,
 		snapClient:   snapClient,
+		telegram:     notification.NewTelegramNotifier(),
 	}
 }
 
@@ -251,10 +256,29 @@ func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.M
 				return stacktrace.Propagate(err, "failed to mark payment as paid")
 			}
 
-			// Activate tenant
+			// Activate tenant and send notifications
 			payment, err := d.databasePort.Payment().FindByOrderID(notification.OrderID)
 			if err == nil && payment != nil {
+				// Get tenant info for notifications
+				tenant, _ := d.databasePort.Tenant().FindByID(payment.TenantID)
+				tenantName := "Lembaga"
+				planType := ""
+				subdomain := ""
+				if tenant != nil {
+					tenantName = tenant.Name
+					planType = tenant.PlanType
+					subdomain = tenant.Subdomain
+				}
+
 				_ = d.databasePort.Tenant().UpdateStatus(payment.TenantID, model.TenantStatusActive)
+
+				// Parse amount for telegram
+				amount, _ := strconv.ParseInt(notification.GrossAmount, 10, 64)
+
+				// Send Telegram Notification to Owner (async)
+				go func() {
+					_ = d.telegram.SendPaymentSuccess(tenantName, planType, amount)
+				}()
 
 				// Send WhatsApp Notification to Admin
 				if d.messagePort != nil {
@@ -266,14 +290,30 @@ func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.M
 					if err == nil && len(users) > 0 {
 						admin := users[0]
 						if admin.WhatsApp != "" {
-							message := "Halo " + admin.Name + "!\n\n" +
-								"Pembayaran Anda untuk Order ID " + notification.OrderID + " telah BERHASIL kami terima.\n\n" +
-								"Status: AKTIF\n" +
-								"Metode: " + notification.PaymentType + "\n" +
-								"Jumlah: Rp " + notification.GrossAmount + "\n\n" +
-								"Akun institusi Anda kini telah aktif. Silakan login kembali untuk mulai menggunakan EduVera.\n\n" +
-								"Terima kasih atas kepercayaannya!"
-							_ = d.messagePort.WhatsApp().Send(admin.WhatsApp, message)
+							loginURL := "https://" + subdomain + ".eduvera.ve-lora.my.id/login"
+							message := fmt.Sprintf(
+								"🎉 *Pembayaran Berhasil!*\n\n"+
+									"Halo %s,\n\n"+
+									"Pembayaran untuk *%s* telah kami terima.\n\n"+
+									"💰 *Detail Pembayaran:*\n"+
+									"• Order ID: %s\n"+
+									"• Metode: %s\n"+
+									"• Jumlah: Rp %s\n\n"+
+									"✅ *Status Akun: AKTIF*\n\n"+
+									"📌 *Login Dashboard:*\n%s\n\n"+
+									"Silakan login menggunakan email yang terdaftar.\n\n"+
+									"Butuh bantuan? Balas pesan ini.\n\n"+
+									"_Tim EduVera_",
+								admin.Name,
+								tenantName,
+								notification.OrderID,
+								notification.PaymentType,
+								notification.GrossAmount,
+								loginURL,
+							)
+							go func() {
+								_ = d.messagePort.WhatsApp().Send(admin.WhatsApp, message)
+							}()
 						}
 					}
 				}
