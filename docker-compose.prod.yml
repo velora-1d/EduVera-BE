@@ -16,11 +16,12 @@ services:
       - INBOUND_HTTP_DRIVER=fiber
       - INBOUND_MESSAGE_DRIVER=rabbitmq
       - INBOUND_WORKFLOW_DRIVER=none
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=${POSTGRES_USER:-prabogo}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme}
-      - POSTGRES_DB=${POSTGRES_DB:-prabogo}
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USERNAME=${POSTGRES_USER:-prabogo}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD:-changeme}
+      - DATABASE_NAME=${POSTGRES_DB:-prabogo}
+      - DATABASE_SSLMODE=disable
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-changeme}
@@ -28,6 +29,11 @@ services:
       - RABBITMQ_PORT=5672
       - RABBITMQ_USER=${RABBITMQ_USER:-prabogo}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-changeme}
+      - MESSAGE_HOST=rabbitmq
+      - MESSAGE_PORT=5672
+      - MESSAGE_USER=${RABBITMQ_USER:-prabogo}
+      - MESSAGE_PASSWORD=${RABBITMQ_PASSWORD:-changeme}
+      - MESSAGE_VHOST=/
     depends_on:
       - postgres
       - redis
