@@ -5,9 +5,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8081:8081"
+      - "8000:8000"
     environment:
-      - SERVER_PORT=8081
+      - SERVER_PORT=8000
       - APP_MODE=release
       - OUTBOUND_DATABASE_DRIVER=postgres
       - OUTBOUND_MESSAGE_DRIVER=rabbitmq
