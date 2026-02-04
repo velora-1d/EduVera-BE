@@ -16,5 +16,5 @@ func (s *adapter) Client() outbound_port.ClientMessagePort {
 }
 
 func (s *adapter) WhatsApp() outbound_port.WhatsAppMessagePort {
-	return nil
+	return NewWhatsAppAdapter()
 }

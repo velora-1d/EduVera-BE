@@ -29,6 +29,7 @@ import (
 	_ "prabogo/internal/migration/postgres"
 	outbound_port "prabogo/internal/port/outbound"
 	"prabogo/internal/scheduler"
+	service_notification "prabogo/internal/service/notification"
 	"prabogo/utils"
 	"prabogo/utils/activity"
 	"prabogo/utils/database"
@@ -222,6 +223,20 @@ func (a *App) httpInbound() {
 		// Start scheduler for subscription reminders
 		a.scheduler = scheduler.NewScheduler(ctx, a.domain, a.db)
 		a.scheduler.Start()
+
+		// Start WhatsApp Notification Consumer (RabbitMQ -> Fonnte/Evolution)
+		if inboundMessageDriver == "rabbitmq" {
+			// specific adapters for the consumer
+			fonnteAdapter := whatsapp_outbound_adapter.NewAdapter()
+			evolutionAdapter := evolution_outbound_adapter.NewEvolutionAdapter()
+
+			notifService := service_notification.NewNotificationService(fonnteAdapter.WhatsApp(), evolutionAdapter, a.db)
+			go func() {
+				if err := notifService.StartWhatsAppConsumer(ctx); err != nil {
+					log.WithContext(ctx).Errorf("failed to start whatsapp consumer: %v", err)
+				}
+			}()
+		}
 	}
 
 	ctx, shutdown := context.WithTimeout(ctx, 5*time.Second)
