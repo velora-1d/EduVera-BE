@@ -48,6 +48,8 @@ type Tenant struct {
 	AccountNumber    string         `json:"account_number,omitempty" db:"account_number"`
 	AccountHolder    string         `json:"account_holder,omitempty" db:"account_holder"`
 	Status           string         `json:"status" db:"status"`
+	IsSandbox        bool           `json:"is_sandbox" db:"is_sandbox"`       // True if sandbox tenant for owner testing
+	OwnerID          *string        `json:"owner_id,omitempty" db:"owner_id"` // Owner user ID if sandbox
 	CreatedAt        time.Time      `json:"created_at" db:"created_at"`
 	UpdatedAt        time.Time      `json:"updated_at" db:"updated_at"`
 }

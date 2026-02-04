@@ -143,13 +143,25 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 		}
 
 		// OWNER PREVIEW MODE: Allow super_admin to access all routes
-		// This is for owner to test/debug tenant dashboards
+		// This is for owner to test/debug tenant dashboards using sandbox tenants
 		if claims.Role == model.RoleSuperAdmin {
 			c.Locals("user_id", claims.UserID)
 			c.Locals("role", claims.Role)
 			c.Locals("is_owner_preview", true)
 			c.Locals("bearer_token", bearerToken)
-			// Note: tenant_id will be empty for owner - handlers should check is_owner_preview
+
+			// Check if owner is using a sandbox tenant
+			sandboxSubdomain := c.Get("X-Sandbox-Tenant")
+			if sandboxSubdomain != "" {
+				// Validate sandbox tenant exists and belongs to this owner
+				tenant, err := h.domain.Tenant().FindBySubdomain(ctx, sandboxSubdomain)
+				if err == nil && tenant != nil && tenant.IsSandbox {
+					// Owner is using a valid sandbox tenant
+					c.Locals("tenant_id", tenant.ID)
+					c.Locals("plan_type", tenant.PlanType)
+				}
+			}
+
 			return c.Next()
 		}
 
