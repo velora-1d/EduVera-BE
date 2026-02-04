@@ -34,6 +34,10 @@ services:
       - MESSAGE_USER=${RABBITMQ_USER:-prabogo}
       - MESSAGE_PASSWORD=${RABBITMQ_PASSWORD:-changeme}
       - MESSAGE_VHOST=/
+      - OWNER_EMAIL=${OWNER_EMAIL}
+      - OWNER_PASSWORD=${OWNER_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET:-default_jwt_secret_change_me}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
     depends_on:
       - postgres
       - redis
