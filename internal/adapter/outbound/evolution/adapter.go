@@ -94,11 +94,14 @@ func (a *evolutionAdapter) FetchInstance(ctx context.Context, instanceName strin
 	}
 	json.NewDecoder(resp.Body).Decode(&result)
 
-	status := model.WhatsAppStatusDisconnected
-	if result.Instance.State == "open" {
+	var status string
+	switch result.Instance.State {
+	case "open":
 		status = model.WhatsAppStatusConnected
-	} else if result.Instance.State == "connecting" {
+	case "connecting":
 		status = model.WhatsAppStatusConnecting
+	default:
+		status = model.WhatsAppStatusDisconnected
 	}
 
 	return &model.WhatsAppSession{

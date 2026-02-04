@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 
+	"prabogo/internal/domain/audit_log"
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
 
@@ -57,6 +58,9 @@ func (d *subscriptionDomain) CreateSubscription(ctx context.Context, input model
 	if err := d.repo.CreateSubscription(ctx, sub); err != nil {
 		return nil, err
 	}
+
+	// Audit Log
+	audit_log.LogSubscriptionCreated(d.tenantRepo.AuditLog(), sub.TenantID, sub.PlanType)
 
 	// Also record history
 	d.repo.RecordSubscriptionHistory(ctx, sub.ID, "created", "", input.PlanType, "", model.SubscriptionStatusActive, 0, "Initial subscription")
@@ -227,6 +231,10 @@ func (d *subscriptionDomain) RenewSubscription(ctx context.Context, tenantID, or
 		return err
 	}
 
+	// Audit Log
+	helper := audit_log.NewAuditHelper(d.tenantRepo.AuditLog())
+	_ = helper.LogSubscriptionEvent(ctx, model.AuditActionSubscriptionRenewed, sub.TenantID, fmt.Sprintf("Renewed via Order %s", orderID))
+
 	d.repo.RecordSubscriptionHistory(ctx, sub.ID, "renewed", sub.PlanType, sub.PlanType, sub.Status, model.SubscriptionStatusActive, 0, fmt.Sprintf("Renewed via Order %s", orderID))
 	return nil
 }
@@ -257,6 +265,11 @@ func (d *subscriptionDomain) CheckExpiredSubscriptions(ctx context.Context) erro
 			log.Printf("Failed to update sub %s to suspended: %v", sub.ID, err)
 			continue
 		}
+
+		// Audit Log
+		helper := audit_log.NewAuditHelper(d.tenantRepo.AuditLog())
+		_ = helper.LogSubscriptionEvent(ctx, model.AuditActionSubscriptionSuspended, sub.TenantID, "Grace period ended, account suspended")
+
 		d.repo.RecordSubscriptionHistory(ctx, sub.ID, "status_change", sub.PlanType, sub.PlanType, model.SubscriptionStatusGracePeriod, model.SubscriptionStatusSuspended, 0, "Grace period ended, suspended")
 	}
 

@@ -39,7 +39,7 @@ func (h *authAdapter) Login(a any) error {
 		})
 	}
 
-	response, err := h.domain.Auth().Login(ctx, &input)
+	response, err := h.domain.Auth().Login(ctx, &input, c.IP())
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Email atau password salah. Silakan coba lagi.",

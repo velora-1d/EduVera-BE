@@ -12,6 +12,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"golang.org/x/crypto/bcrypt"
 
+	"prabogo/internal/domain/audit_log"
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
 	"prabogo/utils/redis"
@@ -19,7 +20,7 @@ import (
 
 type AuthDomain interface {
 	Register(ctx context.Context, input *model.UserInput) (*model.User, error)
-	Login(ctx context.Context, input *model.LoginInput) (*model.LoginResponse, error)
+	Login(ctx context.Context, input *model.LoginInput, ipAddress string) (*model.LoginResponse, error)
 	ValidateToken(ctx context.Context, tokenString string) (*Claims, error)
 	GetCurrentUser(ctx context.Context, userID string) (*model.User, error)
 	GenerateToken(user *model.User) (string, int64, error)
@@ -83,22 +84,30 @@ func (d *authDomain) Register(ctx context.Context, input *model.UserInput) (*mod
 	return user, nil
 }
 
-func (d *authDomain) Login(ctx context.Context, input *model.LoginInput) (*model.LoginResponse, error) {
+func (d *authDomain) Login(ctx context.Context, input *model.LoginInput, ipAddress string) (*model.LoginResponse, error) {
+	audit := audit_log.NewAuditHelper(d.databasePort.AuditLog())
+
 	user, err := d.databasePort.User().FindByEmail(input.Email)
 	if err != nil {
+		_ = audit.LogLoginEvent(ctx, model.AuditActionLoginFailed, "", input.Email, ipAddress)
 		return nil, stacktrace.NewError("invalid email or password")
 	}
 
 	if !user.CheckPassword(input.Password) {
+		_ = audit.LogLoginEvent(ctx, model.AuditActionLoginFailed, user.ID, user.Email, ipAddress)
 		return nil, stacktrace.NewError("invalid email or password")
 	}
 
 	if !user.IsActive {
+		_ = audit.LogLoginEvent(ctx, model.AuditActionLoginFailed, user.ID, user.Email, ipAddress)
 		return nil, stacktrace.NewError("account not activated")
 	}
 
 	// Update last login
 	_ = d.databasePort.User().UpdateLastLogin(user.ID)
+
+	// Log Success
+	_ = audit.LogLoginEvent(ctx, model.AuditActionLoginSuccess, user.ID, user.Email, ipAddress)
 
 	// Generate JWT
 	signedToken, expiresAt, err := d.GenerateToken(user)

@@ -381,22 +381,19 @@ func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.M
 		notification.PaymentType,
 		notification.TransactionID,
 	)
-	return d.databasePort.Payment().UpdateStatus(
-		notification.OrderID,
-		status,
-		notification.PaymentType,
-		notification.TransactionID,
-	)
 }
 
 func (d *paymentDomain) HandleXenditWebhook(ctx context.Context, callback *model.XenditCallback) error {
-	status := model.PaymentStatusPending
-	if callback.Status == "PAID" || callback.Status == "SETTLED" {
+	var status string
+	switch callback.Status {
+	case "PAID", "SETTLED":
 		status = model.PaymentStatusPaid
-	} else if callback.Status == "EXPIRED" {
+	case "EXPIRED":
 		status = model.PaymentStatusExpired
-	} else if callback.Status == "FAILED" {
+	case "FAILED":
 		status = model.PaymentStatusFailed
+	default:
+		status = model.PaymentStatusPending
 	}
 
 	// Update Payment Status
