@@ -75,6 +75,65 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 	})
 }
 
+// POST /api/v1/owner/impersonate
+// Switch view to tenant dashboard for testing/preview
+func (h *ownerAdapter) Impersonate(c *fiber.Ctx) error {
+	ctx := context.Background()
+
+	var input model.ImpersonateInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Data tidak valid. Silakan coba lagi.",
+		})
+	}
+
+	if input.TenantID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Tenant ID wajib diisi.",
+		})
+	}
+
+	// Get tenant info
+	tenant, err := h.domain.Tenant().FindByID(ctx, input.TenantID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Tenant tidak ditemukan.",
+		})
+	}
+
+	// Determine view mode based on tenant plan type
+	viewMode := input.ViewMode
+	if viewMode == "" {
+		viewMode = tenant.PlanType // sekolah, pesantren, or hybrid
+	}
+
+	// Create impersonation user (owner viewing as tenant admin)
+	impersonateUser := &model.User{
+		ID:       "owner-impersonate-" + tenant.ID,
+		Name:     "Owner (Viewing: " + tenant.Name + ")",
+		Email:    "owner@eduvera.id",
+		Role:     model.RoleOwner,
+		TenantID: tenant.ID,
+		IsOwner:  true,
+	}
+
+	// Generate Token with impersonation context
+	token, expiresAt, err := h.domain.Auth().GenerateToken(impersonateUser)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Gagal membuat token impersonate.",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"impersonate_token": token,
+		"expires_at":        expiresAt,
+		"tenant":            tenant,
+		"view_mode":         viewMode,
+		"is_impersonating":  true,
+	})
+}
+
 // GET /api/v1/owner/tenants
 func (h *ownerAdapter) GetTenants(c *fiber.Ctx) error {
 	ctx := context.Background()

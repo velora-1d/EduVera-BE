@@ -9,6 +9,7 @@ import (
 // User roles
 const (
 	RoleSuperAdmin = "super_admin"
+	RoleOwner      = "owner"
 	RoleAdmin      = "admin"
 	RoleTeacher    = "teacher"
 	RoleStudent    = "student"
@@ -24,6 +25,7 @@ type User struct {
 	PasswordHash    string     `json:"-" db:"password_hash"`
 	Role            string     `json:"role" db:"role"`
 	IsActive        bool       `json:"is_active" db:"is_active"`
+	IsOwner         bool       `json:"is_owner" db:"is_owner"`
 	EmailVerifiedAt *time.Time `json:"email_verified_at,omitempty" db:"email_verified_at"`
 	LastLoginAt     *time.Time `json:"last_login_at,omitempty" db:"last_login_at"`
 	CreatedAt       time.Time  `json:"created_at" db:"created_at"`

@@ -177,6 +177,9 @@ func InitRoute(
 	ownerProtected.Get("/stats", func(c *fiber.Ctx) error {
 		return port.Owner().GetStats(c)
 	})
+	ownerProtected.Post("/impersonate", func(c *fiber.Ctx) error {
+		return port.Owner().Impersonate(c)
+	})
 	ownerProtected.Post("/content", func(c *fiber.Ctx) error {
 		return port.Content().Upsert(c)
 	})
