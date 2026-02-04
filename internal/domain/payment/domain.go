@@ -22,6 +22,7 @@ type PaymentDomain interface {
 	CreateSPPSnapTransaction(ctx context.Context, sppID, tenantID string, amount int64, studentName, parentEmail string) (*model.Payment, *model.SnapTransactionResponse, error)
 	HandleWebhook(ctx context.Context, notification *model.MidtransNotification) error
 	HandleSPPWebhook(ctx context.Context, notification *model.MidtransNotification) error
+	HandleXenditWebhook(ctx context.Context, callback *model.XenditCallback) error
 	GetPaymentByOrderID(ctx context.Context, orderID string) (*model.Payment, error)
 }
 
@@ -380,6 +381,67 @@ func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.M
 		notification.PaymentType,
 		notification.TransactionID,
 	)
+	return d.databasePort.Payment().UpdateStatus(
+		notification.OrderID,
+		status,
+		notification.PaymentType,
+		notification.TransactionID,
+	)
+}
+
+func (d *paymentDomain) HandleXenditWebhook(ctx context.Context, callback *model.XenditCallback) error {
+	status := model.PaymentStatusPending
+	if callback.Status == "PAID" || callback.Status == "SETTLED" {
+		status = model.PaymentStatusPaid
+	} else if callback.Status == "EXPIRED" {
+		status = model.PaymentStatusExpired
+	} else if callback.Status == "FAILED" {
+		status = model.PaymentStatusFailed
+	}
+
+	// Update Payment Status
+	err := d.databasePort.Payment().UpdateStatus(
+		callback.ExternalID,
+		status,
+		callback.PaymentMethod+"-"+callback.PaymentChannel,
+		callback.ID,
+	)
+	if err != nil {
+		return stacktrace.Propagate(err, "failed to update payment status")
+	}
+
+	// If paid, mark as paid and trigger success actions
+	if status == model.PaymentStatusPaid {
+		err = d.databasePort.Payment().MarkAsPaid(
+			callback.ExternalID,
+			callback.PaymentMethod+"-"+callback.PaymentChannel,
+			callback.ID,
+		)
+		if err != nil {
+			return stacktrace.Propagate(err, "failed to mark payment as paid")
+		}
+
+		// Activate Tenant Subscription (Assuming logic is similar to Midtrans)
+		payment, err := d.databasePort.Payment().FindByOrderID(callback.ExternalID)
+		if err == nil && payment != nil {
+			// Activate Tenant
+			_ = d.databasePort.Tenant().UpdateStatus(payment.TenantID, model.TenantStatusActive)
+
+			// Simple Telegram Notification
+			go func() {
+				tenant, _ := d.databasePort.Tenant().FindByID(payment.TenantID)
+				tenantName := "Lembaga"
+				planType := ""
+				if tenant != nil {
+					tenantName = tenant.Name
+					planType = tenant.PlanType
+				}
+				_ = d.telegram.SendPaymentSuccess(tenantName, planType, int64(callback.Amount))
+			}()
+		}
+	}
+
+	return nil
 }
 
 func (d *paymentDomain) GetPaymentByOrderID(ctx context.Context, orderID string) (*model.Payment, error) {

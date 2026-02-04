@@ -65,8 +65,9 @@ type CreateSubscriptionInput struct {
 
 // UpgradeInput for upgrading plan
 type UpgradeInput struct {
-	TenantID    string `json:"tenant_id" validate:"required"`
-	NewPlanType string `json:"new_plan_type" validate:"required,oneof=sekolah pesantren hybrid"`
+	TenantID     string `json:"tenant_id" validate:"required"`
+	NewPlanType  string `json:"new_plan_type" validate:"required,oneof=sekolah pesantren hybrid"`
+	BillingCycle string `json:"billing_cycle" validate:"omitempty,oneof=monthly annual"`
 }
 
 // DowngradeInput for downgrading plan
@@ -100,6 +101,9 @@ type UpgradeCalculation struct {
 	NewPrice      int64  `json:"new_price"`
 	ProrataCredit int64  `json:"prorata_credit"`
 	AmountDue     int64  `json:"amount_due"`
+	TargetTier    string `json:"target_tier,omitempty"`
+	SnapToken     string `json:"snap_token,omitempty"`
+	PaymentURL    string `json:"payment_url,omitempty"`
 }
 
 // DowngradeValidation result

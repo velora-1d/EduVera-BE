@@ -11,4 +11,5 @@ type TenantDatabasePort interface {
 	FindBySubdomain(subdomain string) (*model.Tenant, error)
 	SubdomainExists(subdomain string) (bool, error)
 	UpdateStatus(id string, status string) error
+	CountTableRecords(tenantID string, tableName string) (int, error) // For data limit enforcement
 }

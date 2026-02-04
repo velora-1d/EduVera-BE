@@ -38,6 +38,7 @@ func (a *tenantAdapter) Create(tenant *model.Tenant) error {
 		"account_number":    tenant.AccountNumber,
 		"account_holder":    tenant.AccountHolder,
 		"status":            tenant.Status,
+		"trial_ends_at":     tenant.TrialEndsAt,
 		"created_at":        tenant.CreatedAt,
 		"updated_at":        tenant.UpdatedAt,
 	}).Returning("id")
@@ -65,6 +66,7 @@ func (a *tenantAdapter) Update(tenant *model.Tenant) error {
 			"account_number":    tenant.AccountNumber,
 			"account_holder":    tenant.AccountHolder,
 			"status":            tenant.Status,
+			"trial_ends_at":     tenant.TrialEndsAt,
 			"updated_at":        tenant.UpdatedAt,
 		}).
 		Where(goqu.Ex{"id": tenant.ID})
@@ -84,7 +86,7 @@ func (a *tenantAdapter) FindByFilter(filter model.TenantFilter) ([]model.Tenant,
 		"id", "name", "subdomain", "plan_type", "subscription_tier",
 		"institution_type", "address", "bank_name",
 		"account_number", "account_holder", "status",
-		"created_at", "updated_at",
+		"trial_ends_at", "created_at", "updated_at",
 	)
 	dataset = addTenantFilter(dataset, filter)
 
@@ -106,7 +108,7 @@ func (a *tenantAdapter) FindByFilter(filter model.TenantFilter) ([]model.Tenant,
 			&t.ID, &t.Name, &t.Subdomain, &t.PlanType, &t.SubscriptionTier,
 			&t.InstitutionType, &t.Address, &t.BankName,
 			&t.AccountNumber, &t.AccountHolder, &t.Status,
-			&t.CreatedAt, &t.UpdatedAt,
+			&t.TrialEndsAt, &t.CreatedAt, &t.UpdatedAt,
 		)
 		if err != nil {
 			return nil, err
@@ -192,4 +194,36 @@ func addTenantFilter(dataset *goqu.SelectDataset, filter model.TenantFilter) *go
 		dataset = dataset.Where(goqu.Ex{"status": filter.Statuses})
 	}
 	return dataset
+}
+
+// CountTableRecords counts records in a specific table for a tenant
+// Supported tables: santri, siswa, guru, ustadz, staf, kelas
+func (a *tenantAdapter) CountTableRecords(tenantID string, tableName string) (int, error) {
+	// Whitelist of allowed tables to prevent SQL injection
+	allowedTables := map[string]bool{
+		"santri": true,
+		"siswa":  true,
+		"guru":   true,
+		"ustadz": true,
+		"staf":   true,
+		"kelas":  true,
+		"rombel": true,
+		"asrama": true,
+		"mapel":  true,
+	}
+
+	if !allowedTables[tableName] {
+		return 0, nil // Unknown table, return 0
+	}
+
+	// Use raw SQL for dynamic table name (safe because whitelist validated)
+	query := `SELECT COUNT(*) FROM ` + tableName + ` WHERE tenant_id = $1`
+
+	var count int
+	err := a.db.QueryRow(query, tenantID).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

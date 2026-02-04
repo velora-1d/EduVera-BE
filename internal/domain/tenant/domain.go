@@ -19,6 +19,7 @@ type TenantDomain interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	Activate(ctx context.Context, id string) error
 	GetAll(ctx context.Context) ([]model.Tenant, error)
+	CountTableRecords(ctx context.Context, tenantID string, tableName string) (int, error) // For data limit
 }
 
 type tenantDomain struct {
@@ -111,4 +112,8 @@ func (d *tenantDomain) GetAll(ctx context.Context) ([]model.Tenant, error) {
 		return nil, stacktrace.Propagate(err, "failed to get all tenants")
 	}
 	return tenants, nil
+}
+
+func (d *tenantDomain) CountTableRecords(ctx context.Context, tenantID string, tableName string) (int, error) {
+	return d.databasePort.Tenant().CountTableRecords(tenantID, tableName)
 }

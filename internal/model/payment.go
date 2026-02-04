@@ -111,6 +111,21 @@ type MidtransNotification struct {
 	Currency          string `json:"currency"`
 }
 
+// XenditCallback for Invoice
+type XenditCallback struct {
+	ID                 string  `json:"id"`
+	ExternalID         string  `json:"external_id"`
+	UserID             string  `json:"user_id"`
+	Status             string  `json:"status"`
+	PaymentMethod      string  `json:"payment_method"`
+	PaymentChannel     string  `json:"payment_channel"`
+	PaymentDestination string  `json:"payment_destination"`
+	Amount             float64 `json:"amount"`
+	PaidAmount         float64 `json:"paid_amount"`
+	PaidAt             string  `json:"paid_at"`
+	Description        string  `json:"description"`
+}
+
 // GenerateOrderID creates unique order ID
 func GenerateOrderID(tenantID string) string {
 	timestamp := time.Now().UnixMilli()

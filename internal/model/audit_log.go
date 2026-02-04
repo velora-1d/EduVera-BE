@@ -4,11 +4,33 @@ import "time"
 
 // AuditAction types
 const (
+	// Existing actions
 	AuditActionTenantStatusUpdate  = "tenant_status_update"
 	AuditActionDisbursementApprove = "disbursement_approve"
 	AuditActionDisbursementReject  = "disbursement_reject"
 	AuditActionContentUpdate       = "content_update"
 	AuditActionUserBan             = "user_ban"
+
+	// Subscription actions
+	AuditActionSubscriptionCreated   = "subscription_created"
+	AuditActionSubscriptionUpgraded  = "subscription_upgraded"
+	AuditActionSubscriptionRenewed   = "subscription_renewed"
+	AuditActionSubscriptionExpired   = "subscription_expired"
+	AuditActionSubscriptionSuspended = "subscription_suspended"
+
+	// Payment actions
+	AuditActionPaymentSuccess = "payment_success"
+	AuditActionPaymentFailed  = "payment_failed"
+	AuditActionPaymentRefund  = "payment_refund"
+
+	// Auth actions
+	AuditActionLoginSuccess = "login_success"
+	AuditActionLoginFailed  = "login_failed"
+	AuditActionLogout       = "logout"
+
+	// WhatsApp actions
+	AuditActionWhatsAppConnected    = "whatsapp_connected"
+	AuditActionWhatsAppDisconnected = "whatsapp_disconnected"
 )
 
 // AuditLog represents an admin action log entry

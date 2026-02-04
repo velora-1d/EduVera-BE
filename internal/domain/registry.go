@@ -17,6 +17,7 @@ import (
 	spp_domain "prabogo/internal/domain/spp"
 	"prabogo/internal/domain/subscription"
 	"prabogo/internal/domain/tenant"
+	whatsapp_domain "prabogo/internal/domain/whatsapp"
 	outbound_port "prabogo/internal/port/outbound"
 )
 
@@ -38,13 +39,15 @@ type Domain interface {
 	Subscription() subscription.SubscriptionDomain
 	Analytics() analytics_domain.AnalyticsDomain
 	Export() export_domain.ExportDomain
+	WhatsApp() whatsapp_domain.WhatsAppDomain
 }
 
 type domain struct {
-	databasePort outbound_port.DatabasePort
-	messagePort  outbound_port.MessagePort
-	cachePort    outbound_port.CachePort
-	workflowPort outbound_port.WorkflowPort
+	databasePort  outbound_port.DatabasePort
+	messagePort   outbound_port.MessagePort
+	cachePort     outbound_port.CachePort
+	workflowPort  outbound_port.WorkflowPort
+	evolutionPort outbound_port.EvolutionApiPort
 }
 
 func NewDomain(
@@ -52,12 +55,14 @@ func NewDomain(
 	messagePort outbound_port.MessagePort,
 	cachePort outbound_port.CachePort,
 	workflowPort outbound_port.WorkflowPort,
+	evolutionPort outbound_port.EvolutionApiPort,
 ) Domain {
 	return &domain{
-		databasePort: databasePort,
-		messagePort:  messagePort,
-		cachePort:    cachePort,
-		workflowPort: workflowPort,
+		databasePort:  databasePort,
+		messagePort:   messagePort,
+		cachePort:     cachePort,
+		workflowPort:  workflowPort,
+		evolutionPort: evolutionPort,
 	}
 }
 
@@ -123,4 +128,8 @@ func (d *domain) Analytics() analytics_domain.AnalyticsDomain {
 
 func (d *domain) Export() export_domain.ExportDomain {
 	return export_domain.NewExportDomain(d.databasePort)
+}
+
+func (d *domain) WhatsApp() whatsapp_domain.WhatsAppDomain {
+	return whatsapp_domain.NewWhatsAppDomain(d.databasePort, d.evolutionPort)
 }

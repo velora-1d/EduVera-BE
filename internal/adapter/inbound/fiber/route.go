@@ -3,12 +3,14 @@ package fiber_inbound_adapter
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 
+	"prabogo/internal/domain"
 	inbound_port "prabogo/internal/port/inbound"
 )
 
@@ -16,16 +18,36 @@ func InitRoute(
 	ctx context.Context,
 	app *fiber.App,
 	port inbound_port.HttpPort,
+	d domain.Domain,
 ) {
-	// Enable CORS for frontend access
-	// In production, only allow the production domain
-	corsOrigins := "https://eduvera.ve-lora.my.id"
-	if os.Getenv("APP_MODE") != "release" {
-		corsOrigins = "http://localhost:5173, http://localhost:3000, https://eduvera.ve-lora.my.id"
-	}
+	// Enable CORS for frontend access with dynamic subdomain support
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: corsOrigins,
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowOriginsFunc: func(origin string) bool {
+			// 1. Allow development origins if not in release mode
+			if os.Getenv("APP_MODE") != "release" {
+				if origin == "http://localhost:5173" || origin == "http://localhost:3000" {
+					return true
+				}
+			}
+
+			// 2. Allow main production domains
+			if origin == "https://eduvera.ve-lora.my.id" || origin == "https://api-eduvera.ve-lora.my.id" {
+				return true
+			}
+
+			// 3. Allow any subdomain of eduvera.ve-lora.my.id (HTTPS)
+			if strings.HasPrefix(origin, "https://") && strings.HasSuffix(origin, ".eduvera.ve-lora.my.id") {
+				return true
+			}
+
+			// 4. Temporary: Allow HTTP for testing while SSL propagates
+			if strings.HasPrefix(origin, "http://") && strings.HasSuffix(origin, ".eduvera.ve-lora.my.id") {
+				return true
+			}
+
+			return false
+		},
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Sandbox-Tenant",
 		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
 	}))
 
@@ -214,6 +236,7 @@ func InitRoute(
 	pesantren.Use(func(c *fiber.Ctx) error {
 		return port.Middleware().ClientAuth(c)
 	})
+	pesantren.Use(CheckTrialStatus(d)) // Check trial status before allowing write operations
 	pesantren.Use(RequirePlan("pesantren", "hybrid"))
 	pesantren.Get("/dashboard/stats", func(c *fiber.Ctx) error {
 		return port.PesantrenDashboard().GetStats(c)
@@ -274,11 +297,23 @@ func InitRoute(
 		return port.Payment().SPPWebhook(c)
 	})
 
+	// Tenant WhatsApp Routes (Premium only)
+	tenantWA := api.Group("/tenant/whatsapp")
+	tenantWA.Use(func(c *fiber.Ctx) error {
+		return port.Middleware().ClientAuth(c)
+	})
+	tenantWAAdapter := NewTenantWhatsAppAdapter(d)
+	tenantWA.Post("/connect", tenantWAAdapter.Connect)
+	tenantWA.Get("/status", tenantWAAdapter.Status)
+	tenantWA.Post("/disconnect", tenantWAAdapter.Disconnect)
+	tenantWA.Post("/test", tenantWAAdapter.SendTest)
+
 	// Sekolah Routes (Protected)
 	sekolah := api.Group("/sekolah")
 	sekolah.Use(func(c *fiber.Ctx) error {
 		return port.Middleware().ClientAuth(c)
 	})
+	sekolah.Use(CheckTrialStatus(d)) // Check trial status
 
 	// Dashboard Stats
 	sekolah.Get("/dashboard/stats", func(c *fiber.Ctx) error {
@@ -517,6 +552,9 @@ func InitRoute(
 	})
 	sub.Get("/", func(c *fiber.Ctx) error {
 		return port.Subscription().GetSubscription(c)
+	})
+	sub.Get("/pricing", func(c *fiber.Ctx) error {
+		return port.Subscription().GetPricing(c)
 	})
 	sub.Post("/calculate-upgrade", func(c *fiber.Ctx) error {
 		return port.Subscription().CalculateUpgrade(c)

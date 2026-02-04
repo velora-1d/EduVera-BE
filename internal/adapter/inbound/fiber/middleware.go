@@ -2,6 +2,7 @@ package fiber_inbound_adapter
 
 import (
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -206,5 +207,104 @@ func RequirePlan(requiredPlans ...string) fiber.Handler {
 			"required_plan": requiredPlans,
 			"your_plan":     planType,
 		})
+	}
+}
+
+// CheckTrialStatus creates middleware that checks if tenant trial has expired
+// Returns 403 with TRIAL_EXPIRED code if trial has ended and no active subscription
+func CheckTrialStatus(d domain.Domain) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := activity.NewContext("check_trial_status")
+
+		// Get tenant_id from context (set by ClientAuth)
+		tenantID, ok := c.Locals("tenant_id").(string)
+		if !ok || tenantID == "" {
+			return c.Next()
+		}
+
+		// Skip for owner preview mode
+		if isOwner, _ := c.Locals("is_owner_preview").(bool); isOwner {
+			return c.Next()
+		}
+
+		// Get tenant info
+		tenant, err := d.Tenant().FindByID(ctx, tenantID)
+		if err != nil || tenant == nil {
+			return c.Next()
+		}
+
+		// Premium tier (paid) - no trial restrictions
+		if tenant.SubscriptionTier == model.TierPremium {
+			return c.Next()
+		}
+
+		// Check if trial has expired (basic tier with expired trial_ends_at)
+		if tenant.TrialEndsAt != nil && tenant.TrialEndsAt.Before(time.Now()) {
+			// Trial expired - block write operations
+			if c.Method() != "GET" && c.Method() != "HEAD" && c.Method() != "OPTIONS" {
+				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+					"error": "Trial Anda sudah berakhir. Upgrade sekarang untuk melanjutkan.",
+					"code":  "TRIAL_EXPIRED",
+					"action": fiber.Map{
+						"type": "upgrade",
+						"url":  "/upgrade",
+					},
+				})
+			}
+		}
+
+		return c.Next()
+	}
+}
+
+// CheckDataLimit creates middleware that enforces per-table record limits for basic tier
+// Returns 403 with LIMIT_REACHED code if limit exceeded
+// Usage: router.Post("/students", CheckDataLimit(domain, "santri", 10), handler)
+func CheckDataLimit(d domain.Domain, tableName string, limit int) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		ctx := activity.NewContext("check_data_limit")
+
+		// Get tenant_id from context
+		tenantID, ok := c.Locals("tenant_id").(string)
+		if !ok || tenantID == "" {
+			return c.Next()
+		}
+
+		// Skip for owner preview mode
+		if isOwner, _ := c.Locals("is_owner_preview").(bool); isOwner {
+			return c.Next()
+		}
+
+		// Get tenant info
+		tenant, err := d.Tenant().FindByID(ctx, tenantID)
+		if err != nil || tenant == nil {
+			return c.Next()
+		}
+
+		// Premium tier has no limits
+		if tenant.SubscriptionTier == model.TierPremium {
+			return c.Next()
+		}
+
+		// Basic tier (including trial) - check limit
+		count, err := d.Tenant().CountTableRecords(ctx, tenantID, tableName)
+		if err != nil {
+			// On error, allow request (fail open for better UX)
+			return c.Next()
+		}
+
+		if count >= limit {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "Batas data tercapai. Upgrade ke Premium untuk menambah lebih banyak data.",
+				"code":  "LIMIT_REACHED",
+				"limit_info": fiber.Map{
+					"table":   tableName,
+					"current": count,
+					"max":     limit,
+				},
+			})
+		}
+
+		return c.Next()
 	}
 }

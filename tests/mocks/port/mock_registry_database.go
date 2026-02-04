@@ -35,6 +35,20 @@ func (m *MockDatabasePort) EXPECT() *MockDatabasePortMockRecorder {
 	return m.recorder
 }
 
+// AuditLog mocks base method.
+func (m *MockDatabasePort) AuditLog() outbound_port.AuditLogDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AuditLog")
+	ret0, _ := ret[0].(outbound_port.AuditLogDatabasePort)
+	return ret0
+}
+
+// AuditLog indicates an expected call of AuditLog.
+func (mr *MockDatabasePortMockRecorder) AuditLog() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuditLog", reflect.TypeOf((*MockDatabasePort)(nil).AuditLog))
+}
+
 // Client mocks base method.
 func (m *MockDatabasePort) Client() outbound_port.ClientDatabasePort {
 	m.ctrl.T.Helper()
@@ -92,6 +106,20 @@ func (mr *MockDatabasePortMockRecorder) DoInTransaction(txFunc interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DoInTransaction", reflect.TypeOf((*MockDatabasePort)(nil).DoInTransaction), txFunc)
 }
 
+// ERapor mocks base method.
+func (m *MockDatabasePort) ERapor() outbound_port.ERaporDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ERapor")
+	ret0, _ := ret[0].(outbound_port.ERaporDatabasePort)
+	return ret0
+}
+
+// ERapor indicates an expected call of ERapor.
+func (mr *MockDatabasePortMockRecorder) ERapor() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ERapor", reflect.TypeOf((*MockDatabasePort)(nil).ERapor))
+}
+
 // Notification mocks base method.
 func (m *MockDatabasePort) Notification() outbound_port.NotificationDatabasePort {
 	m.ctrl.T.Helper()
@@ -120,88 +148,18 @@ func (mr *MockDatabasePortMockRecorder) Payment() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Payment", reflect.TypeOf((*MockDatabasePort)(nil).Payment))
 }
 
-// SPP mocks base method.
-func (m *MockDatabasePort) SPP() outbound_port.SPPDatabasePort {
+// PesantrenDashboard mocks base method.
+func (m *MockDatabasePort) PesantrenDashboard() outbound_port.PesantrenDashboardPort {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SPP")
-	ret0, _ := ret[0].(outbound_port.SPPDatabasePort)
+	ret := m.ctrl.Call(m, "PesantrenDashboard")
+	ret0, _ := ret[0].(outbound_port.PesantrenDashboardPort)
 	return ret0
 }
 
-// SPP indicates an expected call of SPP.
-func (mr *MockDatabasePortMockRecorder) SPP() *gomock.Call {
+// PesantrenDashboard indicates an expected call of PesantrenDashboard.
+func (mr *MockDatabasePortMockRecorder) PesantrenDashboard() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SPP", reflect.TypeOf((*MockDatabasePort)(nil).SPP))
-}
-
-// Tenant mocks base method.
-func (m *MockDatabasePort) Tenant() outbound_port.TenantDatabasePort {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Tenant")
-	ret0, _ := ret[0].(outbound_port.TenantDatabasePort)
-	return ret0
-}
-
-// Tenant indicates an expected call of Tenant.
-func (mr *MockDatabasePortMockRecorder) Tenant() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tenant", reflect.TypeOf((*MockDatabasePort)(nil).Tenant))
-}
-
-// Sekolah mocks base method.
-func (m *MockDatabasePort) Sekolah() outbound_port.SekolahPort {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Sekolah")
-	ret0, _ := ret[0].(outbound_port.SekolahPort)
-	return ret0
-}
-
-// Sekolah indicates an expected call of Sekolah.
-func (mr *MockDatabasePortMockRecorder) Sekolah() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sekolah", reflect.TypeOf((*MockDatabasePort)(nil).Sekolah))
-}
-
-// User mocks base method.
-func (m *MockDatabasePort) User() outbound_port.UserDatabasePort {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "User")
-	ret0, _ := ret[0].(outbound_port.UserDatabasePort)
-	return ret0
-}
-
-// User indicates an expected call of User.
-func (mr *MockDatabasePortMockRecorder) User() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockDatabasePort)(nil).User))
-}
-
-// AuditLog mocks base method.
-func (m *MockDatabasePort) AuditLog() outbound_port.AuditLogDatabasePort {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AuditLog")
-	ret0, _ := ret[0].(outbound_port.AuditLogDatabasePort)
-	return ret0
-}
-
-// AuditLog indicates an expected call of AuditLog.
-func (mr *MockDatabasePortMockRecorder) AuditLog() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuditLog", reflect.TypeOf((*MockDatabasePort)(nil).AuditLog))
-}
-
-// ERapor mocks base method.
-func (m *MockDatabasePort) ERapor() outbound_port.ERaporDatabasePort {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ERapor")
-	ret0, _ := ret[0].(outbound_port.ERaporDatabasePort)
-	return ret0
-}
-
-// ERapor indicates an expected call of ERapor.
-func (mr *MockDatabasePortMockRecorder) ERapor() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ERapor", reflect.TypeOf((*MockDatabasePort)(nil).ERapor))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PesantrenDashboard", reflect.TypeOf((*MockDatabasePort)(nil).PesantrenDashboard))
 }
 
 // SDM mocks base method.
@@ -218,6 +176,34 @@ func (mr *MockDatabasePortMockRecorder) SDM() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SDM", reflect.TypeOf((*MockDatabasePort)(nil).SDM))
 }
 
+// SPP mocks base method.
+func (m *MockDatabasePort) SPP() outbound_port.SPPDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SPP")
+	ret0, _ := ret[0].(outbound_port.SPPDatabasePort)
+	return ret0
+}
+
+// SPP indicates an expected call of SPP.
+func (mr *MockDatabasePortMockRecorder) SPP() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SPP", reflect.TypeOf((*MockDatabasePort)(nil).SPP))
+}
+
+// Sekolah mocks base method.
+func (m *MockDatabasePort) Sekolah() outbound_port.SekolahPort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Sekolah")
+	ret0, _ := ret[0].(outbound_port.SekolahPort)
+	return ret0
+}
+
+// Sekolah indicates an expected call of Sekolah.
+func (mr *MockDatabasePortMockRecorder) Sekolah() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sekolah", reflect.TypeOf((*MockDatabasePort)(nil).Sekolah))
+}
+
 // Subscription mocks base method.
 func (m *MockDatabasePort) Subscription() outbound_port.SubscriptionDatabasePort {
 	m.ctrl.T.Helper()
@@ -232,18 +218,46 @@ func (mr *MockDatabasePortMockRecorder) Subscription() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Subscription", reflect.TypeOf((*MockDatabasePort)(nil).Subscription))
 }
 
-// PesantrenDashboard mocks base method.
-func (m *MockDatabasePort) PesantrenDashboard() outbound_port.PesantrenDashboardPort {
+// Tenant mocks base method.
+func (m *MockDatabasePort) Tenant() outbound_port.TenantDatabasePort {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PesantrenDashboard")
-	ret0, _ := ret[0].(outbound_port.PesantrenDashboardPort)
+	ret := m.ctrl.Call(m, "Tenant")
+	ret0, _ := ret[0].(outbound_port.TenantDatabasePort)
 	return ret0
 }
 
-// PesantrenDashboard indicates an expected call of PesantrenDashboard.
-func (mr *MockDatabasePortMockRecorder) PesantrenDashboard() *gomock.Call {
+// Tenant indicates an expected call of Tenant.
+func (mr *MockDatabasePortMockRecorder) Tenant() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PesantrenDashboard", reflect.TypeOf((*MockDatabasePort)(nil).PesantrenDashboard))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Tenant", reflect.TypeOf((*MockDatabasePort)(nil).Tenant))
+}
+
+// User mocks base method.
+func (m *MockDatabasePort) User() outbound_port.UserDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "User")
+	ret0, _ := ret[0].(outbound_port.UserDatabasePort)
+	return ret0
+}
+
+// User indicates an expected call of User.
+func (mr *MockDatabasePortMockRecorder) User() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "User", reflect.TypeOf((*MockDatabasePort)(nil).User))
+}
+
+// WhatsApp mocks base method.
+func (m *MockDatabasePort) WhatsApp() outbound_port.WhatsAppDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WhatsApp")
+	ret0, _ := ret[0].(outbound_port.WhatsAppDatabasePort)
+	return ret0
+}
+
+// WhatsApp indicates an expected call of WhatsApp.
+func (mr *MockDatabasePortMockRecorder) WhatsApp() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WhatsApp", reflect.TypeOf((*MockDatabasePort)(nil).WhatsApp))
 }
 
 // MockDatabaseExecutor is a mock of DatabaseExecutor interface.

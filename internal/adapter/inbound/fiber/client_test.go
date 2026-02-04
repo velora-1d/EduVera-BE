@@ -34,12 +34,14 @@ func TestClientAdapter(t *testing.T) {
 		mockClientCachePort := mock_outbound_port.NewMockClientCachePort(mockCtrl)
 		mockClientWorkflowPort := mock_outbound_port.NewMockClientWorkflowPort(mockCtrl)
 
+		mockEvolutionApiPort := mock_outbound_port.NewMockEvolutionApiPort(mockCtrl)
+
 		mockDatabasePort.EXPECT().Client().Return(mockClientDatabasePort).AnyTimes()
 		mockMessagePort.EXPECT().Client().Return(mock_outbound_port.NewMockClientMessagePort(mockCtrl)).AnyTimes()
 		mockCachePort.EXPECT().Client().Return(mockClientCachePort).AnyTimes()
 		mockWorkflowPort.EXPECT().Client().Return(mockClientWorkflowPort).AnyTimes()
 
-		dom := domain.NewDomain(mockDatabasePort, mockMessagePort, mockCachePort, mockWorkflowPort)
+		dom := domain.NewDomain(mockDatabasePort, mockMessagePort, mockCachePort, mockWorkflowPort, mockEvolutionApiPort)
 		adapter := fiber_inbound_adapter.NewAdapter(dom, mockMessagePort)
 
 		app := fiber.New()

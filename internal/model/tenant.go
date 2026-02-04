@@ -48,24 +48,26 @@ type Tenant struct {
 	AccountNumber    string         `json:"account_number,omitempty" db:"account_number"`
 	AccountHolder    string         `json:"account_holder,omitempty" db:"account_holder"`
 	Status           string         `json:"status" db:"status"`
-	IsSandbox        bool           `json:"is_sandbox" db:"is_sandbox"`       // True if sandbox tenant for owner testing
-	OwnerID          *string        `json:"owner_id,omitempty" db:"owner_id"` // Owner user ID if sandbox
+	IsSandbox        bool           `json:"is_sandbox" db:"is_sandbox"`                 // True if sandbox tenant for owner testing
+	OwnerID          *string        `json:"owner_id,omitempty" db:"owner_id"`           // Owner user ID if sandbox
+	TrialEndsAt      *time.Time     `json:"trial_ends_at,omitempty" db:"trial_ends_at"` // When trial period ends
 	CreatedAt        time.Time      `json:"created_at" db:"created_at"`
 	UpdatedAt        time.Time      `json:"updated_at" db:"updated_at"`
 }
 
 type TenantInput struct {
-	Name            string   `json:"name" validate:"required"`
-	SchoolName      string   `json:"school_name,omitempty"`     // For hybrid packages
-	PesantrenName   string   `json:"pesantren_name,omitempty"`  // For hybrid packages
-	SchoolJenjangs  []string `json:"school_jenjangs,omitempty"` // Multi-select jenjang
-	Subdomain       string   `json:"subdomain" validate:"required,min=3,max=50"`
-	PlanType        string   `json:"plan_type" validate:"required,oneof=sekolah pesantren hybrid"`
-	InstitutionType string   `json:"institution_type,omitempty"`
-	Address         string   `json:"address,omitempty"`
-	BankName        string   `json:"bank_name,omitempty"`
-	AccountNumber   string   `json:"account_number,omitempty"`
-	AccountHolder   string   `json:"account_holder,omitempty"`
+	Name             string   `json:"name" validate:"required"`
+	SchoolName       string   `json:"school_name,omitempty"`     // For hybrid packages
+	PesantrenName    string   `json:"pesantren_name,omitempty"`  // For hybrid packages
+	SchoolJenjangs   []string `json:"school_jenjangs,omitempty"` // Multi-select jenjang
+	Subdomain        string   `json:"subdomain" validate:"required,min=3,max=50"`
+	PlanType         string   `json:"plan_type,omitempty"`         // Optional - defaults to hybrid
+	SubscriptionTier string   `json:"subscription_tier,omitempty"` // Optional - defaults to basic
+	InstitutionType  string   `json:"institution_type,omitempty"`
+	Address          string   `json:"address,omitempty"`
+	BankName         string   `json:"bank_name,omitempty"`
+	AccountNumber    string   `json:"account_number,omitempty"`
+	AccountHolder    string   `json:"account_holder,omitempty"`
 }
 
 type TenantFilter struct {
@@ -76,21 +78,37 @@ type TenantFilter struct {
 }
 
 func TenantPrepare(input *TenantInput) *Tenant {
+	// Set default values for trial
+	planType := input.PlanType
+	if planType == "" {
+		planType = PlanTypeHybrid // Default to hybrid for trial
+	}
+
+	subscriptionTier := input.SubscriptionTier
+	if subscriptionTier == "" {
+		subscriptionTier = TierBasic // Default to basic tier
+	}
+
+	// Set trial end date (14 days from now)
+	trialEndsAt := time.Now().Add(14 * 24 * time.Hour)
+
 	return &Tenant{
-		Name:            input.Name,
-		SchoolName:      input.SchoolName,
-		PesantrenName:   input.PesantrenName,
-		SchoolJenjangs:  pq.StringArray(input.SchoolJenjangs),
-		Subdomain:       input.Subdomain,
-		PlanType:        input.PlanType,
-		InstitutionType: input.InstitutionType,
-		Address:         input.Address,
-		BankName:        input.BankName,
-		AccountNumber:   input.AccountNumber,
-		AccountHolder:   input.AccountHolder,
-		Status:          TenantStatusPending,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+		Name:             input.Name,
+		SchoolName:       input.SchoolName,
+		PesantrenName:    input.PesantrenName,
+		SchoolJenjangs:   pq.StringArray(input.SchoolJenjangs),
+		Subdomain:        input.Subdomain,
+		PlanType:         planType,
+		SubscriptionTier: subscriptionTier,
+		InstitutionType:  input.InstitutionType,
+		Address:          input.Address,
+		BankName:         input.BankName,
+		AccountNumber:    input.AccountNumber,
+		AccountHolder:    input.AccountHolder,
+		Status:           TenantStatusPending,
+		TrialEndsAt:      &trialEndsAt,
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
 	}
 }
 

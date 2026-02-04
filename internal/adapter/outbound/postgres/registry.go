@@ -139,3 +139,7 @@ func (s *adapter) Subscription() outbound_port.SubscriptionDatabasePort {
 func (s *adapter) PesantrenDashboard() outbound_port.PesantrenDashboardPort {
 	return NewPesantrenDashboardAdapter(s.db)
 }
+
+func (s *adapter) WhatsApp() outbound_port.WhatsAppDatabasePort {
+	return NewWhatsAppAdapter(s.db)
+}

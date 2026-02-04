@@ -103,6 +103,7 @@ func (a *userAdapter) FindByFilter(filter model.UserFilter) ([]model.User, error
 			&u.PasswordHash, &u.Role, &u.IsActive,
 			&u.EmailVerifiedAt, &u.LastLoginAt,
 			&u.CreatedAt, &u.UpdatedAt,
+			&u.IsOwner,
 		)
 		if err != nil {
 			return nil, err

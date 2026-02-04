@@ -37,6 +37,29 @@ func (a *subscriptionAdapter) GetSubscription(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"data": sub})
 }
 
+// GetPricing
+// GET /api/v1/subscription/pricing
+func (a *subscriptionAdapter) GetPricing(c *fiber.Ctx) error {
+	// Optional filter from query
+	billingCycle := c.Query("billing_cycle")
+	planType := c.Query("plan_type")
+
+	filter := model.PricingFilter{}
+	if billingCycle != "" {
+		filter.BillingCycles = []string{billingCycle}
+	}
+	if planType != "" {
+		filter.PlanTypes = []string{planType}
+	}
+
+	plans, err := a.domainRegistry.Subscription().GetPricingPlans(c.Context(), filter)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"data": plans})
+}
+
 // CalculateUpgrade
 // POST /api/v1/subscription/calculate-upgrade
 func (a *subscriptionAdapter) CalculateUpgrade(c *fiber.Ctx) error {

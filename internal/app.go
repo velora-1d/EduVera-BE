@@ -18,6 +18,7 @@ import (
 	fiber_inbound_adapter "prabogo/internal/adapter/inbound/fiber"
 	rabbitmq_inbound_adapter "prabogo/internal/adapter/inbound/rabbitmq"
 	temporal_inbound_adapter "prabogo/internal/adapter/inbound/temporal"
+	evolution_outbound_adapter "prabogo/internal/adapter/outbound/evolution"
 	gibrun_outbound_adapter "prabogo/internal/adapter/outbound/gibrun"
 	postgres_outbound_adapter "prabogo/internal/adapter/outbound/postgres"
 	rabbitmq_outbound_adapter "prabogo/internal/adapter/outbound/rabbitmq"
@@ -72,11 +73,14 @@ func NewApp() *App {
 
 	dbPort := databaseOutbound(ctx)
 	messagePort := messageOutbound(ctx)
+	evolutionPort := evolution_outbound_adapter.NewEvolutionAdapter()
+
 	dom := domain.NewDomain(
 		dbPort,
 		messagePort,
 		cacheOutbound(ctx),
 		workflowOutbound(ctx),
+		evolutionPort,
 	)
 
 	return &App{
@@ -201,7 +205,7 @@ func (a *App) httpInbound() {
 			Views: engine,
 		})
 		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain, a.message)
-		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter)
+		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter, a.domain)
 		go func() {
 			port := os.Getenv("SERVER_PORT")
 			if port == "" {

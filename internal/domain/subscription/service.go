@@ -21,6 +21,7 @@ type SubscriptionDomain interface {
 	CalculateUpgrade(ctx context.Context, input model.UpgradeInput) (*model.UpgradeCalculation, error)
 	RenewSubscription(ctx context.Context, tenantID, orderID string) error
 	CheckExpiredSubscriptions(ctx context.Context) error
+	GetPricingPlans(ctx context.Context, filter model.PricingFilter) ([]model.PricingPlan, error)
 }
 
 type subscriptionDomain struct {
@@ -137,25 +138,31 @@ func (d *subscriptionDomain) UpgradePlan(ctx context.Context, input model.Upgrad
 		return nil, err
 	}
 
-	// NOTE: In real world, this happens AFTER payment success.
-	// But per brief, we implement logic here.
-	// We will assume this is called after payment confirmation.
-
-	sub, _ := d.GetSubscription(ctx, input.TenantID) // Error checked in CalculateUpgrade
-
-	oldPlan := sub.PlanType
-	sub.PlanType = input.NewPlanType
-	// Reset period
-	sub.CurrentPeriodStart = time.Now()
-	sub.CurrentPeriodEnd = calculatePeriodEnd(time.Now(), sub.BillingCycle)
-	sub.GracePeriodEnd = sub.CurrentPeriodEnd.AddDate(0, 0, model.GracePeriodDays)
-
-	if err := d.repo.UpdateSubscription(ctx, sub); err != nil {
-		return nil, err
+	// Getting subscription to know billing cycle and current tier
+	sub, _ := d.GetSubscription(ctx, input.TenantID)
+	// We assume upgrade is to Premium if current is Basic
+	targetTier := "premium" // Default upgrade target
+	if sub != nil && sub.SubscriptionTier == "premium" {
+		// Already premium? Keep premium
+		targetTier = "premium"
 	}
 
-	// History
-	d.repo.RecordSubscriptionHistory(ctx, sub.ID, "upgraded", oldPlan, input.NewPlanType, sub.Status, sub.Status, calc.AmountDue, "Upgrade plan")
+	// Calculate price using pricing model
+	isAnnual := false
+	if sub != nil {
+		isAnnual = sub.BillingCycle == model.BillingCycleAnnual
+	}
+	if input.BillingCycle == model.BillingCycleAnnual {
+		isAnnual = true
+	}
+
+	price := model.GetPlanPriceWithTier(input.NewPlanType, targetTier, isAnnual)
+
+	calc.NewPrice = price
+	calc.TargetTier = targetTier
+
+	// Note: Payment creation is now handled by HTTP adapter calling PaymentDomain.CreateSnapTransaction
+	// The PaymentURL will be set at the adapter level after calling Midtrans
 
 	return calc, nil
 }
@@ -261,4 +268,8 @@ func calculatePeriodEnd(start time.Time, cycle string) time.Time {
 		return start.AddDate(1, 0, 0)
 	}
 	return start.AddDate(0, 1, 0)
+}
+
+func (d *subscriptionDomain) GetPricingPlans(ctx context.Context, filter model.PricingFilter) ([]model.PricingPlan, error) {
+	return d.repo.GetPricingPlans(ctx, filter)
 }
