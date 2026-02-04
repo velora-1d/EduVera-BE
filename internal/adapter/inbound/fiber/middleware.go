@@ -142,6 +142,17 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 			})
 		}
 
+		// OWNER PREVIEW MODE: Allow super_admin to access all routes
+		// This is for owner to test/debug tenant dashboards
+		if claims.Role == model.RoleSuperAdmin {
+			c.Locals("user_id", claims.UserID)
+			c.Locals("role", claims.Role)
+			c.Locals("is_owner_preview", true)
+			c.Locals("bearer_token", bearerToken)
+			// Note: tenant_id will be empty for owner - handlers should check is_owner_preview
+			return c.Next()
+		}
+
 		// SECURITY: Set user info from JWT claims to context
 		// This prevents IDOR by ensuring tenant_id comes from token, not user input
 		c.Locals("user_id", claims.UserID)
