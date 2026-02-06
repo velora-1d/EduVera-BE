@@ -143,3 +143,10 @@ func (s *adapter) PesantrenDashboard() outbound_port.PesantrenDashboardPort {
 func (s *adapter) WhatsApp() outbound_port.WhatsAppDatabasePort {
 	return NewWhatsAppAdapter(s.db)
 }
+
+func (s *adapter) Student() outbound_port.StudentDatabasePort {
+	if s.dbexecutor != nil {
+		return NewStudentAdapter(s.dbexecutor)
+	}
+	return NewStudentAdapter(s.db)
+}

@@ -325,6 +325,30 @@ func InitRoute(
 		return port.Analytics().GetAnalytics(c)
 	})
 
+	// ========================================
+	// STUDENTS - Unified Siswa + Santri (NEW)
+	// ========================================
+	students := sekolah.Group("/students")
+	students.Get("/", func(c *fiber.Ctx) error {
+		return port.Student().List(c)
+	})
+	students.Get("/count", func(c *fiber.Ctx) error {
+		return port.Student().Count(c)
+	})
+	students.Get("/:id", func(c *fiber.Ctx) error {
+		return port.Student().Get(c)
+	})
+	// POST with 10-student limit for Trial/Basic tier
+	students.Post("/", CheckDataLimit(d, "students", 10), func(c *fiber.Ctx) error {
+		return port.Student().Create(c)
+	})
+	students.Put("/:id", func(c *fiber.Ctx) error {
+		return port.Student().Update(c)
+	})
+	students.Delete("/:id", func(c *fiber.Ctx) error {
+		return port.Student().Delete(c)
+	})
+
 	// Akademik
 	akademik := sekolah.Group("/akademik")
 	akademik.Get("/siswa", func(c *fiber.Ctx) error {

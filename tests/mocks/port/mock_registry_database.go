@@ -260,6 +260,20 @@ func (mr *MockDatabasePortMockRecorder) WhatsApp() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WhatsApp", reflect.TypeOf((*MockDatabasePort)(nil).WhatsApp))
 }
 
+// Student mocks base method.
+func (m *MockDatabasePort) Student() outbound_port.StudentDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Student")
+	ret0, _ := ret[0].(outbound_port.StudentDatabasePort)
+	return ret0
+}
+
+// Student indicates an expected call of Student.
+func (mr *MockDatabasePortMockRecorder) Student() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Student", reflect.TypeOf((*MockDatabasePort)(nil).Student))
+}
+
 // MockDatabaseExecutor is a mock of DatabaseExecutor interface.
 type MockDatabaseExecutor struct {
 	ctrl     *gomock.Controller

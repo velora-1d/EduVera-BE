@@ -98,3 +98,11 @@ func (a *adapter) Analytics() inbound_port.AnalyticsHttpPort {
 func (a *adapter) Export() inbound_port.ExportHttpPort {
 	return NewExportHandler(a.domain.Export())
 }
+
+func (a *adapter) Student() inbound_port.StudentHttpPort {
+	return NewStudentAdapter(a.domain.Student())
+}
+
+func (a *adapter) TenantWhatsApp() inbound_port.TenantWhatsAppHttpPort {
+	return NewTenantWhatsAppAdapter(a.domain)
+}

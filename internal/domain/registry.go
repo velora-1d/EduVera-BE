@@ -15,6 +15,7 @@ import (
 	sdm_domain "prabogo/internal/domain/sdm"
 	"prabogo/internal/domain/sekolah"
 	spp_domain "prabogo/internal/domain/spp"
+	student_domain "prabogo/internal/domain/student"
 	"prabogo/internal/domain/subscription"
 	"prabogo/internal/domain/tenant"
 	whatsapp_domain "prabogo/internal/domain/whatsapp"
@@ -40,6 +41,7 @@ type Domain interface {
 	Analytics() analytics_domain.AnalyticsDomain
 	Export() export_domain.ExportDomain
 	WhatsApp() whatsapp_domain.WhatsAppDomain
+	Student() student_domain.StudentDomain
 }
 
 type domain struct {
@@ -132,4 +134,8 @@ func (d *domain) Export() export_domain.ExportDomain {
 
 func (d *domain) WhatsApp() whatsapp_domain.WhatsAppDomain {
 	return whatsapp_domain.NewWhatsAppDomain(d.databasePort, d.evolutionPort)
+}
+
+func (d *domain) Student() student_domain.StudentDomain {
+	return student_domain.NewStudentDomain(d.databasePort)
 }

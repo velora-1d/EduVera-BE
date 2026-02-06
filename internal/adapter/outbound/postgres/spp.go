@@ -20,18 +20,18 @@ func NewSPPAdapter(db *sql.DB) outbound_port.SPPDatabasePort {
 
 func (a *sppAdapter) Create(ctx context.Context, spp *model.SPPTransaction) error {
 	query := `
-		INSERT INTO spp_transactions (tenant_id, student_id, student_name, amount, status, description)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO spp_transactions (tenant_id, student_id, student_name, amount, status, description, payment_type)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, updated_at
 	`
 	return a.db.QueryRowContext(ctx, query,
-		spp.TenantID, spp.StudentID, spp.StudentName, spp.Amount, spp.Status, spp.Description,
+		spp.TenantID, spp.StudentID, spp.StudentName, spp.Amount, spp.Status, spp.Description, spp.PaymentType,
 	).Scan(&spp.ID, &spp.CreatedAt, &spp.UpdatedAt)
 }
 
 func (a *sppAdapter) ListByTenant(ctx context.Context, tenantID string) ([]model.SPPTransaction, error) {
 	query := `
-		SELECT id, tenant_id, student_id, student_name, amount, payment_method, status, gateway_ref, description, created_at, updated_at
+		SELECT id, tenant_id, student_id, student_name, amount, payment_method, payment_type, status, gateway_ref, description, created_at, updated_at
 		FROM spp_transactions
 		WHERE tenant_id = $1
 		ORDER BY created_at DESC
@@ -45,15 +45,16 @@ func (a *sppAdapter) ListByTenant(ctx context.Context, tenantID string) ([]model
 	var transactions []model.SPPTransaction
 	for rows.Next() {
 		var t model.SPPTransaction
-		var studentID, paymentMethod, gatewayRef, description sql.NullString
+		var studentID, paymentMethod, paymentType, gatewayRef, description sql.NullString
 		if err := rows.Scan(
 			&t.ID, &t.TenantID, &studentID, &t.StudentName, &t.Amount,
-			&paymentMethod, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
+			&paymentMethod, &paymentType, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		t.StudentID = studentID.String
 		t.PaymentMethod = paymentMethod.String
+		t.PaymentType = model.PaymentType(paymentType.String)
 		t.GatewayRef = gatewayRef.String
 		t.Description = description.String
 		transactions = append(transactions, t)
@@ -153,10 +154,10 @@ func (a *sppAdapter) GetStatsByTenant(ctx context.Context, tenantID string) (*mo
 func (a *sppAdapter) Update(ctx context.Context, spp *model.SPPTransaction) error {
 	query := `
 		UPDATE spp_transactions 
-		SET student_name = $1, amount = $2, description = $3, due_date = $4, period = $5, updated_at = NOW()
-		WHERE id = $6
+		SET student_name = $1, amount = $2, description = $3, due_date = $4, period = $5, payment_type = $6, updated_at = NOW()
+		WHERE id = $7
 	`
-	_, err := a.db.ExecContext(ctx, query, spp.StudentName, spp.Amount, spp.Description, spp.DueDate, spp.Period, spp.ID)
+	_, err := a.db.ExecContext(ctx, query, spp.StudentName, spp.Amount, spp.Description, spp.DueDate, spp.Period, spp.PaymentType, spp.ID)
 	return err
 }
 

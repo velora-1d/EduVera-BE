@@ -201,15 +201,16 @@ func addTenantFilter(dataset *goqu.SelectDataset, filter model.TenantFilter) *go
 func (a *tenantAdapter) CountTableRecords(tenantID string, tableName string) (int, error) {
 	// Whitelist of allowed tables to prevent SQL injection
 	allowedTables := map[string]bool{
-		"santri": true,
-		"siswa":  true,
-		"guru":   true,
-		"ustadz": true,
-		"staf":   true,
-		"kelas":  true,
-		"rombel": true,
-		"asrama": true,
-		"mapel":  true,
+		"santri":   true,
+		"siswa":    true,
+		"guru":     true,
+		"ustadz":   true,
+		"staf":     true,
+		"kelas":    true,
+		"rombel":   true,
+		"asrama":   true,
+		"mapel":    true,
+		"students": true, // Unified students table
 	}
 
 	if !allowedTables[tableName] {

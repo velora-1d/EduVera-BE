@@ -18,4 +18,6 @@ type HttpPort interface {
 	Subscription() SubscriptionHttpPort
 	Analytics() AnalyticsHttpPort
 	Export() ExportHttpPort
+	Student() StudentHttpPort
+	TenantWhatsApp() TenantWhatsAppHttpPort
 }
