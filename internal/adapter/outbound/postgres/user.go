@@ -98,8 +98,9 @@ func (a *userAdapter) FindByFilter(filter model.UserFilter) ([]model.User, error
 	var users []model.User
 	for rows.Next() {
 		var u model.User
+		var tenantID, whatsapp sql.NullString
 		err := rows.Scan(
-			&u.ID, &u.TenantID, &u.Name, &u.Email, &u.WhatsApp,
+			&u.ID, &tenantID, &u.Name, &u.Email, &whatsapp,
 			&u.PasswordHash, &u.Role, &u.IsActive,
 			&u.EmailVerifiedAt, &u.LastLoginAt,
 			&u.CreatedAt, &u.UpdatedAt,
@@ -108,6 +109,8 @@ func (a *userAdapter) FindByFilter(filter model.UserFilter) ([]model.User, error
 		if err != nil {
 			return nil, err
 		}
+		u.TenantID = tenantID.String
+		u.WhatsApp = whatsapp.String
 		users = append(users, u)
 	}
 

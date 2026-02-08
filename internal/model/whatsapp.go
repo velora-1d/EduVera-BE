@@ -11,6 +11,7 @@ type WhatsAppSession struct {
 	APIKey       string    `json:"api_key" db:"api_key"`
 	Status       string    `json:"status" db:"status"` // connecting, connected, disconnected
 	QRCode       string    `json:"qr_code" db:"qr_code"`
+	PhoneNumber  string    `json:"phone_number" db:"phone_number"`
 	DeviceInfo   string    `json:"device_info" db:"device_info"`
 	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at" db:"updated_at"`

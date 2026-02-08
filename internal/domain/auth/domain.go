@@ -23,6 +23,7 @@ type AuthDomain interface {
 	Login(ctx context.Context, input *model.LoginInput, ipAddress string) (*model.LoginResponse, error)
 	ValidateToken(ctx context.Context, tokenString string) (*Claims, error)
 	GetCurrentUser(ctx context.Context, userID string) (*model.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
 	GenerateToken(user *model.User) (string, int64, error)
 	LinkUserToTenant(ctx context.Context, userID string, tenantID string) error
 	ForgotPassword(ctx context.Context, input *model.ForgotPasswordInput) error
@@ -169,6 +170,14 @@ func (d *authDomain) GetCurrentUser(ctx context.Context, userID string) (*model.
 	user, err := d.databasePort.User().FindByID(userID)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to find user")
+	}
+	return user, nil
+}
+
+func (d *authDomain) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	user, err := d.databasePort.User().FindByEmail(email)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "failed to find user by email")
 	}
 	return user, nil
 }

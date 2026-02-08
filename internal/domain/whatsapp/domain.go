@@ -30,21 +30,45 @@ func NewWhatsAppDomain(dbPort outbound_port.DatabasePort, evolutionPort outbound
 }
 
 // ConnectTenant creates Evolution API instance and returns QR code for scanning
+// For owner sessions, pass empty tenantID
 func (d *whatsAppDomain) ConnectTenant(ctx context.Context, tenantID string) (*model.WhatsAppSession, error) {
-	// Check if session already exists
-	existing, err := d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
-	if err == nil && existing != nil && existing.Status == model.WhatsAppStatusConnected {
-		return existing, errors.New("already connected")
+	// Determine instance name based on tenantID
+	var instanceName string
+	if tenantID == "" {
+		// Owner session
+		instanceName = "eduvera_owner"
+		// Check by instance name for owner
+		existing, err := d.dbPort.WhatsApp().GetByInstanceName(ctx, instanceName)
+		if err == nil && existing != nil && existing.Status == model.WhatsAppStatusConnected {
+			return existing, errors.New("already connected")
+		}
+	} else {
+		// Tenant session - check by tenant ID
+		existing, err := d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+		if err == nil && existing != nil && existing.Status == model.WhatsAppStatusConnected {
+			return existing, errors.New("already connected")
+		}
+		instanceName = "tenant_" + tenantID[:8]
 	}
 
-	// Generate unique instance name and token
-	instanceName := "tenant_" + tenantID[:8]
+	// Generate unique token
 	token := uuid.New().String()
 
 	// Create instance in Evolution API
 	session, err := d.evolutionPort.CreateInstance(ctx, instanceName, token)
 	if err != nil {
-		return nil, err
+		// Instance might already exist, try to get QR directly
+		qrCode, qrErr := d.evolutionPort.ConnectInstance(ctx, instanceName, token)
+		if qrErr != nil {
+			return nil, err
+		}
+		// Return minimal session with QR
+		return &model.WhatsAppSession{
+			InstanceName: instanceName,
+			TenantID:     tenantID,
+			QRCode:       qrCode,
+			Status:       model.WhatsAppStatusConnecting,
+		}, nil
 	}
 
 	// Get QR code
@@ -54,7 +78,9 @@ func (d *whatsAppDomain) ConnectTenant(ctx context.Context, tenantID string) (*m
 	}
 
 	session.TenantID = tenantID
+	session.InstanceName = instanceName
 	session.QRCode = qrCode
+	session.Status = model.WhatsAppStatusConnecting
 
 	// Save to database
 	if err := d.dbPort.WhatsApp().Save(ctx, session); err != nil {
@@ -66,7 +92,16 @@ func (d *whatsAppDomain) ConnectTenant(ctx context.Context, tenantID string) (*m
 
 // GetStatus checks current connection status from Evolution API
 func (d *whatsAppDomain) GetStatus(ctx context.Context, tenantID string) (*model.WhatsAppSession, error) {
-	session, err := d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+	var session *model.WhatsAppSession
+	var err error
+
+	if tenantID == "" {
+		// Owner session - lookup by instance name
+		session, err = d.dbPort.WhatsApp().GetByInstanceName(ctx, "eduvera_owner")
+	} else {
+		session, err = d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +120,9 @@ func (d *whatsAppDomain) GetStatus(ctx context.Context, tenantID string) (*model
 	}
 
 	session.Status = liveStatus.Status
+	if liveStatus.PhoneNumber != "" {
+		session.PhoneNumber = liveStatus.PhoneNumber
+	}
 
 	// Update status in database
 	_ = d.dbPort.WhatsApp().UpdateStatus(ctx, session.ID, liveStatus.Status)
@@ -94,7 +132,16 @@ func (d *whatsAppDomain) GetStatus(ctx context.Context, tenantID string) (*model
 
 // DisconnectTenant logs out and removes WhatsApp session
 func (d *whatsAppDomain) DisconnectTenant(ctx context.Context, tenantID string) error {
-	session, err := d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+	var session *model.WhatsAppSession
+	var err error
+
+	if tenantID == "" {
+		// Owner session
+		session, err = d.dbPort.WhatsApp().GetByInstanceName(ctx, "eduvera_owner")
+	} else {
+		session, err = d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+	}
+
 	if err != nil || session == nil {
 		return errors.New("no active session found")
 	}
@@ -111,11 +158,20 @@ func (d *whatsAppDomain) DisconnectTenant(ctx context.Context, tenantID string) 
 	return d.dbPort.WhatsApp().Delete(ctx, session.ID)
 }
 
-// SendMessage sends WhatsApp message using tenant's connected number
+// SendMessage sends WhatsApp message using tenant's or owner's connected number
 func (d *whatsAppDomain) SendMessage(ctx context.Context, tenantID, phone, message string) error {
-	session, err := d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+	var session *model.WhatsAppSession
+	var err error
+
+	if tenantID == "" {
+		// Owner session
+		session, err = d.dbPort.WhatsApp().GetByInstanceName(ctx, "eduvera_owner")
+	} else {
+		session, err = d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
+	}
+
 	if err != nil || session == nil {
-		return errors.New("tenant WhatsApp not connected")
+		return errors.New("WhatsApp not connected")
 	}
 
 	if session.Status != model.WhatsAppStatusConnected {

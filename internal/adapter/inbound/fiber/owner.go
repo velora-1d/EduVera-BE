@@ -2,7 +2,6 @@ package fiber_inbound_adapter
 
 import (
 	"context"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 
@@ -23,6 +22,8 @@ func NewOwnerAdapter(domain domain.Domain) inbound_port.OwnerHttpPort {
 
 // POST /api/v1/owner/login
 func (h *ownerAdapter) Login(c *fiber.Ctx) error {
+	ctx := context.Background()
+
 	var input struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -34,30 +35,42 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Validate against .env credentials
-	envEmail := os.Getenv("OWNER_EMAIL")
-	envPassword := os.Getenv("OWNER_PASSWORD")
-
-	if envEmail == "" || envPassword == "" {
-		// Fallback for safety if env not set
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Konfigurasi owner belum diatur. Hubungi administrator.",
+	if input.Email == "" || input.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Email dan password wajib diisi.",
 		})
 	}
 
-	if input.Email != envEmail || input.Password != envPassword {
+	// Find user by email in database
+	user, err := h.domain.Auth().GetUserByEmail(ctx, input.Email)
+	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Email atau password salah. Silakan coba lagi.",
 		})
 	}
 
-	// Create mock owner user for JWT
+	// Check if user is an owner
+	if !user.IsOwner {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akun ini bukan akun owner.",
+		})
+	}
+
+	// Validate password
+	if !user.CheckPassword(input.Password) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Email atau password salah. Silakan coba lagi.",
+		})
+	}
+
+	// Create owner user for JWT (use actual user data)
 	ownerUser := &model.User{
-		ID:       "owner-super-admin",
-		Name:     "Owner",
-		Email:    "owner@eduvera.id",
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
 		Role:     model.RoleSuperAdmin,
 		TenantID: "system",
+		IsOwner:  true,
 	}
 
 	// Generate Token via Auth Domain
@@ -69,9 +82,9 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"token":      token,
-		"expires_at": expiresAt,
-		"user":       ownerUser,
+		"access_token": token,
+		"expires_at":   expiresAt,
+		"user":         ownerUser,
 	})
 }
 

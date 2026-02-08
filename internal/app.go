@@ -206,7 +206,7 @@ func (a *App) httpInbound() {
 			Views: engine,
 		})
 		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain, a.message)
-		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter, a.domain)
+		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter, a.domain, a.db)
 		go func() {
 			port := os.Getenv("SERVER_PORT")
 			if port == "" {

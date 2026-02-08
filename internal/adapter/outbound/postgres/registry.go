@@ -150,3 +150,7 @@ func (s *adapter) Student() outbound_port.StudentDatabasePort {
 	}
 	return NewStudentAdapter(s.db)
 }
+
+func (s *adapter) NotificationTemplate() outbound_port.NotificationTemplateDatabasePort {
+	return NewNotificationTemplateAdapter(s.db)
+}

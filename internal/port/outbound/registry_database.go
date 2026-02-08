@@ -22,6 +22,7 @@ type DatabasePort interface {
 	PesantrenDashboard() PesantrenDashboardPort
 	WhatsApp() WhatsAppDatabasePort
 	Student() StudentDatabasePort
+	NotificationTemplate() NotificationTemplateDatabasePort
 	DoInTransaction(txFunc InTransaction) (out interface{}, err error)
 }
 

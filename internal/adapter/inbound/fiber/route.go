@@ -12,6 +12,7 @@ import (
 
 	"prabogo/internal/domain"
 	inbound_port "prabogo/internal/port/inbound"
+	outbound_port "prabogo/internal/port/outbound"
 )
 
 func InitRoute(
@@ -19,6 +20,7 @@ func InitRoute(
 	app *fiber.App,
 	port inbound_port.HttpPort,
 	d domain.Domain,
+	dbPort outbound_port.DatabasePort,
 ) {
 	// Enable CORS for frontend access with dynamic subdomain support
 	app.Use(cors.New(cors.Config{
@@ -276,6 +278,44 @@ func InitRoute(
 	// Notification logs
 	ownerProtected.Get("/notifications", func(c *fiber.Ctx) error {
 		return port.Owner().GetNotificationLogs(c)
+	})
+
+	// Owner WhatsApp Routes (Evolution API)
+	ownerWAAdapter := NewOwnerWhatsAppAdapter(d)
+	ownerWA := ownerProtected.Group("/whatsapp")
+	ownerWA.Post("/connect", func(c *fiber.Ctx) error {
+		return ownerWAAdapter.Connect(c)
+	})
+	ownerWA.Get("/status", func(c *fiber.Ctx) error {
+		return ownerWAAdapter.GetStatus(c)
+	})
+	ownerWA.Post("/disconnect", func(c *fiber.Ctx) error {
+		return ownerWAAdapter.Disconnect(c)
+	})
+	ownerWA.Post("/test", func(c *fiber.Ctx) error {
+		return ownerWAAdapter.TestSend(c)
+	})
+
+	// Notification Template Routes (Owner only)
+	templateAdapter := NewNotificationTemplateAdapter(dbPort)
+	templates := ownerProtected.Group("/notification-templates")
+	templates.Get("/", func(c *fiber.Ctx) error {
+		return templateAdapter.List(c)
+	})
+	templates.Get("/:id", func(c *fiber.Ctx) error {
+		return templateAdapter.Get(c)
+	})
+	templates.Post("/", func(c *fiber.Ctx) error {
+		return templateAdapter.Create(c)
+	})
+	templates.Put("/:id", func(c *fiber.Ctx) error {
+		return templateAdapter.Update(c)
+	})
+	templates.Delete("/:id", func(c *fiber.Ctx) error {
+		return templateAdapter.Delete(c)
+	})
+	templates.Post("/:id/test", func(c *fiber.Ctx) error {
+		return templateAdapter.TestSend(c)
 	})
 
 	// Payment Routes (Midtrans)
