@@ -305,3 +305,38 @@ func (h *sppAdapter) ListOverdue(c *fiber.Ctx) error {
 		"data": transactions,
 	})
 }
+
+// POST /api/v1/owner/invoices/generate
+func (h *sppAdapter) GenerateManual(c *fiber.Ctx) error {
+	ctx := context.Background()
+
+	// Use goroutine to avoid timeout as it has delays
+	go func() {
+		_ = h.domain.SPP().GenerateInvoices(ctx)
+	}()
+
+	return c.JSON(fiber.Map{
+		"message": "Proses pembuatan invoice dimulai di background (Anti-Spam active)",
+	})
+}
+
+// POST /api/v1/owner/invoices/broadcast
+func (h *sppAdapter) BroadcastOverdueManual(c *fiber.Ctx) error {
+	ctx := context.Background()
+
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid",
+		})
+	}
+
+	// Use goroutine to avoid timeout
+	go func() {
+		_ = h.domain.SPP().BroadcastOverdue(ctx, tenantID)
+	}()
+
+	return c.JSON(fiber.Map{
+		"message": "Proses broadcast tunggakan dimulai di background (Anti-Spam active)",
+	})
+}

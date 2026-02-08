@@ -13,4 +13,6 @@ type SPPHttpPort interface {
 	UploadProof(c *fiber.Ctx) error
 	ConfirmPayment(c *fiber.Ctx) error
 	ListOverdue(c *fiber.Ctx) error
+	GenerateManual(c *fiber.Ctx) error
+	BroadcastOverdueManual(c *fiber.Ctx) error
 }

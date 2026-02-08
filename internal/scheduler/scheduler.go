@@ -43,6 +43,11 @@ func (s *Scheduler) Start() {
 		s.checkSubscriptionReminders()
 	})
 
+	// Run monthly invoice generation every 1st of month at 00:00
+	s.cron.AddFunc("0 0 1 * * *", func() {
+		s.generateMonthlyInvoices()
+	})
+
 	// Also run at startup for testing (delayed by 10 seconds)
 	go func() {
 		time.Sleep(10 * time.Second)
@@ -153,4 +158,16 @@ func (s *Scheduler) sendReminderNotification(sub model.Subscription, daysLeft in
 	}
 
 	// TODO: Send WhatsApp to tenant admin
+}
+
+// generateMonthlyInvoices generates SPP invoices for all active students
+func (s *Scheduler) generateMonthlyInvoices() {
+	ctx := s.ctx
+	log.WithContext(ctx).Info("Generating monthly invoices...")
+
+	if err := s.domain.SPP().GenerateInvoices(ctx); err != nil {
+		log.WithContext(ctx).WithError(err).Error("Failed to generate monthly invoices")
+	} else {
+		log.WithContext(ctx).Info("Monthly invoices generated successfully")
+	}
 }

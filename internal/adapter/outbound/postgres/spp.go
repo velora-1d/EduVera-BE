@@ -64,7 +64,7 @@ func (a *sppAdapter) ListByTenant(ctx context.Context, tenantID string) ([]model
 
 func (a *sppAdapter) ListAll(ctx context.Context) ([]model.SPPTransaction, error) {
 	query := `
-		SELECT s.id, s.tenant_id, t.name as tenant_name, s.student_id, s.student_name, s.amount, s.payment_method, s.status, s.gateway_ref, s.description, s.created_at, s.updated_at
+		SELECT s.id, s.tenant_id, t.name as tenant_name, s.student_id, s.student_name, s.amount, s.payment_method, s.payment_type, s.status, s.gateway_ref, s.description, s.created_at, s.updated_at
 		FROM spp_transactions s
 		JOIN tenants t ON s.tenant_id = t.id
 		ORDER BY s.created_at DESC
@@ -79,15 +79,16 @@ func (a *sppAdapter) ListAll(ctx context.Context) ([]model.SPPTransaction, error
 	for rows.Next() {
 		var t model.SPPTransaction
 		var tenantName string
-		var studentID, paymentMethod, gatewayRef, description sql.NullString
+		var studentID, paymentMethod, paymentType, gatewayRef, description sql.NullString
 		if err := rows.Scan(
 			&t.ID, &t.TenantID, &tenantName, &studentID, &t.StudentName, &t.Amount,
-			&paymentMethod, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
+			&paymentMethod, &paymentType, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		t.StudentID = studentID.String
 		t.PaymentMethod = paymentMethod.String
+		t.PaymentType = model.PaymentType(paymentType.String)
 		t.GatewayRef = gatewayRef.String
 		t.Description = description.String
 		transactions = append(transactions, t)
@@ -97,21 +98,22 @@ func (a *sppAdapter) ListAll(ctx context.Context) ([]model.SPPTransaction, error
 
 func (a *sppAdapter) FindByID(ctx context.Context, id string) (*model.SPPTransaction, error) {
 	query := `
-		SELECT id, tenant_id, student_id, student_name, amount, payment_method, status, gateway_ref, description, created_at, updated_at
+		SELECT id, tenant_id, student_id, student_name, amount, payment_method, payment_type, status, gateway_ref, description, created_at, updated_at
 		FROM spp_transactions
 		WHERE id = $1
 	`
 	var t model.SPPTransaction
-	var studentID, paymentMethod, gatewayRef, description sql.NullString
+	var studentID, paymentMethod, paymentType, gatewayRef, description sql.NullString
 	err := a.db.QueryRowContext(ctx, query, id).Scan(
 		&t.ID, &t.TenantID, &studentID, &t.StudentName, &t.Amount,
-		&paymentMethod, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
+		&paymentMethod, &paymentType, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
 	t.StudentID = studentID.String
 	t.PaymentMethod = paymentMethod.String
+	t.PaymentType = model.PaymentType(paymentType.String)
 	t.GatewayRef = gatewayRef.String
 	t.Description = description.String
 	return &t, nil
@@ -193,7 +195,7 @@ func (a *sppAdapter) ConfirmPayment(ctx context.Context, id string, confirmedBy 
 // ListByPeriod returns transactions for a specific period (e.g., "2024-01")
 func (a *sppAdapter) ListByPeriod(ctx context.Context, tenantID string, period string) ([]model.SPPTransaction, error) {
 	query := `
-		SELECT id, tenant_id, student_id, student_name, amount, payment_method, status, 
+		SELECT id, tenant_id, student_id, student_name, amount, payment_method, payment_type, status, 
 		       gateway_ref, description, payment_proof, confirmed_by, paid_at, due_date, period, created_at, updated_at
 		FROM spp_transactions
 		WHERE tenant_id = $1 AND period = $2
@@ -211,7 +213,7 @@ func (a *sppAdapter) ListByPeriod(ctx context.Context, tenantID string, period s
 // ListOverdue returns pending transactions past due date
 func (a *sppAdapter) ListOverdue(ctx context.Context, tenantID string) ([]model.SPPTransaction, error) {
 	query := `
-		SELECT id, tenant_id, student_id, student_name, amount, payment_method, status, 
+		SELECT id, tenant_id, student_id, student_name, amount, payment_method, payment_type, status, 
 		       gateway_ref, description, payment_proof, confirmed_by, paid_at, due_date, period, created_at, updated_at
 		FROM spp_transactions
 		WHERE tenant_id = $1 AND status = 'pending' AND due_date < NOW()
@@ -231,11 +233,11 @@ func scanSPPTransactions(rows *sql.Rows) ([]model.SPPTransaction, error) {
 	var transactions []model.SPPTransaction
 	for rows.Next() {
 		var t model.SPPTransaction
-		var studentID, paymentMethod, gatewayRef, description, paymentProof, confirmedBy, period sql.NullString
+		var studentID, paymentMethod, paymentType, gatewayRef, description, paymentProof, confirmedBy, period sql.NullString
 		var paidAt, dueDate sql.NullTime
 		if err := rows.Scan(
 			&t.ID, &t.TenantID, &studentID, &t.StudentName, &t.Amount,
-			&paymentMethod, &t.Status, &gatewayRef, &description,
+			&paymentMethod, &paymentType, &t.Status, &gatewayRef, &description,
 			&paymentProof, &confirmedBy, &paidAt, &dueDate, &period,
 			&t.CreatedAt, &t.UpdatedAt,
 		); err != nil {
@@ -243,6 +245,7 @@ func scanSPPTransactions(rows *sql.Rows) ([]model.SPPTransaction, error) {
 		}
 		t.StudentID = studentID.String
 		t.PaymentMethod = paymentMethod.String
+		t.PaymentType = model.PaymentType(paymentType.String)
 		t.GatewayRef = gatewayRef.String
 		t.Description = description.String
 		t.PaymentProof = paymentProof.String

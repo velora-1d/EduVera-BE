@@ -57,6 +57,7 @@ type App struct {
 	db        outbound_port.DatabasePort
 	message   outbound_port.MessagePort
 	scheduler *scheduler.Scheduler
+	notif     *service_notification.NotificationService
 }
 
 func NewApp() *App {
@@ -75,6 +76,9 @@ func NewApp() *App {
 	dbPort := databaseOutbound(ctx)
 	messagePort := messageOutbound(ctx)
 	evolutionPort := whatsback.NewWhatsbackAdapter()
+	fonnteAdapter := whatsapp_outbound_adapter.NewAdapter()
+
+	notifService := service_notification.NewNotificationService(fonnteAdapter.WhatsApp(), evolutionPort, dbPort)
 
 	dom := domain.NewDomain(
 		dbPort,
@@ -82,6 +86,7 @@ func NewApp() *App {
 		cacheOutbound(ctx),
 		workflowOutbound(ctx),
 		evolutionPort,
+		notifService,
 	)
 
 	return &App{
@@ -89,6 +94,7 @@ func NewApp() *App {
 		domain:  dom,
 		db:      dbPort,
 		message: messagePort,
+		notif:   notifService,
 	}
 }
 
@@ -226,13 +232,8 @@ func (a *App) httpInbound() {
 
 		// Start WhatsApp Notification Consumer (RabbitMQ -> Fonnte/Evolution)
 		if inboundMessageDriver == "rabbitmq" {
-			// specific adapters for the consumer
-			fonnteAdapter := whatsapp_outbound_adapter.NewAdapter()
-			evolutionAdapter := whatsback.NewWhatsbackAdapter()
-
-			notifService := service_notification.NewNotificationService(fonnteAdapter.WhatsApp(), evolutionAdapter, a.db)
 			go func() {
-				if err := notifService.StartWhatsAppConsumer(ctx); err != nil {
+				if err := a.notif.StartWhatsAppConsumer(ctx); err != nil {
 					log.WithContext(ctx).Errorf("failed to start whatsapp consumer: %v", err)
 				}
 			}()

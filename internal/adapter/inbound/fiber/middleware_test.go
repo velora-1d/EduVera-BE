@@ -37,7 +37,7 @@ func TestMiddlewareAdapter(t *testing.T) {
 		mockMessagePort.EXPECT().Client().Return(mockClientMessagePort).AnyTimes()
 		mockWorkflowPort.EXPECT().Client().Return(mockClientWorkflowPort).AnyTimes()
 
-		dom := domain.NewDomain(mockDatabasePort, mockMessagePort, mockCachePort, mockWorkflowPort, mockEvolutionApiPort)
+		dom := domain.NewDomain(mockDatabasePort, mockMessagePort, mockCachePort, mockWorkflowPort, mockEvolutionApiPort, nil)
 		adapter := fiber_inbound_adapter.NewAdapter(dom, mockMessagePort)
 
 		Convey("InternalAuth", func() {

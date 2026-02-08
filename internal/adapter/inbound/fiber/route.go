@@ -207,6 +207,12 @@ func InitRoute(
 	ownerProtected.Post("/content", func(c *fiber.Ctx) error {
 		return port.Content().Upsert(c)
 	})
+	ownerProtected.Post("/invoices/generate", func(c *fiber.Ctx) error {
+		return port.SPP().GenerateManual(c)
+	})
+	ownerProtected.Post("/invoices/broadcast", func(c *fiber.Ctx) error {
+		return port.SPP().BroadcastOverdueManual(c)
+	})
 
 	// Registration logs
 	ownerProtected.Get("/registrations", func(c *fiber.Ctx) error {

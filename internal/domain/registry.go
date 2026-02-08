@@ -45,11 +45,12 @@ type Domain interface {
 }
 
 type domain struct {
-	databasePort  outbound_port.DatabasePort
-	messagePort   outbound_port.MessagePort
-	cachePort     outbound_port.CachePort
-	workflowPort  outbound_port.WorkflowPort
-	evolutionPort outbound_port.WhatsAppClientPort
+	databasePort     outbound_port.DatabasePort
+	messagePort      outbound_port.MessagePort
+	cachePort        outbound_port.CachePort
+	workflowPort     outbound_port.WorkflowPort
+	evolutionPort    outbound_port.WhatsAppClientPort
+	notificationPort outbound_port.NotificationServicePort
 }
 
 func NewDomain(
@@ -58,13 +59,15 @@ func NewDomain(
 	cachePort outbound_port.CachePort,
 	workflowPort outbound_port.WorkflowPort,
 	evolutionPort outbound_port.WhatsAppClientPort,
+	notificationPort outbound_port.NotificationServicePort,
 ) Domain {
 	return &domain{
-		databasePort:  databasePort,
-		messagePort:   messagePort,
-		cachePort:     cachePort,
-		workflowPort:  workflowPort,
-		evolutionPort: evolutionPort,
+		databasePort:     databasePort,
+		messagePort:      messagePort,
+		cachePort:        cachePort,
+		workflowPort:     workflowPort,
+		evolutionPort:    evolutionPort,
+		notificationPort: notificationPort,
 	}
 }
 
@@ -93,7 +96,7 @@ func (d *domain) Disbursement() disbursement_domain.Service {
 }
 
 func (d *domain) SPP() spp_domain.Service {
-	return spp_domain.NewService(d.databasePort.SPP())
+	return spp_domain.NewService(d.databasePort.SPP(), d.databasePort.Student(), d.databasePort.User(), d.notificationPort)
 }
 
 func (d *domain) PesantrenDashboard() dashboard.Service {
