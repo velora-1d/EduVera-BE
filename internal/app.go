@@ -18,13 +18,13 @@ import (
 	fiber_inbound_adapter "prabogo/internal/adapter/inbound/fiber"
 	rabbitmq_inbound_adapter "prabogo/internal/adapter/inbound/rabbitmq"
 	temporal_inbound_adapter "prabogo/internal/adapter/inbound/temporal"
-	evolution_outbound_adapter "prabogo/internal/adapter/outbound/evolution"
 	gibrun_outbound_adapter "prabogo/internal/adapter/outbound/gibrun"
 	postgres_outbound_adapter "prabogo/internal/adapter/outbound/postgres"
 	rabbitmq_outbound_adapter "prabogo/internal/adapter/outbound/rabbitmq"
 	redis_outbound_adapter "prabogo/internal/adapter/outbound/redis"
 	temporal_outbound_adapter "prabogo/internal/adapter/outbound/temporal"
 	whatsapp_outbound_adapter "prabogo/internal/adapter/outbound/whatsapp"
+	"prabogo/internal/adapter/outbound/whatsback"
 	"prabogo/internal/domain"
 	_ "prabogo/internal/migration/postgres"
 	outbound_port "prabogo/internal/port/outbound"
@@ -74,7 +74,7 @@ func NewApp() *App {
 
 	dbPort := databaseOutbound(ctx)
 	messagePort := messageOutbound(ctx)
-	evolutionPort := evolution_outbound_adapter.NewEvolutionAdapter()
+	evolutionPort := whatsback.NewWhatsbackAdapter()
 
 	dom := domain.NewDomain(
 		dbPort,
@@ -228,7 +228,7 @@ func (a *App) httpInbound() {
 		if inboundMessageDriver == "rabbitmq" {
 			// specific adapters for the consumer
 			fonnteAdapter := whatsapp_outbound_adapter.NewAdapter()
-			evolutionAdapter := evolution_outbound_adapter.NewEvolutionAdapter()
+			evolutionAdapter := whatsback.NewWhatsbackAdapter()
 
 			notifService := service_notification.NewNotificationService(fonnteAdapter.WhatsApp(), evolutionAdapter, a.db)
 			go func() {

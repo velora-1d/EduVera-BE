@@ -134,6 +134,20 @@ func (mr *MockDatabasePortMockRecorder) Notification() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notification", reflect.TypeOf((*MockDatabasePort)(nil).Notification))
 }
 
+// NotificationTemplate mocks base method.
+func (m *MockDatabasePort) NotificationTemplate() outbound_port.NotificationTemplateDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NotificationTemplate")
+	ret0, _ := ret[0].(outbound_port.NotificationTemplateDatabasePort)
+	return ret0
+}
+
+// NotificationTemplate indicates an expected call of NotificationTemplate.
+func (mr *MockDatabasePortMockRecorder) NotificationTemplate() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotificationTemplate", reflect.TypeOf((*MockDatabasePort)(nil).NotificationTemplate))
+}
+
 // Payment mocks base method.
 func (m *MockDatabasePort) Payment() outbound_port.PaymentDatabasePort {
 	m.ctrl.T.Helper()

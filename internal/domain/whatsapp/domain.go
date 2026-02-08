@@ -19,10 +19,10 @@ type WhatsAppDomain interface {
 
 type whatsAppDomain struct {
 	dbPort        outbound_port.DatabasePort
-	evolutionPort outbound_port.EvolutionApiPort
+	evolutionPort outbound_port.WhatsAppClientPort
 }
 
-func NewWhatsAppDomain(dbPort outbound_port.DatabasePort, evolutionPort outbound_port.EvolutionApiPort) WhatsAppDomain {
+func NewWhatsAppDomain(dbPort outbound_port.DatabasePort, evolutionPort outbound_port.WhatsAppClientPort) WhatsAppDomain {
 	return &whatsAppDomain{
 		dbPort:        dbPort,
 		evolutionPort: evolutionPort,

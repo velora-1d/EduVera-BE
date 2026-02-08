@@ -34,7 +34,7 @@ func TestClientAdapter(t *testing.T) {
 		mockClientCachePort := mock_outbound_port.NewMockClientCachePort(mockCtrl)
 		mockClientWorkflowPort := mock_outbound_port.NewMockClientWorkflowPort(mockCtrl)
 
-		mockEvolutionApiPort := mock_outbound_port.NewMockEvolutionApiPort(mockCtrl)
+		mockEvolutionApiPort := mock_outbound_port.NewMockWhatsAppClientPort(mockCtrl)
 
 		mockDatabasePort.EXPECT().Client().Return(mockClientDatabasePort).AnyTimes()
 		mockMessagePort.EXPECT().Client().Return(mock_outbound_port.NewMockClientMessagePort(mockCtrl)).AnyTimes()

@@ -49,7 +49,7 @@ type domain struct {
 	messagePort   outbound_port.MessagePort
 	cachePort     outbound_port.CachePort
 	workflowPort  outbound_port.WorkflowPort
-	evolutionPort outbound_port.EvolutionApiPort
+	evolutionPort outbound_port.WhatsAppClientPort
 }
 
 func NewDomain(
@@ -57,7 +57,7 @@ func NewDomain(
 	messagePort outbound_port.MessagePort,
 	cachePort outbound_port.CachePort,
 	workflowPort outbound_port.WorkflowPort,
-	evolutionPort outbound_port.EvolutionApiPort,
+	evolutionPort outbound_port.WhatsAppClientPort,
 ) Domain {
 	return &domain{
 		databasePort:  databasePort,

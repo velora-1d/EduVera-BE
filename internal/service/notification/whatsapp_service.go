@@ -33,13 +33,13 @@ type WhatsAppNotification struct {
 // NotificationService handles sending WhatsApp notifications
 type NotificationService struct {
 	fonntePort    outbound_port.WhatsAppMessagePort
-	evolutionPort outbound_port.EvolutionApiPort
+	evolutionPort outbound_port.WhatsAppClientPort
 	dbPort        outbound_port.DatabasePort
 }
 
 func NewNotificationService(
 	fonntePort outbound_port.WhatsAppMessagePort,
-	evolutionPort outbound_port.EvolutionApiPort,
+	evolutionPort outbound_port.WhatsAppClientPort,
 	dbPort outbound_port.DatabasePort,
 ) *NotificationService {
 	return &NotificationService{

@@ -29,7 +29,7 @@ func NewAlertService() *AlertService {
 // NewAlertServiceWithWA creates AlertService with WhatsApp notification support
 func NewAlertServiceWithWA(
 	fonntePort outbound_port.WhatsAppMessagePort,
-	evolutionPort outbound_port.EvolutionApiPort,
+	evolutionPort outbound_port.WhatsAppClientPort,
 	dbPort outbound_port.DatabasePort,
 ) *AlertService {
 	return &AlertService{
