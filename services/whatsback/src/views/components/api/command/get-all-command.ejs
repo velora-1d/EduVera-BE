@@ -1,0 +1,64 @@
+<div id="get-all-commands" class="mb-8">
+  <h3 class="text-xl font-bold mb-4 dark:text-white">Get All Commands</h3>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <div class="flex items-center mb-4">
+      <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-l-sm rounded-r-none font-mono">GET</span>
+      <code class="font-mono text-orange-500 dark:text-zinc-200 bg-zinc-800 dark:bg-gray-700 px-2 py-1 w-full rounded-r-sm rounded-l-none">/api/command</code>
+    </div>
+    <p class="mb-4 dark:text-gray-300">Retrieves a list of all available commands.</p>
+
+    <div class="mb-6">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Example Request</h4>
+      <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200"><span class="text-green-500">GET</span> /api/command HTTP/1.1
+Host: localhost:5001
+Accept: application/json</code></pre>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Response</h4>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded">200 OK</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Headers:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 152</code></pre>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "status": true,
+    "data": {
+        "commands": [
+            {
+                "id": 1,
+                "command": "!greet",
+                "response": "Hello!"
+            },
+            {
+                "id": 2,
+                "command": "!help",
+                "response": "How can I assist?"
+            }
+        ]
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Error Response</h4>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded">500 Internal Server Error</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "status": false,
+    "message": "API Error - error details"
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</div>

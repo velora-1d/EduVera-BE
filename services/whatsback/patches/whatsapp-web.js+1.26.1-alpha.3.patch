@@ -1,0 +1,176 @@
+diff --git a/node_modules/whatsapp-web.js/.env.example b/node_modules/whatsapp-web.js/.env.example
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/CODE_OF_CONDUCT.md b/node_modules/whatsapp-web.js/CODE_OF_CONDUCT.md
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/LICENSE b/node_modules/whatsapp-web.js/LICENSE
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/README.md b/node_modules/whatsapp-web.js/README.md
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/example.js b/node_modules/whatsapp-web.js/example.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/index.d.ts b/node_modules/whatsapp-web.js/index.d.ts
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/index.js b/node_modules/whatsapp-web.js/index.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/shell.js b/node_modules/whatsapp-web.js/shell.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/Client.js b/node_modules/whatsapp-web.js/src/Client.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/authStrategies/BaseAuthStrategy.js b/node_modules/whatsapp-web.js/src/authStrategies/BaseAuthStrategy.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/authStrategies/LocalAuth.js b/node_modules/whatsapp-web.js/src/authStrategies/LocalAuth.js
+old mode 100644
+new mode 100755
+index 543a6b9..cde7268
+--- a/node_modules/whatsapp-web.js/src/authStrategies/LocalAuth.js
++++ b/node_modules/whatsapp-web.js/src/authStrategies/LocalAuth.js
+@@ -44,10 +44,15 @@ class LocalAuth extends BaseAuthStrategy {
+ 
+     async logout() {
+         if (this.userDataDir) {
+-            await fs.promises.rm(this.userDataDir, { recursive: true, force: true })
+-                .catch((e) => {
+-                    throw new Error(e);
+-                });
++            try {
++                const files = await fs.promises.readdir(this.userDataDir);
++                for (const file of files) {
++                    await fs.promises.unlink(path.join(this.userDataDir, file)).catch(() => {});
++                }
++                await fs.promises.rm(this.userDataDir, { recursive: true }).catch(() => {});
++            } catch (e) {
++                console.error('Failed to delete session directory:', e);
++            }
+         }
+     }    
+ 
+diff --git a/node_modules/whatsapp-web.js/src/authStrategies/NoAuth.js b/node_modules/whatsapp-web.js/src/authStrategies/NoAuth.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/authStrategies/RemoteAuth.js b/node_modules/whatsapp-web.js/src/authStrategies/RemoteAuth.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/factories/ChatFactory.js b/node_modules/whatsapp-web.js/src/factories/ChatFactory.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/factories/ContactFactory.js b/node_modules/whatsapp-web.js/src/factories/ContactFactory.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Base.js b/node_modules/whatsapp-web.js/src/structures/Base.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/BusinessContact.js b/node_modules/whatsapp-web.js/src/structures/BusinessContact.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Buttons.js b/node_modules/whatsapp-web.js/src/structures/Buttons.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Call.js b/node_modules/whatsapp-web.js/src/structures/Call.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Chat.js b/node_modules/whatsapp-web.js/src/structures/Chat.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/ClientInfo.js b/node_modules/whatsapp-web.js/src/structures/ClientInfo.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Contact.js b/node_modules/whatsapp-web.js/src/structures/Contact.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/GroupChat.js b/node_modules/whatsapp-web.js/src/structures/GroupChat.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/GroupNotification.js b/node_modules/whatsapp-web.js/src/structures/GroupNotification.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Label.js b/node_modules/whatsapp-web.js/src/structures/Label.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/List.js b/node_modules/whatsapp-web.js/src/structures/List.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Location.js b/node_modules/whatsapp-web.js/src/structures/Location.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Message.js b/node_modules/whatsapp-web.js/src/structures/Message.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/MessageMedia.js b/node_modules/whatsapp-web.js/src/structures/MessageMedia.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Order.js b/node_modules/whatsapp-web.js/src/structures/Order.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Payment.js b/node_modules/whatsapp-web.js/src/structures/Payment.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Poll.js b/node_modules/whatsapp-web.js/src/structures/Poll.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/PollVote.js b/node_modules/whatsapp-web.js/src/structures/PollVote.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/PrivateChat.js b/node_modules/whatsapp-web.js/src/structures/PrivateChat.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/PrivateContact.js b/node_modules/whatsapp-web.js/src/structures/PrivateContact.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Product.js b/node_modules/whatsapp-web.js/src/structures/Product.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/ProductMetadata.js b/node_modules/whatsapp-web.js/src/structures/ProductMetadata.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/Reaction.js b/node_modules/whatsapp-web.js/src/structures/Reaction.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/structures/index.js b/node_modules/whatsapp-web.js/src/structures/index.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Constants.js b/node_modules/whatsapp-web.js/src/util/Constants.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Injected/AuthStore/AuthStore.js b/node_modules/whatsapp-web.js/src/util/Injected/AuthStore/AuthStore.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Injected/AuthStore/LegacyAuthStore.js b/node_modules/whatsapp-web.js/src/util/Injected/AuthStore/LegacyAuthStore.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Injected/LegacyStore.js b/node_modules/whatsapp-web.js/src/util/Injected/LegacyStore.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Injected/Store.js b/node_modules/whatsapp-web.js/src/util/Injected/Store.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Injected/Utils.js b/node_modules/whatsapp-web.js/src/util/Injected/Utils.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/InterfaceController.js b/node_modules/whatsapp-web.js/src/util/InterfaceController.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/util/Util.js b/node_modules/whatsapp-web.js/src/util/Util.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/webCache/LocalWebCache.js b/node_modules/whatsapp-web.js/src/webCache/LocalWebCache.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/webCache/RemoteWebCache.js b/node_modules/whatsapp-web.js/src/webCache/RemoteWebCache.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/webCache/WebCache.js b/node_modules/whatsapp-web.js/src/webCache/WebCache.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/whatsapp-web.js/src/webCache/WebCacheFactory.js b/node_modules/whatsapp-web.js/src/webCache/WebCacheFactory.js
+old mode 100644
+new mode 100755

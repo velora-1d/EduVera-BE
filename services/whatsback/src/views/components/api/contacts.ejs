@@ -1,0 +1,96 @@
+<div id="get-contacts" class="mb-8">
+  <h3 class="text-xl font-bold mb-4 dark:text-white">Get Paginated Contacts</h3>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <div class="flex items-center mb-4">
+      <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-l-sm rounded-r-none font-mono">GET</span>
+      <code class="font-mono text-orange-500 dark:text-zinc-200 bg-zinc-800 dark:bg-gray-700 px-2 py-1 w-full rounded-r-sm rounded-l-none">/api/contacts</code>
+    </div>
+    <p class="mb-4 dark:text-gray-300">Retrieves a paginated list of contacts with optional search and pagination parameters.</p>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Query Parameters</h4>
+      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="w-full">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Parameter</th>
+              <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Type</th>
+              <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+            <tr>
+              <td class="px-4 py-2 text-sm font-mono text-blue-600 dark:text-blue-400">search</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">string</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">Filter contacts by name (optional)</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-sm font-mono text-blue-600 dark:text-blue-400">perPage</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">number</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">Number of contacts per page (default: 10)</td>
+            </tr>
+            <tr>
+              <td class="px-4 py-2 text-sm font-mono text-blue-600 dark:text-blue-400">page</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">number</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">Page number to fetch (default: 1)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Example Request</h4>
+      <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200"><span class="text-green-500">GET</span> /api/contacts?search=John&perPage=5&page=2 HTTP/1.1
+Host: localhost:5001
+Accept: application/json</code></pre>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Response</h4>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded">200 OK</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Headers:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 312</code></pre>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "status": true,
+    "message": "Contacts fetched successfully",
+    "data": {
+        "contacts": [
+            {
+                "number": 123456789,
+                "name": "John Doe"
+            },
+            {
+                "number": 987654321,
+                "name": "Jane Smith"
+            }
+        ],
+        "totalContacts": 100
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Error Response</h4>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded">500 Internal Server Error</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "status": false,
+    "message": "Internal Server Error"
+  }</code></pre>
+      </div>
+    </div>
+  </div>
+</div>

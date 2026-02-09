@@ -1,0 +1,409 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Home</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>
+              whatsapp-provider 1.0.3
+            </h1>
+          </header>
+          <article>
+            <blockquote>
+              <p>[!CAUTION]
+                <strong>Whatsback Web</strong> and <a href="https://github.com/pedroslopez/whatsapp-web.js">whatsapp-web.js</a> are not officially supported by WhatsApp. Use this project at your own risk.
+              </p>
+            </blockquote>
+            <p align="center">
+              <img src="https://i.imgur.com/X1bM7I6.png" />
+            </p>
+            <p align="center">
+              <img src="https://github.com/darkterminal/whatsback-web/actions/workflows/release.yml/badge.svg" alt="Whatsback Web GitHub Action" />
+              <img src="https://img.shields.io/github/tag/darkterminal/whatsback-web" alt="Whatsback Web Tag" />
+              <img src="https://img.shields.io/github/v/release/darkterminal/whatsback-web" alt="Whatsback Web Release" />
+              <img src="https://img.shields.io/github/v/tag/darkterminal/whatsback-web?label=package" alt="Whatsback Web Package Registry" />
+              <img src="https://img.shields.io/github/downloads/darkterminal/whatsback-web/total" alt="Whatsback Web Downloads" />
+            </p>
+            <p>Whatsback Provider is a simple WhatsApp provider that offers basic functionality such as predefined static commands, sending messages to contacts or groups, and listing all contacts. This project leverages the unofficial <a href="https://github.com/pedroslopez/whatsapp-web.js">whatsapp-web.js</a> package to interface with WhatsApp Web.</p>
+            <blockquote>
+              <p>[!IMPORTANT]
+                <strong>It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</strong>
+              </p>
+            </blockquote>
+            <h2>Features</h2>
+            <ul>
+              <li><strong>Predefined Static Commands:</strong> Quickly execute common commands without the need for manual input.</li>
+              <li><strong>Send Message to Contact:</strong> Programmatically send message directly to individual contacts.</li>
+              <li><strong>Send Message to Group:</strong> Programmatically send message to the groups.</li>
+              <li><strong>List All Contacts:</strong> Retrieve and display a list of all contacts available on the WhatsApp account.</li>
+              <li><strong>Schedule Message:</strong> Schedule a message to be sent at a later time.</li>
+            </ul>
+            <h2>Table of Contents</h2>
+            <ul>
+              <li><a href="#%EF%B8%8F-caution">⚠️ Caution</a></li>
+              <li><a href="#-features">✨ Features</a></li>
+              <li><a href="#-getting-started">🚀 Getting Started</a>
+                <ul>
+                  <li><a href="#prerequisites">Prerequisites</a></li>
+                  <li><a href="#key-configuration-options">Key Configuration Options</a></li>
+                </ul>
+              </li>
+              <li><a href="#-docker-installation">🐳 Docker Installation</a>
+                <ul>
+                  <li><a href="#docker-cli">Docker CLI</a></li>
+                  <li><a href="#docker-composeyml">docker-compose.yml</a></li>
+                </ul>
+              </li>
+              <li><a href="#-source-installation">💻 Source Installation</a></li>
+              <li><a href="#-running-the-project">🏃 Running the Project</a></li>
+              <li><a href="#-available-rest-api">🔌 Available REST API</a></li>
+              <li><a href="#-security-considerations">🔒 Security Considerations</a></li>
+              <li><a href="#-contributing">🤝 Contributing</a></li>
+              <li><a href="#-donate-or-sponsoring">💖 Donate or Sponsoring</a></li>
+              <li><a href="#-disclaimer">📢 Disclaimer</a></li>
+              <li><a href="#-license">📄 License</a></li>
+            </ul>
+            <h2>Getting Started</h2>
+            <h3>Prerequisites</h3>
+            <ul>
+              <li>Node.js (v20 or later recommended)</li>
+              <li>npm (comes with Node.js)</li>
+              <li>A valid WhatsApp account</li>
+            </ul>
+            <h3>Key Configuration Options</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Environment Variable</th>
+                  <th>Description</th>
+                  <th>Default</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>NODE_ENV</code></td>
+                  <td>Runtime environment</td>
+                  <td><code>production</code></td>
+                </tr>
+                <tr>
+                  <td><code>APP_PORT</code></td>
+                  <td>Application port</td>
+                  <td><code>5001</code></td>
+                </tr>
+                <tr>
+                  <td><code>UI_PORT</code></td>
+                  <td>External exposed port</td>
+                  <td><code>8169</code></td>
+                </tr>
+                <tr>
+                  <td><code>DB_PATH</code></td>
+                  <td>Path to SQLite database</td>
+                  <td><code>/data/database.sqlite</code></td>
+                </tr>
+                <tr>
+                  <td><code>TZ</code></td>
+                  <td>Set your default timezone</td>
+                  <td><code>Asia/Jakarta</code> default <code>UTC</code></td>
+                </tr>
+              </tbody>
+            </table>
+            <h3>Docker Installation</h3>
+            <h4>Docker CLI</h4>
+            <ol>
+              <li>
+                <p><strong>Pull the image:</strong></p>
+                <pre class="prettyprint source lang-bash"><code>docker pull ghcr.io/darkterminal/whatsback-web:latest
+</code></pre>
+              </li>
+              <li>
+                <p><strong>Create Network</strong></p>
+              </li>
+            </ol>
+            <pre class="prettyprint source lang-bash"><code>docker network create whatsback-net
+</code></pre>
+            <ol start="3">
+              <li><strong>Create Volume</strong></li>
+            </ol>
+            <pre class="prettyprint source lang-bash"><code>docker volume create whatsback-db
+</code></pre>
+            <ol start="4">
+              <li><strong>Run Whatsback Application Container</strong></li>
+            </ol>
+            <pre class="prettyprint source lang-bash"><code>docker run -d \
+  --name whatsback-app-provider \
+  --network whatsback-net \
+  -p 8169:5001 \
+  -e NODE_ENV=production \
+  -e APP_PORT=5001 \
+  -e DB_PATH=/data/database.sqlite \
+  -v whatsback-db:/data \
+  ghcr.io/darkterminal/whatsback-web:latest
+</code></pre>
+            <ol start="5">
+              <li><strong>Run Whatsback Cronjob Container</strong></li>
+            </ol>
+            <pre class="prettyprint source lang-bash"><code>docker run -d \
+  --name whatsback-app-cronjob \
+  --network whatsback-net \
+  -e NODE_ENV=production \
+  -e APP_HOST=whatsback-app-provider \
+  -e DB_PATH=/data/database.sqlite \
+  -v whatsback-db:/data \
+  ghcr.io/darkterminal/whatsback-web:latest \
+  sh -c &quot;./wait-for whatsback-app-provider:5001 -t 120 -- node cronjob.js&quot;
+</code></pre>
+            <h4>docker-compose.yml</h4>
+            <pre class="prettyprint source lang-yaml"><code>services:
+  app:
+    image: ghcr.io/darkterminal/whatsback-web:latest
+    container_name: whatsback-app-provider
+    ports:
+      - &quot;${UI_PORT:-8169}:5001&quot;
+    environment:
+      - NODE_ENV=production
+      - APP_PORT=${APP_PORT:-5001}
+      - DB_PATH=/data/database.sqlite
+    volumes:
+      - db-data:/data
+    networks:
+      - app_net
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;curl -f http://localhost:$$APP_PORT/health || exit 1&quot;]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  cronjob:
+    image: ghcr.io/darkterminal/whatsback-web:latest
+    container_name: whatsback-app-cronjob
+    environment:
+      - NODE_ENV=production
+      - APP_HOST=app
+      - DB_PATH=/data/database.sqlite
+    volumes:
+      - db-data:/data
+    command: sh -c &quot;./wait-for app:5001 -t 120 -- node cronjob.js&quot;
+    networks:
+      - app_net
+    depends_on:
+      app:
+        condition: service_healthy
+
+networks:
+  app_net:
+    driver: bridge
+
+volumes:
+  db-data:
+</code></pre>
+            <h3>Source Installation</h3>
+            <pre class="prettyprint source lang-bash"><code>git clone https://github.com/darkterminal/whatsback-web.git
+cd whatsback-web
+npm install
+</code></pre>
+            <h3>Running the Project</h3>
+            <p>For development, start the server with:</p>
+            <pre class="prettyprint source lang-bash"><code>npm run dev
+</code></pre>
+            <p>For production, start the server with:</p>
+            <pre class="prettyprint source lang-bash"><code>NODE_ENV=production node server.js
+</code></pre>
+            <p>Your server should start on the port defined in the <code>.env</code> file (default is 5001).</p>
+            <h2>Available REST API</h2>
+            <p>You can read the REST API documentation <a href="docs/WHATSBACK-API.md">here</a></p>
+            <h2>Security Considerations</h2>
+            <ul>
+              <li>This project uses middleware like Helmet, express-rate-limit, and hpp to help protect against common web vulnerabilities.</li>
+              <li>Be aware that using an unofficial API (whatsapp-web.js) can carry risks with regard to WhatsApp's terms of service.</li>
+              <li>Whatsback Web and whatsapp-web.js are not officially supported by WhatsApp. Use this project at your own risk.</li>
+              <li>It is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</li>
+            </ul>
+            <h2>Contributing</h2>
+            <p>Contributions are welcome! Please open issues or pull requests to improve the project.</p>
+            <h2>Donate or Sponsoring</h2>
+            <p>You can support the maintainer of this project through the button and links below:</p>
+            <a href="https://github.com/sponsors/darkterminal">
+              <picture>
+                <source media="(prefers-color-scheme: dark)" srcset="https://i.imgur.com/IcHNW1L.png">
+                <source media="(prefers-color-scheme: light)" srcset="https://i.imgur.com/Yzbwovb.png">
+                <img alt="Shows a black logo in light color mode and a white one in dark color mode." src="https://i.imgur.com/IcHNW1L.png">
+              </picture>
+            </a>
+            <ul>
+              <li><a href="https://github.com/sponsors/darkterminal">Support via GitHub Sponsors</a></li>
+              <li><a href="https://saweria.co/darkterminal">Support via Saweria</a></li>
+            </ul>
+            <h2>Disclaimer</h2>
+            <p>This project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with WhatsApp or any of its subsidiaries or its affiliates. The official WhatsApp website can be found at <a href="https://whatsapp.com">whatsapp.com</a>. &quot;WhatsApp&quot; as well as related names, marks, emblems and images are registered trademarks of their respective owners. Also it is not guaranteed you will not be blocked by using this method. WhatsApp does not allow bots or unofficial clients on their platform, so this shouldn't be considered totally safe.</p>
+            <h2>License</h2>
+            <pre class="prettyprint source"><code>Copyright 2025 Imam Ali Mustofa
+
+Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+</code></pre>
+          </article>
+          <div class="symbol-index">
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="Cron">Cron</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Cron.html" class="!symbol-index-name">Cron(exp[, options])</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Cron.html#getNextRuns" class="!symbol-index-name">Cron#<wbr>getNextRuns(count)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="Cron.html#schedule" class="!symbol-index-name">Cron#<wbr>schedule</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                      <dt class="symbol-index-name">
+                        <a href="Cron.html#translate" class="!symbol-index-name">Cron#<wbr>translate()</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="module">module</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="module.html#.exports" class="!symbol-index-name">module.<wbr>exports(client)</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="WhatsAppClient">WhatsAppClient</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="module-WhatsAppClient.html" class="!symbol-index-name">WhatsAppClient</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div class="symbol-index-content">
+                <h2 id="state">state</h2>
+                <div class="symbol-index-section">
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                      <dt class="symbol-index-name">
+                        <a href="module-state.html" class="!symbol-index-name">state</a>
+                      </dt>
+                      <dd>
+                      </dd>
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                  <div class="symbol-index-column">
+                    <dl class="symbol-index-list">
+                    </dl>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

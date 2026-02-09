@@ -1,0 +1,357 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: helper.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: helper.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const logger &#x3D; require(&quot;./logger&quot;);
+
+/**
+ * Delays execution for a specified amount of time.
+ * @param {number} ms - The number of milliseconds to sleep.
+ * @returns {Promise&amp;lt;void&gt;} A promise that resolves after the specified time.
+ */
+const sleep &#x3D; (ms) &#x3D;&gt; new Promise((resolve) &#x3D;&gt; setTimeout(resolve, ms));
+
+/**
+ * @param {string} [type&#x3D;&quot;&quot;] - Log level type.
+ *     When only one argument is provided, defaults to &quot;debug&quot;.
+ *     Valid levels: &quot;debug&quot;, &quot;info&quot;, &quot;notice&quot;, &quot;warning&quot;, &quot;error&quot;,
+ *     &quot;crit&quot;, &quot;alert&quot;, &quot;emerg&quot;, or any custom string
+ * @default &quot;&quot;
+ */
+const serverLog &#x3D; (type &#x3D; &quot;&quot;, message) &#x3D;&gt; {
+    if (message &#x3D;&#x3D;&#x3D; undefined) {
+        message &#x3D; type;
+        type &#x3D; &quot;debug&quot;;
+    }
+
+    const now &#x3D; new Date();
+    const options &#x3D; { timeZone: process.env.TZ || &quot;UTC&quot;, hour12: false };
+    const dateParts &#x3D; now.toLocaleDateString(&quot;id-ID&quot;, options).split(&quot;/&quot;);
+    const timeParts &#x3D; now.toLocaleTimeString(&quot;id-ID&quot;, options).split(&quot;.&quot;);
+    const formattedTimestamp &#x3D; &#x60;${dateParts[2]}-${dateParts[1].padStart(
+        2,
+        &quot;0&quot;
+    )}-${dateParts[0].padStart(2, &quot;0&quot;)} ${timeParts[0].padStart(
+        2,
+        &quot;0&quot;
+    )}:${timeParts[1].padStart(2, &quot;0&quot;)}:${timeParts[2].padStart(2, &quot;0&quot;)}&#x60;;
+
+    switch (type) {
+    case &quot;debug&quot;: {
+        logger.debug(message);
+        break;
+    }
+    case &quot;info&quot;: {
+        logger.info(message);
+        break;
+    }
+    case &quot;notice&quot;: {
+        logger.notice(message);
+        break;
+    }
+    case &quot;warning&quot;: {
+        logger.warning(message);
+        break;
+    }
+    case &quot;error&quot;: {
+        logger.error(message);
+        break;
+    }
+    case &quot;crit&quot;: {
+        logger.crit(message);
+        break;
+    }
+    case &quot;alert&quot;: {
+        logger.alert(message);
+        break;
+    }
+    case &quot;emerg&quot;: {
+        logger.emerg(message);
+        break;
+    }
+    default: {
+        logger.debug(message);
+        break;
+    }
+    }
+
+    console.log(
+        &#x60;${formattedTimestamp} - BACKEND_LOG: ${message}&#x60;.toUpperCase()
+    );
+};
+
+/**
+ * Formats a given phone number into a WhatsApp-compatible format.
+ * @param {string} number - The phone number to format.
+ * @returns {string} The formatted phone number.
+ */
+const phoneNumberFormatter &#x3D; function (number) {
+    let formatted &#x3D; number.replaceAll(/\D/g, &quot;&quot;);
+
+    if (formatted.startsWith(&quot;0&quot;)) {
+        formatted &#x3D; &quot;62&quot; + formatted.slice(1);
+    }
+
+    if (!formatted.endsWith(&quot;@c.us&quot;)) {
+        formatted +&#x3D; &quot;@c.us&quot;;
+    }
+
+    return formatted;
+};
+
+/**
+ * Removes duplicate contacts based on their number.
+ * @param {Array} contacts - Array of contact objects.
+ * @returns {Array} - Array of unique contact objects.
+ */
+const removeDuplicateContacts &#x3D; (contacts) &#x3D;&gt; {
+    const uniqueContactsMap &#x3D; new Map();
+
+    for (const contact of contacts) {
+        if (
+            !uniqueContactsMap.has(contact.number) &amp;amp;&amp;amp;
+            uniqueContactsMap.id?.server &#x3D;&#x3D;&#x3D; &quot;c.us&quot;
+        ) {
+            uniqueContactsMap.set(contact.number, contact);
+        }
+    }
+
+    return [...uniqueContactsMap.values()];
+};
+
+/**
+ * Formats a given phone number into a WhatsApp-compatible international format.
+ * @param {string} number - The phone number to format.
+ * @returns {string} The formatted phone number.
+ */
+const formatInternationalPhoneNumber &#x3D; (number) &#x3D;&gt; {
+    number &#x3D; number.toString();
+
+    if (!number.startsWith(&quot;62&quot;)) {
+        return number;
+    }
+
+    let localNumber &#x3D; number.slice(2);
+
+    switch (localNumber.length) {
+    case 10: {
+        return &#x60;+62 ${localNumber.replace(
+            /(\d{3})(\d{3})(\d{4})/,
+            &quot;$1-$2-$3&quot;
+        )}&#x60;;
+    }
+    case 11: {
+        return &#x60;+62 ${localNumber.replace(
+            /(\d{3})(\d{4})(\d{4})/,
+            &quot;$1-$2-$3&quot;
+        )}&#x60;;
+    }
+    case 12: {
+        return &#x60;+62 ${localNumber.replace(
+            /(\d{4})(\d{4})(\d{4})/,
+            &quot;$1-$2-$3&quot;
+        )}&#x60;;
+    }
+    case 13: {
+        return &#x60;+62 ${localNumber.replace(
+            /(\d{4})(\d{4})(\d{5})/,
+            &quot;$1-$2-$3&quot;
+        )}&#x60;;
+    }
+    case 14: {
+        return &#x60;+62 ${localNumber.replace(
+            /(\d{4})(\d{5})(\d{5})/,
+            &quot;$1-$2-$3&quot;
+        )}&#x60;;
+    }
+    case 15: {
+        return &#x60;+62 ${localNumber.replace(
+            /(\d{4})(\d{5})(\d{6})/,
+            &quot;$1-$2-$3&quot;
+        )}&#x60;;
+    }
+    default: {
+        return &quot;Invalid length for an Indonesian number&quot;;
+    }
+    }
+};
+
+/**
+ * Takes a string of comma-separated origins and returns an array of valid origins.
+ * If the input is empty, not a string, or contains only whitespace, returns &quot;*&quot;.
+ * @param {string} value - The string of comma-separated origins
+ * @returns {string[]|string} - The array of valid origins or &quot;*&quot;.
+ */
+const parseOrigins &#x3D; (value) &#x3D;&gt; {
+    if (!value || typeof value !&#x3D;&#x3D; &quot;string&quot;) return &quot;*&quot;;
+
+    const origins &#x3D; value
+        .split(&quot;,&quot;)
+        .map((o) &#x3D;&gt; o.trim())
+        .filter((o) &#x3D;&gt; o.length &gt; 0);
+
+    return origins.length &gt; 0 ? origins : &quot;*&quot;;
+};
+
+/**
+ * Converts a given string to snake_case.
+ *
+ * This function replaces spaces and uppercase letters with underscores, removes
+ * non-word characters, and converts the entire string to lowercase.
+ *
+ * @param {string} text - The input string to be converted.
+ * @returns {string} - The converted snake_case string.
+ */
+
+const toSnakeCase &#x3D; (text) &#x3D;&gt; {
+    return text
+        .replace(/([a-z])([A-Z])/g, &quot;$1_$2&quot;)
+        .replace(/\s+/g, &quot;_&quot;)
+        .replace(/[^\w]/g, &quot;&quot;)
+        .toLowerCase();
+};
+
+/**
+ * Calculates the duration of a typing simulation based on the length of the input message.
+ *
+ * The calculation takes into account the average typing speed, the minimum and maximum delay,
+ * and introduces a random variation to simulate human behavior. For longer messages, the
+ * function adds a pause duration to simulate the natural pauses between words.
+ *
+ * @param {string} message - The input message to calculate the typing duration for.
+ * @returns {number} - The calculated typing duration in milliseconds.
+ */
+const calculateTypingDuration &#x3D; (message) &#x3D;&gt; {
+    const config &#x3D; {
+        avgSpeed: 225,
+        minDelay: 800,
+        maxDelay: 12000,
+        speedVariation: 0.3,
+        humanPauseThreshold: 75,
+        pauseDuration: 1200,
+    };
+
+    let baseTime &#x3D; (message.length / config.avgSpeed) * 60 * 1000;
+
+    const speedVariation &#x3D; 1 + (Math.random() * 2 - 1) * config.speedVariation;
+    baseTime *&#x3D; speedVariation;
+
+    if (message.length &gt; config.humanPauseThreshold) {
+        const pauseCount &#x3D; Math.floor(
+            message.length / config.humanPauseThreshold
+        );
+        baseTime +&#x3D; pauseCount * config.pauseDuration;
+    }
+
+    return Math.min(config.maxDelay, Math.max(config.minDelay, baseTime));
+};
+
+/**
+ * Prints a banner to the console with information about the running
+ * Whatsback server instance.
+ *
+ * The banner includes the title, port number, REST API URL, Whatsback UI URL,
+ * and links to support the project via GitHub Sponsors and Saweria.
+ *
+ * @param {number} PORT - The port number that the server is listening on.
+ */
+const bannerCLI &#x3D; async (PORT) &#x3D;&gt; {
+    const { default: boxen } &#x3D; await import(&quot;boxen&quot;);
+
+    const title &#x3D; &quot;Whatsback Server is Running&quot;;
+    const maxLength &#x3D; Math.max(
+        title.length,
+        38 + PORT.toString().length,
+        &quot;[Support via GitHub Sponsors]&quot;.length + 23,
+        &quot;[Support via Saweria]&quot;.length + 15
+    );
+    const separator &#x3D; &quot;─&quot;.repeat(maxLength + 2);
+
+    const UI_PORT &#x3D;
+        process.env.NODE_ENV &#x3D;&#x3D;&#x3D; &quot;production&quot;
+            ? process.env.UI_PORT || 8169
+            : PORT;
+
+    const text &#x3D; [
+        &#x60;\x1b[0m${title}\x1b[0m&#x60;,
+        &#x60;\x1b[0m${separator}\x1b[0m&#x60;,
+        &#x60;\x1b[0m📡 Running on: \x1b[1;35mhttp://localhost:${PORT}\x1b[0m&#x60;,
+        &#x60;\x1b[0m🔌 REST API:   \x1b[1;32mhttp://localhost:${PORT}\x1b[0m&#x60;,
+        &#x60;\x1b[0m💻 Whatsback UI: \x1b[1;32mhttp://localhost:${UI_PORT}\x1b[0m&#x60;,
+        &#x60;\x1b[0m${separator}\x1b[0m&#x60;,
+        &quot;\x1b[0m💖 Support: \x1b[4;36mhttps://github.com/sponsors/darkterminal\x1b[0m&quot;,
+        &quot;\x1b[0m💖 Support: \x1b[4;36mhttps://saweria.co/darkterminal\x1b[0m&quot;,
+    ].join(&quot;\n&quot;);
+
+    const boxedBanner &#x3D; boxen(text, {
+        padding: 1,
+        margin: 1,
+        borderStyle: &quot;round&quot;,
+        borderColor: &quot;cyan&quot;,
+        align: &quot;center&quot;,
+    });
+
+    console.log(boxedBanner);
+};
+
+module.exports &#x3D; {
+    sleep,
+    serverLog,
+    phoneNumberFormatter,
+    removeDuplicateContacts,
+    formatInternationalPhoneNumber,
+    parseOrigins,
+    toSnakeCase,
+    calculateTypingDuration,
+    bannerCLI,
+};
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,377 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: libs/cron-parser.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: libs/cron-parser.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const { CronExpressionParser } &#x3D; require(&quot;cron-parser&quot;);
+
+class Cron {
+    /**
+   * Constructs a new Cron instance with a specified cron expression and options.
+   *
+   * @param {string} exp - The cron expression to be parsed.
+   * @param {Object} [options&#x3D;{}] - Optional settings for the cron instance.
+   * @param {string} [options.tz&#x3D;&quot;UTC&quot;] - The timezone for parsing the cron expression.
+   * @throws {Error} Throws an error if no cron expression is provided.
+   */
+    constructor(exp, options &#x3D; {}) {
+        if (!exp) {
+            throw new Error(&quot;Cron expression is required&quot;);
+        }
+        this.exp &#x3D; exp;
+        this.options &#x3D; options;
+        if (!this.options.tz) {
+            this.options.tz &#x3D; &quot;UTC&quot;;
+        }
+        this.interval &#x3D; CronExpressionParser.parse(exp, { tz: this.options.tz });
+    }
+
+    /**
+   * Returns a human-readable description of a cron expression.
+   *
+   * @returns {string} A human-readable description of the cron expression.
+   * @example
+   * const cron &#x3D; new Cron(&quot;0 0 * * *&quot;);
+   * cron.translate(); // &quot;at 12:00 AM every day&quot;
+   */
+    translate() {
+        const expression &#x3D; this.exp;
+        const parts &#x3D; expression.trim().split(/\s+/);
+        const hasSeconds &#x3D; parts.length &#x3D;&#x3D;&#x3D; 6;
+        if (parts.length !&#x3D;&#x3D; 5 &amp;amp;&amp;amp; parts.length !&#x3D;&#x3D; 6) {
+            throw new Error(&quot;Cron expression must have 5 or 6 fields.&quot;);
+        }
+
+        const second &#x3D; hasSeconds ? parts[0] : &quot;0&quot;;
+        const minute &#x3D; hasSeconds ? parts[1] : parts[0];
+        const hour &#x3D; hasSeconds ? parts[2] : parts[1];
+        const dayOfMonth &#x3D; hasSeconds ? parts[3] : parts[2];
+        const month &#x3D; hasSeconds ? parts[4] : parts[3];
+        const dayOfWeek &#x3D; hasSeconds ? parts[5] : parts[4];
+
+        const monthNames &#x3D; [
+            &quot;January&quot;,
+            &quot;February&quot;,
+            &quot;March&quot;,
+            &quot;April&quot;,
+            &quot;May&quot;,
+            &quot;June&quot;,
+            &quot;July&quot;,
+            &quot;August&quot;,
+            &quot;September&quot;,
+            &quot;October&quot;,
+            &quot;November&quot;,
+            &quot;December&quot;,
+        ];
+        const dayNames &#x3D; [
+            &quot;Sunday&quot;,
+            &quot;Monday&quot;,
+            &quot;Tuesday&quot;,
+            &quot;Wednesday&quot;,
+            &quot;Thursday&quot;,
+            &quot;Friday&quot;,
+            &quot;Saturday&quot;,
+        ];
+
+        /**
+     * Describes a cron expression field in a human-readable format.
+     * @param {string} field - The field to describe.
+     * @param {string} singularLabel - The singular label for the field.
+     * @param {string} pluralLabel - The plural label for the field.
+     * @param {function} [valuesToName] - A function to map values to a name.
+     * @returns {string} - A human-readable description of the field.
+     */
+        function describeField(
+            field,
+            singularLabel,
+            pluralLabel,
+            valuesToName &#x3D; null
+        ) {
+            if (field &#x3D;&#x3D;&#x3D; &quot;*&quot; || field &#x3D;&#x3D;&#x3D; &quot;?&quot;) {
+                return &#x60;every ${singularLabel}&#x60;;
+            }
+            if (field.includes(&quot;*/&quot;)) {
+                return &#x60;every ${field.split(&quot;*/&quot;)[1]} ${pluralLabel}&#x60;;
+            }
+            if (field.includes(&quot;,&quot;)) {
+                const list &#x3D; field
+                    .split(&quot;,&quot;)
+                    .map((v) &#x3D;&gt; (valuesToName ? valuesToName(v) : v));
+                return &#x60;at ${singularLabel}s ${list.join(&quot;, &quot;)}&#x60;;
+            }
+            if (field.includes(&quot;-&quot;) &amp;amp;&amp;amp; field.includes(&quot;/&quot;)) {
+                const [range, step] &#x3D; field.split(&quot;/&quot;);
+                const [start, end] &#x3D; range.split(&quot;-&quot;);
+                return &#x60;every ${step} ${pluralLabel} from ${start} to ${end}&#x60;;
+            }
+            if (field.includes(&quot;-&quot;)) {
+                const [start, end] &#x3D; field.split(&quot;-&quot;);
+                const s &#x3D; valuesToName ? valuesToName(start) : start;
+                const e &#x3D; valuesToName ? valuesToName(end) : end;
+                return &#x60;every ${singularLabel} from ${s} to ${e}&#x60;;
+            }
+            return &#x60;at ${singularLabel} ${
+                valuesToName ? valuesToName(field) : field
+            }&#x60;;
+        }
+
+        const secondDesc &#x3D;
+      second &#x3D;&#x3D;&#x3D; &quot;*&quot; || second &#x3D;&#x3D;&#x3D; &quot;?&quot;
+          ? &quot;every second&quot;
+          : second.includes(&quot;*/&quot;)
+              ? &#x60;every ${second.split(&quot;*/&quot;)[1]} seconds&#x60;
+              : &#x60;at second ${second}&#x60;;
+        const minuteDesc &#x3D; describeField(minute, &quot;minute&quot;, &quot;minutes&quot;);
+        const hourDesc &#x3D; describeField(hour, &quot;hour&quot;, &quot;hours&quot;);
+
+        /**
+     * Returns a human-readable description of a day of the month field in a
+     * cron expression.
+     *
+     * @param {string} field - The field to describe.
+     * @returns {string} A human-readable description of the field.
+     */
+        function describeDayOfMonth(field) {
+            if (field &#x3D;&#x3D;&#x3D; &quot;*&quot; || field &#x3D;&#x3D;&#x3D; &quot;?&quot;) {
+                return &quot;every day&quot;;
+            }
+            if (field.includes(&quot;,&quot;)) {
+                const items &#x3D; field.split(&quot;,&quot;).map(describeDayOfMonthItem);
+                return &#x60;on the ${items.join(&quot; and &quot;)} day(s) of the month&#x60;;
+            }
+            return &#x60;on the ${describeDayOfMonthItem(field)} day of the month&#x60;;
+        }
+
+        /**
+     * Describes a day of the month field item in a cron expression.
+     *
+     * - &quot;L&quot; indicates the last day of the month.
+     * - A range with a step (e.g., &quot;1-5/3&quot;) means &quot;every N days from start to end&quot;.
+     * - A range (e.g., &quot;1-5&quot;) means &quot;days from start through end&quot;.
+     * - A step (e.g., &quot;&#x27;*&#x27;/3&quot;) indicates &quot;every N days&quot;.
+     * - A specific day is returned with its ordinal suffix.
+     *
+     * @param {string} item - The day of the month field item.
+     * @returns {string} A description of the item.
+     */
+        function describeDayOfMonthItem(item) {
+            if (item &#x3D;&#x3D;&#x3D; &quot;L&quot;) {
+                return &quot;last&quot;;
+            }
+            if (item.includes(&quot;/&quot;) &amp;amp;&amp;amp; item.includes(&quot;-&quot;)) {
+                const [range, step] &#x3D; item.split(&quot;/&quot;);
+                const [start, end] &#x3D; range.split(&quot;-&quot;);
+                return &#x60;every ${step} days from ${start} to ${end}&#x60;;
+            }
+            if (item.includes(&quot;-&quot;)) {
+                const [start, end] &#x3D; item.split(&quot;-&quot;);
+                return &#x60;days ${start} through ${end}&#x60;;
+            }
+            if (item.includes(&quot;/&quot;)) {
+                const [base, step] &#x3D; item.split(&quot;/&quot;);
+                if (base &#x3D;&#x3D;&#x3D; &quot;*&quot;) {
+                    return &#x60;every ${step} days&#x60;;
+                }
+                return &#x60;every ${step} days starting at ${base}&#x60;;
+            }
+            return &#x60;${item}${getOrdinal(item)}&#x60;;
+        }
+
+        /**
+     * Given a cron expression&#x27;s month field, returns a human-readable description
+     * of that field.
+     *
+     * @param {string} field - The month field from a cron expression.
+     * @returns {string} A human-readable description of the month field.
+     *
+     * @example
+     * describeMonth(&quot;*&quot;); // &quot;every month&quot;
+     * describeMonth(&quot;1,3,5&quot;); // &quot;in January, March, and May&quot;
+     * describeMonth(&quot;2-4&quot;); // &quot;from February through April&quot;
+     * describeMonth(&quot;AUG&quot;); // &quot;in August&quot;
+     */
+        function describeMonth(field) {
+            if (field &#x3D;&#x3D;&#x3D; &quot;*&quot; || field &#x3D;&#x3D;&#x3D; &quot;?&quot;) {
+                return &quot;every month&quot;;
+            }
+            if (field.includes(&quot;,&quot;)) {
+                const items &#x3D; field
+                    .split(&quot;,&quot;)
+                    .map((m) &#x3D;&gt; (isNaN(m) ? m : monthNames[parseInt(m, 10) - 1]));
+                return &#x60;in ${items.join(&quot; and &quot;)}&#x60;;
+            }
+            if (field.includes(&quot;-&quot;)) {
+                const [start, end] &#x3D; field.split(&quot;-&quot;);
+                const s &#x3D; isNaN(start) ? start : monthNames[parseInt(start, 10) - 1];
+                const e &#x3D; isNaN(end) ? end : monthNames[parseInt(end, 10) - 1];
+                return &#x60;from ${s} through ${e}&#x60;;
+            }
+            return &#x60;in ${isNaN(field) ? field : monthNames[parseInt(field, 10) - 1]}&#x60;;
+        }
+
+        /**
+     * Translate a cron-style day-of-week field into a human-readable string.
+     * @param {string} field - Cron-style day-of-week field.
+     * @returns {string} - Human-readable string.
+     */
+        function describeDayOfWeek(field) {
+            if (field &#x3D;&#x3D;&#x3D; &quot;*&quot; || field &#x3D;&#x3D;&#x3D; &quot;?&quot;) {
+                return &quot;every day of the week&quot;;
+            }
+            if (field.includes(&quot;,&quot;)) {
+                const items &#x3D; field.split(&quot;,&quot;).map(describeDayOfWeekItem);
+                return &#x60;on ${items.join(&quot; and &quot;)}&#x60;;
+            }
+            if (field.includes(&quot;-&quot;)) {
+                const [start, end] &#x3D; field.split(&quot;-&quot;);
+                return &#x60;every day from ${describeDayOfWeekItem(
+                    start
+                )} to ${describeDayOfWeekItem(end)}&#x60;;
+            }
+            return &#x60;on ${describeDayOfWeekItem(field)}&#x60;;
+        }
+
+        /**
+     * Describes a day of the week field item. If the item has an
+     * &quot;L&quot; suffix, it is treated as &quot;last&quot;. If the item has a &quot;#&quot;
+     * character, it is treated as &quot;every nth&quot;. Otherwise, it is
+     * treated as a number 1-7. The description is as follows:
+     *
+     *  - last: the last &amp;lt;dayName&gt;
+     *  - nth: the &amp;lt;nth&gt; &amp;lt;dayName&gt;
+     *  - num: &amp;lt;dayName&gt;
+     *
+     * @param {string} item - the day of the week field item
+     * @returns {string} a description of the item
+     */
+        function describeDayOfWeekItem(item) {
+            if (item.endsWith(&quot;L&quot;)) {
+                const num &#x3D; item.slice(0, -1);
+                const dayName &#x3D; dayNames[parseInt(num, 10) % 7];
+                return &#x60;the last ${dayName}&#x60;;
+            }
+            if (item.includes(&quot;#&quot;)) {
+                const [d, nth] &#x3D; item.split(&quot;#&quot;);
+                const dayName &#x3D; dayNames[parseInt(d, 10) % 7];
+                return &#x60;the ${nth}${getOrdinal(nth)} ${dayName}&#x60;;
+            }
+            let num &#x3D; parseInt(item, 10);
+            return dayNames[num % 7];
+        }
+
+        const dayOfMonthDesc &#x3D; describeDayOfMonth(dayOfMonth);
+        const monthDesc &#x3D; describeMonth(month);
+        const dayOfWeekDesc &#x3D; describeDayOfWeek(dayOfWeek);
+
+        const partsDesc &#x3D; [];
+        if (hasSeconds) partsDesc.push(secondDesc);
+        partsDesc.push(
+            minuteDesc,
+            hourDesc,
+            dayOfMonthDesc,
+            monthDesc,
+            dayOfWeekDesc
+        );
+
+        return partsDesc.join(&quot;, &quot;);
+
+        /**
+     * Retrieves the ordinal suffix for a given number.
+     *
+     * @param {number|string} n - The number to retrieve the ordinal suffix for.
+     * @returns {string} The ordinal suffix for &#x60;n&#x60;.
+     * @example
+     * getOrdinal(1) // &quot;st&quot;
+     * getOrdinal(2) // &quot;nd&quot;
+     * getOrdinal(3) // &quot;rd&quot;
+     * getOrdinal(4) // &quot;th&quot;
+     * getOrdinal(10) // &quot;th&quot;
+     * getOrdinal(11) // &quot;th&quot;
+     * getOrdinal(12) // &quot;th&quot;
+     * getOrdinal(13) // &quot;th&quot;
+     * getOrdinal(14) // &quot;th&quot;
+     */
+        function getOrdinal(n) {
+            n &#x3D; parseInt(n, 10);
+            const s &#x3D; [&quot;th&quot;, &quot;st&quot;, &quot;nd&quot;, &quot;rd&quot;];
+            const v &#x3D; n % 100;
+            return s[(v - 20) % 10] || s[v] || s[0];
+        }
+    }
+
+    /**
+   * Retrieves the next scheduled run times for the cron expression.
+   *
+   * @param {number} count - The number of future run dates to retrieve (default is 5).
+   * @returns {string[]} An array of strings representing the next &#x60;count&#x60; scheduled run dates.
+   */
+    getNextRuns(count &#x3D; 5) {
+        return this.interval.take(count).map((date) &#x3D;&gt; date.toString());
+    }
+
+    /**
+   * Return an object with a human-readable description of the schedule and an
+   * array of the next &#x60;count&#x60; runs of the schedule.
+   *
+   * @return {Object}
+   * @property {string} description - A human-readable description of the schedule.
+   * @property {Array&amp;lt;string&gt;} nextRuns - Array of the next &#x60;count&#x60; runs of the schedule.
+   */
+    get schedule() {
+        return {
+            description: this.translate(),
+            nextRuns: this.getNextRuns(),
+        };
+    }
+}
+
+module.exports &#x3D; Cron;
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

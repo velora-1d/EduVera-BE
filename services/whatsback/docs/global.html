@@ -1,0 +1,535 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Globals</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <h1>Globals</h1>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Properties</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#client">client</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#connectedSockets">connectedSockets</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                </div>
+              </div>
+            </div>
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#bannerCLI">bannerCLI(PORT)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#calculateTypingDuration">calculateTypingDuration(message)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#formatInternationalPhoneNumber">formatInternationalPhoneNumber(number)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#parseOrigins">parseOrigins(value)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#phoneNumberFormatter">phoneNumberFormatter(number)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#removeDuplicateContacts">removeDuplicateContacts(contacts)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#serverLog">serverLog([type])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#setSocketManager">setSocketManager(sockets)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="global.html#sleep">sleep(ms)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="global.html#toSnakeCase">toSnakeCase(text)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2>Properties</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-constant">constant</span></div>
+              <h3 id="client"><span class="symbol-name">client</span><small class="property-type">
+                  &nbsp;Client</small></h3>
+              <p>WhatsApp client instance configured with LocalAuth and custom Puppeteer settings.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="connectedSockets"><span class="symbol-name">connectedSockets</span><small class="property-type">
+                  &nbsp;Array of Object</small></h3>
+              <p>Array of connected sockets.</p>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+            <h2>Methods</h2>
+            <section>
+              <div class="symbol-detail-labels"><span class="label label-async">async</span></div>
+              <h3 id="bannerCLI"><span class="symbol-name">bannerCLI</span><span class="signature"><span class="signature-params">(PORT)</span></span></h3>
+              <p>Prints a banner to the console with information about the running
+                Whatsback server instance.</p>
+              <p>The banner includes the title, port number, REST API URL, Whatsback UI URL,
+                and links to support the project via GitHub Sponsors and Saweria.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>PORT</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The port number that the server is listening on.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="calculateTypingDuration"><span class="symbol-name">calculateTypingDuration</span><span class="signature"><span class="signature-params">(message)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Calculates the duration of a typing simulation based on the length of the input message.</p>
+              <p>The calculation takes into account the average typing speed, the minimum and maximum delay,
+                and introduces a random variation to simulate human behavior. For longer messages, the
+                function adds a pause duration to simulate the natural pauses between words.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>message</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The input message to calculate the typing duration for.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>number</code> 
+                  <ul>
+                    </p>
+                    <li>The calculated typing duration in milliseconds.</li>
+                  </ul>
+                </dd>
+              </dl>
+              <h3 id="formatInternationalPhoneNumber"><span class="symbol-name">formatInternationalPhoneNumber</span><span class="signature"><span class="signature-params">(number)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
+              <p>Formats a given phone number into a WhatsApp-compatible international format.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The phone number to format.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code> 
+                  <p>The formatted phone number.</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="parseOrigins"><span class="symbol-name">parseOrigins</span><span class="signature"><span class="signature-params">(value)</span>&nbsp;&rarr; <span class="signature-returns"> (Array of string or string)</span></span></h3>
+              <p>Takes a string of comma-separated origins and returns an array of valid origins.
+                If the input is empty, not a string, or contains only whitespace, returns &quot;*&quot;.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>value</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The string of comma-separated origins</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(Array of string or string)</code> 
+                  <ul>
+                    </p>
+                    <li>The array of valid origins or &quot;*&quot;.</li>
+                  </ul>
+                </dd>
+              </dl>
+              <h3 id="phoneNumberFormatter"><span class="symbol-name">phoneNumberFormatter</span><span class="signature"><span class="signature-params">(number)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
+              <p>Formats a given phone number into a WhatsApp-compatible format.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The phone number to format.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code> 
+                  <p>The formatted phone number.</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="removeDuplicateContacts"><span class="symbol-name">removeDuplicateContacts</span><span class="signature"><span class="signature-params">(contacts)</span>&nbsp;&rarr; <span class="signature-returns"> Array</span></span></h3>
+              <p>Removes duplicate contacts based on their number.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>contacts</p>
+                      </td>
+                      <td>
+                        <p>Array</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>Array of contact objects.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array</code> 
+                  <ul>
+                    </p>
+                    <li>Array of unique contact objects.</li>
+                  </ul>
+                </dd>
+              </dl>
+              <h3 id="serverLog"><span class="symbol-name">serverLog</span><span class="signature"><span class="signature-params">([type])</span></span></h3>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Log level type.
+                          When only one argument is provided, defaults to &quot;debug&quot;.
+                          Valid levels: &quot;debug&quot;, &quot;info&quot;, &quot;notice&quot;, &quot;warning&quot;, &quot;error&quot;,
+                          &quot;crit&quot;, &quot;alert&quot;, &quot;emerg&quot;, or any custom string</p>
+                        <p>Defaults to <code>""</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Default value</dt>
+                <dd>&quot;&quot;</dd>
+              </dl>
+              <h3 id="setSocketManager"><span class="symbol-name">setSocketManager</span><span class="signature"><span class="signature-params">(sockets)</span>&nbsp;&rarr; <span class="signature-returns"> void</span></span></h3>
+              <p>Updates the reference to the connected sockets.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>sockets</p>
+                      </td>
+                      <td>
+                        <p>Array of Object</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The new array of connected sockets.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>void</code> </p>
+                </dd>
+              </dl>
+              <h3 id="sleep"><span class="symbol-name">sleep</span><span class="signature"><span class="signature-params">(ms)</span>&nbsp;&rarr; <span class="signature-returns"> Promise containing void</span></span></h3>
+              <p>Delays execution for a specified amount of time.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>ms</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The number of milliseconds to sleep.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Promise containing void</code> 
+                  <p>A promise that resolves after the specified time.</p>
+                  </p>
+                </dd>
+              </dl>
+              <h3 id="toSnakeCase"><span class="symbol-name">toSnakeCase</span><span class="signature"><span class="signature-params">(text)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
+              <p>Converts a given string to snake_case.</p>
+              <p>This function replaces spaces and uppercase letters with underscores, removes
+                non-word characters, and converts the entire string to lowercase.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>text</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>The input string to be converted.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>string</code> 
+                  <ul>
+                    </p>
+                    <li>The converted snake_case string.</li>
+                  </ul>
+                </dd>
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

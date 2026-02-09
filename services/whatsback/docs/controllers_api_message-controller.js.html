@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: controllers/api/message-controller.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: controllers/api/message-controller.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const {
+    phoneNumberFormatter,
+    calculateTypingDuration,
+    serverLog,
+} &#x3D; require(&quot;../../helper&quot;);
+const group &#x3D; require(&quot;../../models/group&quot;);
+const { recordMessageHistory } &#x3D; require(&quot;../../models/message_history&quot;);
+const { client } &#x3D; require(&quot;../../whatsapp-client&quot;);
+
+/**
+ * Simulates typing indication in a chat for a specified duration.
+ *
+ * @param {string} phoneNumber - The phone number of the chat where the typing state is to be set.
+ * @param {string} message - The message content used to calculate the typing duration.
+ */
+
+async function typingMessage(phoneNumber, message) {
+    const typingDuration &#x3D; calculateTypingDuration(message);
+
+    const chat &#x3D; await client.getChatById(phoneNumber);
+    await chat.sendStateTyping();
+
+    await new Promise((resolve) &#x3D;&gt; setTimeout(resolve, typingDuration));
+
+    await chat.clearState();
+}
+
+/**
+ * Sends a direct message to a specified WhatsApp user.
+ *
+ * @param {object} req - The HTTP request object.
+ * @param {object} res - The HTTP response object.
+ *
+ * @prop {string} req.body.number - The recipient&#x27;s phone number.
+ * @prop {string} req.body.message - The text message to send.
+ *
+ * @returns {Promise&amp;lt;void&gt;} - A promise that resolves if the message is sent successfully.
+ */
+const sendMessageToUser &#x3D; async (req, res) &#x3D;&gt; {
+    try {
+        const { number, message } &#x3D; req.body;
+
+        const phoneNumber &#x3D; phoneNumberFormatter(number);
+
+        await typingMessage(phoneNumber, message);
+
+        await client.sendMessage(phoneNumber, message);
+        recordMessageHistory(phoneNumber, message, &quot;DIRECT_MESSAGE&quot;);
+
+        res.status(200).json({
+            status: true,
+            message: &quot;Message sent&quot;,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: &#x60;API Error - ${error}&#x60;,
+        });
+    }
+};
+
+/**
+ * Sends a message to a specified WhatsApp group.
+ *
+ * @param {object} req - The HTTP request object.
+ * @param {object} res - The HTTP response object.
+ *
+ * @prop {string} req.body.groupId - The WhatsApp group ID (must end with &#x27;@g.us&#x27;).
+ * @prop {string} req.body.message - The text message to send.
+ *
+ * @returns {Promise&amp;lt;void&gt;} - A promise that resolves if the message is sent successfully.
+ */
+const sendMessageToGroup &#x3D; async (req, res) &#x3D;&gt; {
+    try {
+        let { groupId, message } &#x3D; req.body;
+
+        if (!groupId.endsWith(&quot;@g.us&quot;)) {
+            let detailGroup &#x3D; group.findByName(groupId);
+
+            if (!detailGroup) {
+                serverLog(&quot;send_grou_message: Group not found&quot;);
+                res.status(404).json({
+                    status: false,
+                    message: &quot;Group not found&quot;,
+                });
+                return;
+            }
+
+            groupId &#x3D; detailGroup.groupId;
+        }
+
+        await typingMessage(groupId, message);
+
+        await client.sendMessage(groupId, message);
+        recordMessageHistory(groupId, message, &quot;GROUP_MESSAGE&quot;);
+
+        serverLog(&quot;send_group_message: Message sent to group&quot;);
+        res.status(200).json({
+            status: true,
+            message: &quot;Message sent to group&quot;,
+        });
+    } catch (error) {
+        serverLog(&quot;send_group_message: Error sending message to group&quot;);
+        res.status(500).json({
+            status: false,
+            message: &#x60;API Error - ${error.message}&#x60;,
+        });
+    }
+};
+
+module.exports &#x3D; { sendMessageToUser, sendMessageToGroup };
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

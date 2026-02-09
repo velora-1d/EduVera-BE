@@ -1,0 +1,95 @@
+<div class="p-6">
+  <div class="bg-white dark:bg-zinc-800 dark:text-white rounded-lg shadow-sm p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold">Scheduled Messages</h1>
+      <div>
+        <input type="search" class="px-3 py-2 border rounded-md dark:bg-zinc-700 dark:border-zinc-600 dark:text-white" id="search-jobs" placeholder="Search..." autocomplete="off">
+        <button id="btn-add-schedule" class="bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white px-4 py-2 rounded">
+          <i class="fas fa-plus"></i> New Schedule
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto max-h-[60vh] text-sm" id="job-table-container">
+      <table class="min-w-full bg-white dark:bg-zinc-800">
+        <thead class="sticky top-0 bg-white dark:bg-zinc-800 shadow-sm">
+          <tr>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              ID
+            </th>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              Job Name
+            </th>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              Type
+            </th>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              Target
+            </th>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              Schedule
+            </th>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              Status
+            </th>
+            <th class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-left">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody id="job-table-body">
+          <% for( let schedule of schedules ) { %>
+          <tr>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <%= schedule.id %>
+            </td>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <%= schedule.job_name %>
+            </td>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <% if (schedule.job_trigger === 'send_message') { %>
+              <span class="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 rounded px-2 py-1">
+                Send Message
+              </span>
+              <% } else { %>
+              <span class="bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-100 rounded px-2 py-1">
+                Group Message
+              </span>
+              <% } %>
+            </td>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <% var target = schedule.target_contact_or_group.split('|'); %>
+              <%= target[0] %> %>
+            </td>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <%= schedule.job_cron_expression %>
+            </td>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <% if (schedule.job_status === 1) { %>
+              <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded">Active</span>
+              <% } else { %>
+              <span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 rounded">Inactive</span>
+              <% } %>
+            </td>
+            <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+              <button data-scheduleid="<%= schedule.id %>" class="edit-selected-schedule text-blue-600 mr-2 px-2 py-1 hover:bg-blue-600 hover:text-white rounded-md">
+                <i class="fas fa-pen-to-square"></i>
+              </button>
+              <button data-scheduleid="<%= schedule.id %>" data-schedulename="<%= schedule.job_name %>" class="delete-selected-schedule text-red-600 px-2 py-1 hover:bg-red-600 hover:text-white rounded-md">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('components/modals/schedule/schedule-modal') %>
+<%- include('components/modals/schedule/address-book-modal') %>
+<%- include('components/modals/schedule/cron-helper-modal') %>
+<%- include('components/modals/schedule/delete-schedule-modal') %>
+<script src="/js/cron-validator.js"></script>
+<script src="/js/schedule.js"></script>

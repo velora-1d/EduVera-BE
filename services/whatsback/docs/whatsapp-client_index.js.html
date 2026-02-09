@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: whatsapp-client/index.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: whatsapp-client/index.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const { Client, LocalAuth } &#x3D; require(&quot;whatsapp-web.js&quot;);
+require(&quot;dotenv&quot;).config();
+
+let puppeteerOptions &#x3D; {
+    headless: true,
+    args: [
+        &quot;--disable-gpu&quot;,
+        &quot;--disable-dev-shm-usage&quot;,
+        &quot;--disable-setuid-sandbox&quot;,
+        &quot;--no-first-run&quot;,
+        &quot;--no-sandbox&quot;,
+        &quot;--no-zygote&quot;,
+        &quot;--deterministic-fetch&quot;,
+        &quot;--disable-features&#x3D;IsolateOrigins&quot;,
+        &quot;--disable-site-isolation-trials&quot;
+    ],
+};
+
+if (process.env.NODE_ENV &#x3D;&#x3D;&#x3D; &quot;production&quot;) {
+    puppeteerOptions &#x3D; {
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+        headless: true,
+        args: [
+            &quot;--disable-gpu&quot;,
+            &quot;--disable-dev-shm-usage&quot;,
+            &quot;--disable-setuid-sandbox&quot;,
+            &quot;--no-first-run&quot;,
+            &quot;--no-sandbox&quot;,
+            &quot;--no-zygote&quot;,
+            &quot;--deterministic-fetch&quot;,
+            &quot;--disable-features&#x3D;IsolateOrigins&quot;,
+            &quot;--disable-site-isolation-trials&quot;,
+            &quot;--single-process&quot;,
+            &quot;--user-data-dir&#x3D;/home/appuser/.chromium&quot;
+        ],
+    };
+}
+
+/**
+ * WhatsApp client instance configured with LocalAuth and custom Puppeteer settings.
+ * @type {Client}
+ */
+const client &#x3D; new Client({
+    authStrategy: new LocalAuth(),
+    restartOnAuthFail: true,
+    takeoverOnConflict: true,
+    puppeteer: puppeteerOptions,
+    qrMaxRetries: 10,
+});
+
+/**
+ * Array of connected sockets.
+ * @type {Array&amp;lt;Object&gt;}
+ */
+let connectedSockets &#x3D; [];
+
+// Import event listeners (each is in its own module)
+const readyHandler &#x3D; require(&quot;./listeners/ready&quot;);
+const authenticatedHandler &#x3D; require(&quot;./listeners/authenticated&quot;);
+const authFailureHandler &#x3D; require(&quot;./listeners/auth-failure&quot;);
+const qrCodeHandler &#x3D; require(&quot;./listeners/qr&quot;);
+const disconnectedHandler &#x3D; require(&quot;./listeners/disconnected&quot;);
+const messageHandler &#x3D; require(&quot;./listeners/message&quot;);
+
+const state &#x3D; require(&quot;./state&quot;);
+
+// Register WhatsApp client event listeners, passing in the client, sockets, and state.
+client.on(&quot;ready&quot;, () &#x3D;&gt; readyHandler(client, connectedSockets, state));
+client.on(&quot;authenticated&quot;, () &#x3D;&gt; authenticatedHandler(client, connectedSockets, state));
+client.on(&quot;auth_failure&quot;, () &#x3D;&gt; authFailureHandler(connectedSockets));
+client.on(&quot;qr&quot;, (qr) &#x3D;&gt; qrCodeHandler(qr, connectedSockets, state));
+client.on(&quot;disconnected&quot;, (reason) &#x3D;&gt; disconnectedHandler(reason, client, connectedSockets));
+client.on(&quot;message&quot;, (message) &#x3D;&gt; messageHandler(message, client));
+
+client.initialize();
+
+/**
+ * Updates the reference to the connected sockets.
+ * @param {Array&amp;lt;Object&gt;} sockets - The new array of connected sockets.
+ * @returns {void}
+ */
+const setSocketManager &#x3D; (sockets) &#x3D;&gt; {
+    connectedSockets &#x3D; sockets;
+};
+
+/**
+ * Exported module containing the WhatsApp client and a setter for the socket manager.
+ * @module WhatsAppClient
+ * @property {Client} client - The WhatsApp client instance.
+ * @property {Function} setSocketManager - Function to update the connected sockets.
+ */
+module.exports &#x3D; { client, setSocketManager };
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

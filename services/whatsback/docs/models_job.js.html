@@ -1,0 +1,255 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: models/job.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: models/job.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const database &#x3D; require(&quot;../database&quot;);
+const { serverLog, toSnakeCase } &#x3D; require(&quot;../helper&quot;);
+
+const table &#x3D; &quot;jobs&quot;;
+
+module.exports &#x3D; {
+    /**
+   * Create a new job
+   *
+   * @param {string} jobName Name of the job
+   * @param {string} jobTrigger Trigger for the job (e.g. &quot;send_message&quot;)
+   * @param {string} targetContactOrGroup Contact or Group to target
+   * @param {string} message Message to send
+   * @param {string} jobCronExpression Cron expression for scheduling
+   * @returns {number} ID of the created job
+   */
+    create(
+        jobName,
+        jobTrigger,
+        targetContactOrGroup,
+        message,
+        jobCronExpression
+    ) {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;
+        INSERT INTO ${table} (
+          job_name,
+          job_trigger,
+          target_contact_or_group,
+          message,
+          job_cron_expression,
+          job_status
+        ) VALUES (
+          @jobName,
+          @jobTrigger,
+          @targetContactOrGroup,
+          @message,
+          @jobCronExpression,
+          @jobStatus
+        )
+      &#x60;);
+
+            const info &#x3D; stmt.run({
+                jobName,
+                jobTrigger,
+                targetContactOrGroup,
+                message,
+                jobCronExpression,
+                jobStatus: 1,
+            });
+
+            return info.lastInsertRowid;
+        } catch (error) {
+            serverLog(&quot;Error creating job:&quot;, error.message);
+            return 0;
+        }
+    },
+
+    /**
+   * Finds a job by its ID
+   * @param {number} jobId Job ID to find
+   * @returns {Object} Job object if found, otherwise null
+   */
+    findById(jobId) {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;
+        SELECT * FROM ${table} WHERE id &#x3D; ?
+      &#x60;);
+
+            const result &#x3D; stmt.get(jobId);
+
+            return result || null;
+        } catch (error) {
+            serverLog(&quot;Error finding job by ID:&quot;, error.message);
+            return null;
+        }
+    },
+
+    /**
+   * Finds jobs by its status
+   * @param {number} jobStatus Job status to find (0 &#x3D; disabled, 1 &#x3D; enabled)
+   * @returns {Array} Array of job objects if found, otherwise empty array
+   */
+    findByStatus(jobStatus) {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;
+        SELECT * FROM ${table} WHERE job_status &#x3D; ?
+      &#x60;);
+
+            const result &#x3D; stmt.all(jobStatus);
+
+            return result || [];
+        } catch (error) {
+            serverLog(&quot;Error finding job by status:&quot;, error.message);
+            return [];
+        }
+    },
+
+    /**
+   * Soft deletes a job by its ID
+   * @param {number} jobId Job ID to delete
+   * @returns {Object} Job object if deleted, otherwise null
+   */
+    softDeleteById(jobId) {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;
+        UPDATE ${table} SET deleted_at &#x3D; CURRENT_TIMESTAMP WHERE id &#x3D; ?
+      &#x60;);
+
+            const result &#x3D; stmt.run(jobId);
+
+            return result.changes &gt; 0 ? this.findById(jobId) : null;
+        } catch (error) {
+            serverLog(&quot;Error soft deleting job:&quot;, error.message);
+            return null;
+        }
+    },
+
+    /**
+   * Force deletes a job by its ID
+   * @param {number} jobId Job ID to delete
+   * @returns {Object} Job object if deleted, otherwise null
+   */
+    forceDeleteById(jobId) {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;
+        DELETE FROM ${table} WHERE id &#x3D; ?
+      &#x60;);
+
+            const result &#x3D; stmt.run(jobId);
+
+            return result.changes &gt; 0 ? this.findById(jobId) : null;
+        } catch (error) {
+            serverLog(&quot;Error force deleting job:&quot;, error.message);
+            return null;
+        }
+    },
+
+    /**
+   * Paginates jobs from the table.
+   * @param {string} [search&#x3D;&quot;&quot;] - Search term to filter jobs by name.
+   * @param {number} [limit&#x3D;10] - Number of jobs per page.
+   * @param {number} [page&#x3D;1] - Page number to fetch.
+   * @returns {Array} - Array of paginated jobs.
+   */
+    paginate: (search &#x3D; &quot;&quot;, limit &#x3D; 10, page &#x3D; 1) &#x3D;&gt; {
+        const offset &#x3D; (page - 1) * limit;
+        let sql &#x3D; &#x60;SELECT * FROM ${table} WHERE deleted_at IS NULL&#x60;;
+
+        if (search) {
+            sql +&#x3D; &#x60; AND job_name LIKE &#x27;%${search}%&#x27; OR target_contact_or_group LIKE &#x27;%${search}%&#x27;&#x60;;
+        }
+
+        sql +&#x3D; &quot; ORDER BY created_at DESC LIMIT ? OFFSET ?&quot;;
+        try {
+            const stmt &#x3D; database.prepare(sql);
+            return stmt.all(limit, offset);
+        } catch (error) {
+            serverLog(&quot;Error paginating jobs:&quot;, error.message);
+            return null;
+        }
+    },
+
+    /**
+   * Updates a job by its ID
+   * @param {number} jobId Job ID to update
+   * @param {Object} jobData Job data to update
+   * @returns {Object} Job object if updated, otherwise null
+   */
+    updateById(jobId, jobData) {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;
+        UPDATE ${table} SET ${Object.keys(jobData)
+    .map((key) &#x3D;&gt; &#x60;${toSnakeCase(key)} &#x3D; ?&#x60;)
+    .join(&quot;, &quot;)} WHERE id &#x3D; ?
+      &#x60;);
+
+            const result &#x3D; stmt.run(...Object.values(jobData), jobId);
+
+            return result.changes &gt; 0 ? this.findById(jobId) : null;
+        } catch (error) {
+            serverLog(&quot;Error updating job:&quot;, error.message);
+            return null;
+        }
+    },
+
+  
+    /**
+   * Counts all jobs in the table
+   * @returns {number} Count of all jobs
+   */
+    countAll() {
+        try {
+            const stmt &#x3D; database.prepare(&#x60;SELECT COUNT(*) AS total FROM ${table} WHERE deleted_at IS NULL&#x60;);
+            return stmt.get().total;
+        } catch (error) {
+            serverLog(&quot;Error counting all jobs:&quot;, error.message);
+            return 0;
+        }
+    },
+};
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

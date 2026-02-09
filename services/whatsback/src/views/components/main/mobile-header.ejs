@@ -1,0 +1,66 @@
+<div class="bg-green-500 dark:bg-green-600 shadow-sm sticky top-0">
+  <div class="flex items-center justify-between p-3 lg:justify-end">
+    <button id="toggle-sidebar" class="p-2 rounded-lg bg-gray-100 lg:hidden">
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 6h16M4 12h16M4 18h16"
+        ></path>
+      </svg>
+    </button>
+    <!-- Menu Dropdown -->
+    <div class="relative inline-block">
+      <button
+        id="menuButton"
+        class="hidden items-center px-3 bg-transparent text-zinc-50 rounded-md focus:outline-none lg:inline-flex"
+      >
+        <div class="flex gap-3">
+          <img
+            id="session-picture"
+            class="w-[1.6rem] h-[1.6rem] rounded-full bg-white"
+            src="https://robohash.org/WhatsbackUser"
+          />
+          <span id="session-name">Whatsback User</span>
+        </div>
+        <svg
+          class="w-4 h-4 ml-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+      <div
+        id="dropdownMenu"
+        class="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg transition-opacity duration-300 z-50"
+      >
+        <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+          >Profile</a
+        >
+        <a href="javascript:void(0);" class="btn-whatsback-logout block px-4 py-2 text-gray-700 hover:bg-gray-100"
+          >Logout</a
+        >
+      </div>
+    </div>
+    <!-- Dark/Light Mode Toggle -->
+    <button id="theme-toggle" class="px-3 rounded-md focus:outline-none cursor-pointer">
+      <i
+        id="theme-icon"
+        class="fas fa-moon text-gray-800 dark:text-gray-200"
+      ></i>
+    </button>
+  </div>
+</div>

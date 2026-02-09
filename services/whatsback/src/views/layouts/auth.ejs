@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? `${title} | Whatsback Web` : "Whatsback Web" %></title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon-16x16.png" type="image/png">
+  <link rel="icon" href="/favicon-32x32.png" type="image/png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="description" content="Whatsback - Your WhatsApp Backend Provider">
+  <% if (NODE_ENV === 'development') { %>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+    };
+  </script>
+  <style>
+    .logs-container {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .log-item {
+      border-bottom: 1px solid #4a5568;
+    }
+
+    /* Show placeholder text in the editor when empty */
+    #editor:empty:before {
+      content: attr(placeholder);
+      color: #9ca3af;
+    }
+
+    /* Toolbar button styling.
+           Here we use standard CSS for demonstration.
+           If you process Tailwind's @apply, you can use that as well. */
+    .format-btn {
+      /* Make each button flex-1 so they all share equal width */
+      flex: 1;
+      text-align: center;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #d1d5db;
+      /* Tailwind gray-300 */
+      border-radius: 0.375rem;
+      background-color: #f9fafb;
+      /* Tailwind gray-50 */
+      transition: background-color 0.2s;
+      color: black;
+    }
+
+    .format-btn:hover {
+      background-color: #f3f4f6;
+      /* Tailwind gray-100 */
+    }
+  </style>
+  <% } else { %>
+  <link rel="stylesheet" href="/css/main.css" />
+  <script>
+    document.documentElement.classList.toggle(
+      "dark",
+      localStorage.theme === "dark" ||
+      (!("theme" in localStorage) &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+  </script>
+  <% } %>
+</head>
+
+<body>
+  <div class="min-h-screen min-w-full flex items-center justify-center bg-zinc-900">
+    <div class="flex flex-col gap-3 w-1/3">
+      <img src="/images/logo-whatsback-banner.png" alt="Whatsback Banner" class="mx-auto w-full" />
+      <div class="bg-white dark:bg-green-600 dark:text-white rounded-lg shadow-sm p-4 md:p-6 text-center">
+        <div class="qrcode-container w-full md:w-[20rem] aspect-square mx-auto mb-4 bg-green-600 dark:bg-white rounded-md p-2">
+          <img src="/images/cog-animation.gif" alt="QR Code" id="qrcode" class="w-full" />
+        </div>
+        <p class="text-sm md:text-base">
+          Start manage your WhatsApp Account for Free!
+          <br class="hidden md:block" />
+          Scan the QR Code to login to your WhatsApp Account.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <%- include('../components/main/footer') %>
+  <div class="hidden" id="is-authenticated" data-value="<%= AUTHENTICATED ? 'yes' : 'no' %>"></div>
+  <% if (!AUTHENTICATED) { %>
+  <script>
+    socket.on("ready", (data) => {
+      console.log("Ready event triggered", data);
+      if (data.user_info) {
+        localStorage.setItem(SESSION_NAME, JSON.stringify(data.user_info));
+        for (const element of document.querySelectorAll(".qrcode-container"))
+          element.classList.add("hidden");
+      }
+    });
+    socket.on("authenticated", (data) => {
+      console.log("Authenticated event triggered", data);
+      console.log(data.log, "success");
+      if (data.user_info) {
+        window.location.reload();
+      }
+    });
+    socket.on("qr", (source) => {
+      for (const element of document.querySelectorAll(".qrcode-container"))
+        element.classList.remove("hidden");
+      const qrcode = document.querySelector("#qrcode");
+      if (qrcode) {
+        qrcode.setAttribute("src", source);
+      }
+      console.log("QR code generated - please scan", "info");
+    });
+  </script>
+  <% } %>
+</body>
+
+</html>

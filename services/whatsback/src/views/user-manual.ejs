@@ -1,0 +1,184 @@
+<!-- Main Layout -->
+<div class="container mx-auto px-4 py-8 dark:text-white">
+  <div class="flex flex-col md:flex-row gap-8">
+    <!-- Sidebar -->
+    <aside class="manual-sidebar md:w-64 bg-white dark:bg-zinc-800 p-4 rounded-lg shadow md:sticky md:top-20 h-fit">
+      <h2 class="text-lg font-semibold mb-4 dark:text-white">Contents</h2>
+      <ul class="space-y-2">
+        <li>
+          <a href="#getting-started" class="section-link flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <i class="fas fa-play-circle mr-2"></i>Getting Started
+          </a>
+        </li>
+        <li>
+          <a href="#interface-guide" class="section-link flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <i class="fas fa-desktop mr-2"></i>Interface Guide
+          </a>
+        </li>
+        <li>
+          <a href="#cost-comparison" class="section-link flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+            <i class="fas fa-calculator mr-2"></i>Cost Comparison
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+      <section id="getting-started" class="content-section bg-white dark:bg-zinc-800 p-6 rounded-lg shadow mb-6">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white">Getting Started</h2>
+        <div class="prose dark:prose-invert max-w-none">
+          <div class="p-4 mb-6 bg-blue-50 dark:bg-blue-900 rounded-lg">
+            <h3 class="text-lg font-semibold mb-3">📌 Quick Start Guide</h3>
+            <ol class="list-decimal pl-6 space-y-3">
+              <li>Connect your WhatsApp account in Auth page and Scan QR Code to login</li>
+              <li>Explore available features in the sidebar</li>
+              <li>and it's yours</li>
+            </ol>
+          </div>
+
+          <h3 class="text-xl font-semibold mt-8 mb-4">System Requirements</h3>
+          <ul class="list-disc pl-6 space-y-2">
+            <li>Modern web browser (Chrome, Firefox, Safari)</li>
+            <li>Stable internet connection</li>
+            <li>WhatsApp Account (Personal or Business)</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="interface-guide" class="content-section bg-white dark:bg-zinc-800 p-6 rounded-lg shadow mb-6">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white">Interface Guide</h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Main Navigation</h3>
+            <img src="/images/sidebar-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              Access all features through the left sidebar. Pin important sections for quick access.
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Dark Mode</h3>
+            <div class="flex items-center space-x-4 mb-4">
+              <button id="user-manual-theme-toggle" class="px-3 py-2 rounded-md focus:outline-none cursor-pointer border">
+                <i id="user-manual-theme-icon" class="fas fa-moon text-gray-800 dark:text-gray-200"></i>
+              </button>
+              <span class="dark:text-gray-300">Toggle between light/dark themes</span>
+            </div>
+            <p class="text-sm dark:text-gray-300">
+              Automatically adapts to your system preference or choose manually.
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Dashboard Page</h3>
+            <img src="/images/dashboard-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              Dashboard provides a quick overview of your Whatsback Web usage with Comparison section from another provider. Also display Whatsback Server Logs.
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Command Page</h3>
+            <img src="/images/command-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              Command page provides a list of available static commands like Bot when user send message with specific keyword/prefix in chat. You manage commands from here.
+            <ul class="text-sm mt-2">
+              <li>&mdash; Add command</li>
+              <li>&mdash; Remove command</li>
+              <li>&mdash; Update command</li>
+            </ul>
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Send Message Page</h3>
+            <img src="/images/send-message-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              In the Send Message page, you can send messages from Whatsback Web to your WhatsApp Contact by select the contact from contact list, contact list will display when you click address book icon. Select or search your WhatsApp Contact and selected, Then write your message, click "Send Message".
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Send Group Message Page</h3>
+            <img src="/images/send-group-message-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              In the Send Group Message page, you can send messages from Whatsback Web to your WhatsApp Group by select the group from group list, group list will display when you click address book icon. Select or search your WhatsApp Group and selected, Then write your message, click "Send Message".
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Schedule Message Page</h3>
+            <img src="/images/schedule-message-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              In Whatsback Web you can freely schedule messages to your WhatsApp Contact or Group. You can schedule messages from the Schedule Message page.
+            </p>
+          </div>
+
+          <div class="bg-gray-50 dark:bg-zinc-700 p-4 rounded-lg col-span-2 lg:col-span-1">
+            <h3 class="text-lg font-semibold mb-4">Contact Page</h3>
+            <img src="/images/contact-preview.png" alt="Navigation Preview" class="rounded-lg mb-4 shadow">
+            <p class="text-sm dark:text-gray-300">
+              Search your WhatsApp Contact from the Contact page and create Quick message to your WhatsApp Contact.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="cost-comparison" class="content-section bg-white dark:bg-zinc-800 p-6 rounded-lg shadow mb-6">
+        <h2 class="text-2xl font-bold mb-4 dark:text-white">Cost Comparison</h2>
+        <div class="max-w-lg mx-auto mb-8">
+          <label class="block mb-2 dark:text-gray-300">Monthly Messages:</label>
+          <input type="range" id="messageRange" min="0" max="10000" value="1000" class="w-full">
+          <div class="flex justify-between text-sm mt-2">
+            <span class="dark:text-gray-400">0</span>
+            <span class="dark:text-gray-400">10,000</span>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="p-4 border rounded-lg text-center">
+            <h3 class="font-bold mb-4">Whatsback</h3>
+            <div class="text-3xl font-bold text-green-500 mb-4">
+              $<span id="whatsbackCost">0.00</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Unlimited messages<br>
+              No hidden fees
+            </p>
+          </div>
+
+          <div class="p-4 border rounded-lg text-center">
+            <h3 class="font-bold mb-4">Twilio</h3>
+            <div class="text-3xl font-bold text-blue-500 mb-4">
+              $<span id="twilioCost">0.00</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              $0.005 per message<br>
+              Pay-as-you-go
+            </p>
+          </div>
+
+          <div class="p-4 border rounded-lg text-center">
+            <h3 class="font-bold mb-4">WATI</h3>
+            <div class="text-3xl font-bold text-purple-500 mb-4">
+              $<span id="watiCost">0.00</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              $49 base + $0.04/message<br>
+              (after 1,000 messages)
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 p-4 bg-green-50 dark:bg-green-900 rounded-lg text-center">
+          <p class="text-green-700 dark:text-green-300 font-semibold">
+            You save $<span id="savings">0.00</span> compared to Twilio
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="/js/user-manual.js"></script>

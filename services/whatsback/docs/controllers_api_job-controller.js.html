@@ -1,0 +1,265 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: controllers/api/job-controller.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: controllers/api/job-controller.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const { serverLog } &#x3D; require(&quot;../../helper&quot;);
+const job &#x3D; require(&quot;../../models/job&quot;);
+
+module.exports &#x3D; {
+    /**
+   * GET /api/jobs
+   * @summary Fetch a page of jobs (with or without a search term).
+   * @param {import(&quot;express&quot;).Request} req - The request object, containing query parameters for search, perPage, and page.
+   * @param {import(&quot;express&quot;).Response} res - The response object.
+   * @returns {void} - Responds with a JSON object containing a success status and an array of jobs if successful, otherwise an error message.
+   * @throws {Error} - If there is an error with the database query.
+   */
+    getJobs: (req, res) &#x3D;&gt; {
+        try {
+            const searchTerm &#x3D; req.query.search || &quot;&quot;;
+            const perPage &#x3D; req.query.perPage || 10;
+            const page &#x3D; req.query.page || 1;
+
+            const jobsToDisplay &#x3D; job.paginate(searchTerm, perPage, page);
+
+            res.status(200).json({
+                success: true,
+                data: jobsToDisplay,
+                total: job.countAll(),
+            });
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+
+    /**
+   * Updates an existing job by its ID.
+   *
+   * @param {import(&quot;express&quot;).Request} req - The request object, containing the job ID in params and the job data in body.
+   * @param {import(&quot;express&quot;).Response} res - The response object.
+   * @returns {void} - Responds with a JSON object containing success status and updated job data if successful, otherwise an error message.
+   * Logs the update operation and any errors encountered.
+   */
+    updateJob: (req, res) &#x3D;&gt; {
+        const jobId &#x3D; req.params.id;
+        const jobData &#x3D; req.body;
+        try {
+            const store &#x3D; job.updateById(jobId, jobData);
+            serverLog(&#x60;Job with ID ${jobId} updated&#x60;);
+            return res.status(200).json({
+                success: true,
+                data: store,
+            });
+        } catch (error) {
+            serverLog(&#x60;Error: ${error}&#x60;);
+            return res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+
+    /**
+   * Soft deletes a job by its ID.
+   *
+   * @param {import(&quot;express&quot;).Request} req - The request object, containing the job ID in params.
+   * @param {import(&quot;express&quot;).Response} res - The response object.
+   * @returns {void} - Responds with a JSON object containing success status and deleted job data if successful, otherwise an error message.
+   * Logs the delete operation and any errors encountered.
+   */
+    deleteJob: (req, res) &#x3D;&gt; {
+        const jobId &#x3D; req.params.id;
+        try {
+            const store &#x3D; job.softDeleteById(jobId);
+            serverLog(&#x60;Job with ID ${jobId} deleted&#x60;);
+            return res.status(200).json({
+                success: true,
+                data: store,
+            });
+        } catch (error) {
+            serverLog(&#x60;Error: ${error}&#x60;);
+            return res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+
+    /**
+   * Force deletes a job by its ID.
+   *
+   * @param {import(&quot;express&quot;).Request} req - The request object, containing the job ID in params.
+   * @param {import(&quot;express&quot;).Response} res - The response object.
+   * @returns {void} - Responds with a JSON object containing success status and deleted job data if successful, otherwise an error message.
+   * Logs the delete operation and any errors encountered.
+   */
+    forceDeleteJob: (req, res) &#x3D;&gt; {
+        const jobId &#x3D; req.params.id;
+        try {
+            const store &#x3D; job.forceDeleteById(jobId);
+            serverLog(&#x60;Job with ID ${jobId} force deleted&#x60;);
+            return res.status(200).json({
+                success: true,
+                data: store,
+            });
+        } catch (error) {
+            serverLog(&#x60;Error: ${error}&#x60;);
+            return res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+
+    /**
+   * Creates a new job in the database.
+   *
+   * @param {Object} jobData - The job data.
+   * @param {string} jobData.job_name - The name of the job.
+   * @param {string} jobData.job_trigger - The trigger type for the job (e.g., &quot;send_message&quot;).
+   * @param {string} jobData.target_contact_or_group - The target contact or group for the job.
+   * @param {string} jobData.message - The message content for the job.
+   * @param {string} jobData.job_cron_expression - The cron expression for scheduling the job.
+   * @returns {boolean} - Returns true if the job was successfully created, otherwise false.
+   */
+    createJob: (req, res) &#x3D;&gt; {
+        const jobData &#x3D; req.body;
+        try {
+            const store &#x3D; job.create(
+                jobData.job_name,
+                jobData.job_trigger,
+                jobData.target_contact_or_group,
+                jobData.message,
+                jobData.job_cron_expression
+            );
+
+            serverLog(&#x60;New job created with name ${jobData.job_name}&#x60;);
+
+            return res.status(200).json({
+                success: true,
+                data: store,
+            });
+        } catch (error) {
+            serverLog(&#x60;Error: ${error}&#x60;);
+            return res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+
+    /**
+   * Finds a job by its ID.
+   *
+   * @param {number} id - The job ID.
+   * @returns {(Object|null)} - The job object if found, otherwise null.
+   */
+    findJobById: (req, res) &#x3D;&gt; {
+        const id &#x3D; req.params.id;
+        try {
+            const jobData &#x3D; job.findById(id);
+            if (jobData) {
+                serverLog(&#x60;Job with ID ${id} found&#x60;);
+                return res.status(200).json({
+                    success: true,
+                    data: jobData,
+                });
+            }
+            serverLog(&#x60;Job with ID ${id} not found&#x60;);
+            return res.status(404).json({
+                success: false,
+                message: &#x60;Job with ID ${id} not found&#x60;,
+            });
+        } catch (error) {
+            serverLog(&#x60;Error finding job with ID ${id}: ${error}&#x60;);
+            return res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+
+    /**
+   * Finds jobs by their status.
+   *
+   * @param {number} status - The status of the jobs to be found (e.g., 0 for disabled, 1 for enabled).
+   * @returns {(Array|null)} - An array of job objects if found, otherwise null.
+   */
+    findJobByStatus: (req, res) &#x3D;&gt; {
+        const status &#x3D; req.params.status;
+        try {
+            const jobData &#x3D; job.findByStatus(status);
+            if (jobData) {
+                serverLog(&#x60;Job with status ${status} found&#x60;);
+                return res.status(200).json({
+                    success: true,
+                    data: jobData,
+                });
+            }
+            serverLog(&#x60;Job with status ${status} not found&#x60;);
+            return res.status(404).json({
+                success: false,
+                message: &#x60;Job with status ${status} not found&#x60;,
+            });
+        } catch (error) {
+            serverLog(&#x60;Error finding job with status ${status}: ${error}&#x60;);
+            return res.status(500).json({
+                status: false,
+                message: &#x60;API Error - ${error}&#x60;,
+            });
+        }
+    },
+};
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

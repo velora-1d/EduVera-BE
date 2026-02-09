@@ -1,0 +1,32 @@
+<section id="health-check" class="mb-8">
+  <h2 class="text-2xl font-bold mb-4 dark:text-white">Health Check</h2>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <div class="flex items-center mb-4">
+      <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-l-sm rounded-r-none font-mono">GET</span>
+      <code class="font-mono text-orange-500 dark:text-zinc-200 bg-zinc-800 dark:bg-gray-700 px-2 py-1 w-full rounded-r-sm rounded-l-none">/health</code>
+    </div>
+    <p class="mb-4 dark:text-gray-300">Checks the health of the API service.</p>
+
+    <div class="mb-6">
+      <h3 class="font-semibold mb-2 dark:text-gray-200">Example Request</h3>
+      <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200"><span class="text-green-500">GET</span> /health HTTP/1.1
+Host: localhost:5001</code></pre>
+    </div>
+
+    <div class="mb-4">
+      <h3 class="font-semibold mb-2 dark:text-gray-200">Response</h3>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded">200 OK</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Headers:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">HTTP/1.1 200 OK
+Content-Type: text/plain; charset=utf-8
+Content-Length: 2</code></pre>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">OK</code></pre>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,156 @@
+<div
+  id="cron-help-modal"
+  class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm"
+>
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="bg-white dark:bg-zinc-800 dark:text-white rounded-lg p-6 w-full max-w-3xl mx-4">
+      <div class="flex justify-between items-center align-middle">
+        <h3 class="text-2xl font-bold mb-4 dark:text-white">
+          Cron Schedule Format Guide
+        </h3>
+        <button
+          class="close-cron-help px-4 py-2 bg-transparent text-gray-500 dark:text-gray-500 hover:bg-gray-300 dark:hover:bg-zinc-300 rounded-lg"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="prose dark:prose-invert max-h-[70vh] overflow-y-auto">
+        <div class="space-y-6">
+          <div>
+            <h4 class="text-lg font-semibold mb-2">Basic Format</h4>
+            <code class="text-sm bg-gray-100 dark:bg-zinc-700 p-2 rounded"
+              >* * * * *</code
+            >
+            <p class="mt-2">Representing:</p>
+            <table class="w-full text-sm border-collapse mt-2">
+              <thead class="bg-gray-50 dark:bg-zinc-700">
+                <tr>
+                  <th class="p-2 border">Field</th>
+                  <th class="p-2 border">Allowed Values</th>
+                  <th class="p-2 border">Special Characters</th>
+                  <th class="p-2 border">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-2 border">Minute</td>
+                  <td class="p-2 border">0-59</td>
+                  <td class="p-2 border">* , - /</td>
+                  <td class="p-2 border">Minute of the hour</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border">Hour</td>
+                  <td class="p-2 border">0-23</td>
+                  <td class="p-2 border">* , - /</td>
+                  <td class="p-2 border">Hour of the day</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border">Day of Month</td>
+                  <td class="p-2 border">1-31</td>
+                  <td class="p-2 border">* , - / L W</td>
+                  <td class="p-2 border">Day of the month</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border">Month</td>
+                  <td class="p-2 border">1-12 or JAN-DEC</td>
+                  <td class="p-2 border">* , - /</td>
+                  <td class="p-2 border">Month of the year</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border">Day of Week</td>
+                  <td class="p-2 border">0-7 (0/7=SUN) or SUN-SAT</td>
+                  <td class="p-2 border">* , - / L #</td>
+                  <td class="p-2 border">Day of the week</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold mb-2">Special Characters</h4>
+            <ul class="list-disc pl-6 space-y-2 text-sm">
+              <li><code>*</code> - All values</li>
+              <li><code>,</code> - Value list separator (e.g., 1,3,5)</li>
+              <li><code>-</code> - Range of values (e.g., 1-5)</li>
+              <li><code>/</code> - Step values (e.g., */15)</li>
+              <li><code>L</code> - Last day of month/week</li>
+              <li><code>W</code> - Nearest weekday</li>
+              <li>
+                <code>#</code> - Nth day of month (e.g., 3#2 = 2nd Tuesday)
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="text-lg font-semibold mb-2">Common Examples</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <!-- Basic Examples -->
+              <div class="space-y-2">
+                <div class="font-medium">Basic Schedules:</div>
+                <div><code>0 * * * *</code> - Hourly at :00</div>
+                <div><code>*/15 * * * *</code> - Every 15 minutes</div>
+                <div><code>0 9 * * *</code> - Daily at 9:00 AM</div>
+                <div><code>0 0 * * 0</code> - Weekly on Sunday</div>
+              </div>
+
+              <!-- Time-based Examples -->
+              <div class="space-y-2">
+                <div class="font-medium">Specific Times:</div>
+                <div><code>30 18 * * 1-5</code> - 6:30 PM on weekdays</div>
+                <div><code>0 7 1 * *</code> - 7:00 AM on 1st of month</div>
+                <div><code>0 12 * * 6#3</code> - 12 PM on 3rd Saturday</div>
+                <div><code>0 0 31 12 *</code> - Yearly on Dec 31</div>
+              </div>
+
+              <!-- Complex Examples -->
+              <div class="space-y-2">
+                <div class="font-medium">Complex Schedules:</div>
+                <div>
+                  <code>0 8-18/2 * * 1-5</code> - Every 2 hours 8AM-6PM on
+                  weekdays
+                </div>
+                <div>
+                  <code>0 9 15 * *</code> - 9:00 AM on 15th of every month
+                </div>
+                <div>
+                  <code>0 12 1-7 * 1</code> - Monday noon on first week of month
+                </div>
+                <div>
+                  <code>0 0 L * *</code> - Last day of month at midnight
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-sm bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+            <h5 class="font-semibold mb-2">💡 Pro Tips:</h5>
+            <ul class="list-disc pl-6 space-y-1">
+              <li>
+                Use
+                <a
+                  href="https://crontab.guru/"
+                  target="_blank"
+                  class="text-blue-600 dark:text-blue-300"
+                  >crontab.guru</a
+                >
+                for interactive schedule building
+              </li>
+              <li>Test schedules with online validators before deployment</li>
+              <li>Consider timezone differences in your scheduling</li>
+              <li>Use comments in complex schedules for documentation</li>
+            </ul>
+          </div>
+
+          <div class="text-right">
+            <button
+              class="close-cron-help px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
+            >
+              Close Help
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

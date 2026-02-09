@@ -1,0 +1,21 @@
+<div id="groupContactsModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm">
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 w-full max-w-md mx-4">
+      <h3 class="text-lg font-bold mb-4 dark:text-white">Select Group Contact</h3>
+      <div class="mb-4">
+        <input type="text" id="groupContactSearch" placeholder="Search group..." class="w-full px-4 py-2 border rounded-md dark:bg-zinc-700 dark:border-zinc-600 dark:text-white" />
+      </div>
+      <div id="groupContactContainer" class="max-h-96 overflow-y-auto">
+        <ul id="groupContactList" class="space-y-2">
+          <!-- Optionally, static groupContacts here -->
+        </ul>
+        <p id="loadingText" class="hidden text-center py-2">Loading...</p>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button id="btn-close-group-contacts" class="px-4 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,66 @@
+<section id="cron-next-runs" class="mb-8">
+  <h2 class="text-2xl font-bold mb-4 dark:text-white">Cron Next Runs</h2>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <div class="flex items-center mb-4">
+      <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-l-sm rounded-r-none font-mono">POST</span>
+      <code class="font-mono text-orange-500 dark:text-zinc-200 bg-zinc-800 dark:bg-gray-700 px-2 py-1 w-full rounded-r-sm rounded-l-none">/api/cron-next-runs</code>
+    </div>
+    <p class="mb-4 dark:text-gray-300">Processes a cron expression and returns its next run times.</p>
+
+    <div class="mb-6">
+      <h3 class="font-semibold mb-2 dark:text-gray-200">Example Request</h3>
+      <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200"><span class="text-blue-500">POST</span> /api/cron-next-runs HTTP/1.1
+Host: localhost:5001
+Content-Type: application/json
+
+{
+    "exp": "* * * * *"
+}</code></pre>
+    </div>
+
+    <div class="mb-4">
+      <h3 class="font-semibold mb-2 dark:text-gray-200">Request Body</h3>
+      <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        <table class="w-full">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Parameter</th>
+              <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Type</th>
+              <th class="px-4 py-2 text-left text-sm font-medium text-gray-700 dark:text-gray-300">Description</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+            <tr>
+              <td class="px-4 py-2 text-sm font-mono text-blue-600 dark:text-blue-400">exp</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">string</td>
+              <td class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">Valid cron expression</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h3 class="font-semibold mb-2 dark:text-gray-200">Response</h3>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded">200 OK</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Headers:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 152</code></pre>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "description": "Every minute",
+    "nextRuns": [
+        "2023-09-22T12:00:00+07:00",
+        "2023-09-22T12:01:00+07:00",
+        "2023-09-22T12:02:00+07:00"
+    ]
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</section>

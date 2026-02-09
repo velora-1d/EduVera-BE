@@ -1,0 +1,62 @@
+<div id="get-job-by-id" class="mb-8">
+  <h3 class="text-xl font-bold mb-4 dark:text-white">Get Job by ID</h3>
+  <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+    <div class="flex items-center mb-4">
+      <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-l-sm rounded-r-none font-mono">GET</span>
+      <code class="font-mono text-orange-500 dark:text-zinc-200 bg-zinc-800 dark:bg-gray-700 px-2 py-1 w-full rounded-r-sm rounded-l-none">/api/jobs/:id</code>
+    </div>
+    <p class="mb-4 dark:text-gray-300">Retrieves details of a specific job by its ID.</p>
+
+    <div class="mb-6">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Example Request</h4>
+      <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200"><span class="text-green-500">GET</span> /api/jobs/12 HTTP/1.1
+Host: localhost:5001
+Accept: application/json</code></pre>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Response</h4>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded">200 OK</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Headers:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Content-Length: 312</code></pre>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "success": true,
+    "data": {
+        "id": 12,
+        "job_name": "Team Standup",
+        "job_trigger": "group_message",
+        "target_contact_or_group": "Dev Team|grp_001",
+        "message": "Daily standup starts in 15 minutes.",
+        "job_cron_expression": "45 9 * * 1-5",
+        "created_at": "2025-02-20T09:00:00Z",
+        "updated_at": "2025-02-20T09:00:00Z",
+        "deleted_at": null,
+        "job_status": 1
+    }
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <h4 class="font-semibold mb-2 dark:text-gray-200">Error Response</h4>
+      <div class="space-y-2">
+        <p class="dark:text-gray-300 text-sm">
+          <span class="font-semibold">Status Code:</span>
+          <span class="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded">404 Not Found</span>
+        </p>
+        <p class="dark:text-gray-300 text-sm font-semibold">Body:</p>
+        <pre class="bg-zinc-800 dark:bg-gray-700 p-4 rounded"><code class="text-orange-500 dark:text-zinc-200">{
+    "success": false,
+    "message": "Job with ID 12 not found"
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</div>

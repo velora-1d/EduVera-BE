@@ -1,0 +1,54 @@
+<div class="max-w-2xl mx-auto py-8">
+  <!-- Profile Header -->
+  <div class="flex flex-col items-center mb-8">
+    <img src="https://robohash.org/WhatsbackUser" id="profile-session-picture" alt="Profile picture" class="w-32 h-32 rounded-full border-4 border-green-500 dark:border-green-600 mb-4">
+
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1" id="profile-session-name">Whatsback User</h1>
+    <p class="text-gray-600 dark:text-gray-300">🟢 Online</p>
+  </div>
+
+  <!-- Profile Details -->
+  <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm p-6">
+    <div class="space-y-6">
+      <!-- Phone Number -->
+      <div class="grid grid-cols-[auto_1fr] gap-4 items-center pb-4 border-b border-gray-200 dark:border-zinc-700">
+        <div class="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+          <i class="fas fa-phone text-green-600 dark:text-green-400"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+          <p class="text-gray-900 dark:text-white" id="profile-session-phone">XX XXX XXX</p>
+        </div>
+      </div>
+
+      <!-- Username -->
+      <div class="grid grid-cols-[auto_1fr] gap-4 items-center pb-4 border-b border-gray-200 dark:border-zinc-700">
+        <div class="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+          <i class="fas fa-user text-purple-600 dark:text-purple-400"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Username</p>
+          <p class="text-gray-900 dark:text-white">@<span id="profile-session-username">whatsback</span></p>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div class="grid grid-cols-[auto_1fr] gap-4 items-center">
+        <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+          <i class="fas fa-info-circle text-blue-600 dark:text-blue-400"></i>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 dark:text-gray-400">About</p>
+          <p class="text-gray-900 dark:text-white">Hey there! I'm using Whatsback</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Button -->
+  <div class="mt-6">
+    <button class="btn-whatsback-logout w-full py-3 px-4 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
+      Logout
+    </button>
+  </div>
+</div>

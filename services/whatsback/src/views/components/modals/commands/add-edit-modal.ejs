@@ -1,0 +1,29 @@
+<div id="commandModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-sm">
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 w-full max-w-md mx-4">
+      <h3 class="text-lg font-bold mb-4 dark:text-white" id="modalTitle">
+        Add New Command
+      </h3>
+      <form id="commandForm" autocomplete="off">
+        <input type="hidden" name="commandId" value="" id="commandId" />
+        <input type="hidden" name="action" value="add" id="form_action" />
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1 dark:text-gray-300">Command</label>
+          <input type="text" id="commandName" name="commandName" required class="w-full px-3 py-2 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-white" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium mb-1 dark:text-gray-300">Response</label>
+          <textarea name="commandResponse" id="commandResponse" required rows="4" class="w-full px-3 py-2 border rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-white"></textarea>
+        </div>
+        <div class="flex justify-between">
+          <button type="button" id="btn-close-command" class="px-4 py-2 bg-red-500 hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg">
+            <i class="fas fa-close"></i> Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg">
+            <i class="fas fa-save"></i> Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

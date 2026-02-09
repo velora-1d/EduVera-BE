@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3.6.11">
+  <meta charset="utf-8">
+  <title>whatsapp-provider 1.0.3 &raquo; Source: models/group.js</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">whatsapp-provider 1.<wbr>0.<wbr>3</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-banner" role="banner">
+        </div>
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1>Source: models/group.js</h1>
+          </header>
+          <article>
+            <pre class="prettyprint linenums"><code>const database &#x3D; require(&quot;../database&quot;);
+const { serverLog } &#x3D; require(&quot;../helper&quot;);
+
+const table &#x3D; &quot;groups&quot;;
+
+/**
+ * Groups module for interacting with the &#x27;groups&#x27; table in the database.
+ * Provides methods for counting, iterating, paginating, and bulk inserting/replacing groups.
+ */
+module.exports &#x3D; {
+    /**
+   * Retrieves a single group from the database by its &#x27;groupId&#x27;.
+   * @param {string} groupId - The &#x27;groupId&#x27; of the group to retrieve.
+   * @returns {Object} The group object, or undefined if not found.
+   */
+    find: (groupId) &#x3D;&gt; {
+        const stmt &#x3D; database.prepare(&#x60;SELECT * FROM ${table} WHERE groupId &#x3D; ?&#x60;);
+        return stmt.get(groupId);
+    },
+
+    /**
+   * Retrieves a single group from the database by its &#x27;groupName&#x27;.
+   * @param {string} groupName - The &#x27;groupName&#x27; of the group to retrieve.
+   * @returns {Object} The group object, or undefined if not found.
+   */
+    findByName: (groupName) &#x3D;&gt; {
+        const stmt &#x3D; database.prepare(&#x60;SELECT groupName, groupId FROM ${table} WHERE groupName &#x3D; ?&#x60;);
+        return stmt.get(groupName);
+    },
+
+    /**
+   * Counts the total number of groups in the database.
+   * @returns {number} The total number of groups.
+   */
+    count: () &#x3D;&gt; {
+        const stmt &#x3D; database.prepare(&#x60;SELECT COUNT(groupId) AS total FROM ${table}&#x60;);
+        const result &#x3D; stmt.get();
+        return result.total;
+    },
+
+    /**
+   * Iterates over all groups in the database, ordered by group name in ascending order.
+   * @returns {Iterator} An iterator for all groups in the database.
+   */
+    iterate: () &#x3D;&gt; {
+        const stmt &#x3D; database.prepare(&#x60;SELECT * FROM ${table} ORDER BY groupName ASC&#x60;);
+        const iterator &#x3D; stmt.iterate();
+
+        // Convert the iterator to an array
+        const groups &#x3D; [];
+        for (const row of iterator) {
+            groups.push(row);
+        }
+
+        return groups;
+    },
+
+    /**
+   * Paginates groups from the database, optionally filtering by group name.
+   * @param {string} [search&#x3D;&quot;&quot;] - A search term to filter groups by name.
+   * @param {number} [limit&#x3D;10] - The maximum number of groups to return per page.
+   * @param {number} [page&#x3D;0] - The page number (1-based index) to fetch.
+   * @returns {Array&amp;lt;Object&gt;} An array of groups matching the search term and pagination criteria.
+   */
+    paginate: (search &#x3D; &quot;&quot;, limit &#x3D; 10, page &#x3D; 0) &#x3D;&gt; {
+        const offset &#x3D; (page - 1) * limit;
+
+        if (search) {
+            let sql &#x3D; &#x60;SELECT * FROM ${table} WHERE groupName LIKE &#x27;%${search}%&#x27; ORDER BY groupName ASC LIMIT ? OFFSET ?&#x60;;
+            const stmt &#x3D; database.prepare(sql);
+            return stmt.all(limit, offset);
+        }
+
+        let sql &#x3D; &#x60;SELECT * FROM ${table} ORDER BY groupName ASC LIMIT ? OFFSET ?&#x60;;
+        const stmt &#x3D; database.prepare(sql);
+        return stmt.all(limit, offset);
+    },
+
+    /**
+   * Inserts or replaces multiple groups in the database.
+   * @param {Array&amp;lt;Object&gt;} groups - An array of group objects to insert or replace.
+   * @param {string} groups[].groupId - The unique ID of the group.
+   * @param {string} groups[].groupName - The name of the group.
+   * @param {number} groups[].totalParticipants - The total number of participants in the group.
+   * @throws {Error} If an error occurs during the database transaction.
+   */
+    insertOrReplaceMany: (groups) &#x3D;&gt; {
+        const insertOrReplace &#x3D; database.prepare(&#x60;
+      INSERT OR REPLACE INTO ${table} (groupId, groupName, totalParticipants)
+      VALUES (@groupId, @groupName, @totalParticipants)
+    &#x60;);
+
+        const insertTransaction &#x3D; database.transaction((groups) &#x3D;&gt; {
+            for (const group of groups) {
+                insertOrReplace.run(group);
+            }
+        });
+
+        try {
+            insertTransaction(groups);
+            serverLog(&#x60;${groups.length} groups inserted or replaced successfully.&#x60;);
+        } catch (error) {
+            serverLog(&quot;Error inserting or replacing groups:&quot;, error);
+            throw error;
+        }
+    },
+
+    /**
+   * Upserts multiple groups in the database.
+   * @param {Array&amp;lt;Object&gt;} groups - An array of group objects to upsert.
+   * @param {string} groups[].groupId - The unique ID of the group.
+   * @param {string} groups[].groupName - The name of the group.
+   * @param {number} groups[].totalParticipants - The total number of participants in the group.
+   * @throws {Error} If an error occurs during the database transaction.
+   */
+    upsertMany: (groups) &#x3D;&gt; {
+        const upsert &#x3D; database.prepare(&#x60;
+      INSERT INTO ${table} (groupId, groupName, totalParticipants)
+      VALUES (@groupId, @groupName, @totalParticipants)
+      ON CONFLICT(groupId) DO UPDATE SET
+        groupName &#x3D; excluded.groupName,
+        totalParticipants &#x3D; excluded.totalParticipants
+    &#x60;);
+  
+        const upsertTransaction &#x3D; database.transaction((groups) &#x3D;&gt; {
+            for (const group of groups) {
+                upsert.run(group);
+            }
+        });
+  
+        try {
+            upsertTransaction(groups);
+            serverLog(&#x60;${groups.length} groups upserted successfully.&#x60;);
+        } catch (error) {
+            serverLog(&quot;Error upserting groups:&quot;, error);
+            throw error;
+        }
+    },
+  
+};
+</code></pre>
+          </article>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        Generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc</a> 3.6.11 on February 25, 2025.
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>
