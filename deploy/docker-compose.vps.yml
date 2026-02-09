@@ -49,7 +49,7 @@ services:
     environment:
       - NODE_ENV=production
       - APP_PORT=5001
-      - SOCKET_IO_CORS_ORIGIN=*
+      - SOCKET_IO_CORS_ORIGIN=https://eduvera.ve-lora.my.id,https://api-eduvera.ve-lora.my.id
       - PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome/linux-135.0.7049.95/chrome-linux64/chrome
     volumes:
       - whatsback_data:/usr/src/app/.wwebjs_auth

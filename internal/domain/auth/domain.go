@@ -88,13 +88,30 @@ func (d *authDomain) Register(ctx context.Context, input *model.UserInput) (*mod
 func (d *authDomain) Login(ctx context.Context, input *model.LoginInput, ipAddress string) (*model.LoginResponse, error) {
 	audit := audit_log.NewAuditHelper(d.databasePort.AuditLog())
 
+	// SECURITY: Brute force protection
+	// Check if account is locked due to too many failed attempts
+	lockKey := "login_lock:" + input.Email
+	failKey := "login_fail:" + input.Email
+	maxAttempts := int64(5)
+	lockDuration := 15 * time.Minute
+
+	// Check if locked
+	locked, _ := redis.Exists(ctx, lockKey)
+	if locked {
+		return nil, stacktrace.NewError("Akun terkunci sementara karena terlalu banyak percobaan login gagal. Silakan coba lagi dalam 15 menit.")
+	}
+
 	user, err := d.databasePort.User().FindByEmail(input.Email)
 	if err != nil {
+		// Increment fail counter even for non-existent email (prevent enumeration)
+		d.incrementLoginFail(ctx, failKey, lockKey, maxAttempts, lockDuration)
 		_ = audit.LogLoginEvent(ctx, model.AuditActionLoginFailed, "", input.Email, ipAddress)
 		return nil, stacktrace.NewError("invalid email or password")
 	}
 
 	if !user.CheckPassword(input.Password) {
+		// Increment fail counter
+		d.incrementLoginFail(ctx, failKey, lockKey, maxAttempts, lockDuration)
 		_ = audit.LogLoginEvent(ctx, model.AuditActionLoginFailed, user.ID, user.Email, ipAddress)
 		return nil, stacktrace.NewError("invalid email or password")
 	}
@@ -103,6 +120,9 @@ func (d *authDomain) Login(ctx context.Context, input *model.LoginInput, ipAddre
 		_ = audit.LogLoginEvent(ctx, model.AuditActionLoginFailed, user.ID, user.Email, ipAddress)
 		return nil, stacktrace.NewError("account not activated")
 	}
+
+	// SECURITY: Clear fail counter on successful login
+	_ = redis.Del(ctx, failKey)
 
 	// Update last login
 	_ = d.databasePort.User().UpdateLastLogin(user.ID)
@@ -121,6 +141,25 @@ func (d *authDomain) Login(ctx context.Context, input *model.LoginInput, ipAddre
 		AccessToken: signedToken,
 		ExpiresAt:   expiresAt,
 	}, nil
+}
+
+// incrementLoginFail increments failed login counter and locks account if exceeded
+func (d *authDomain) incrementLoginFail(ctx context.Context, failKey, lockKey string, maxAttempts int64, lockDuration time.Duration) {
+	count, err := redis.Incr(ctx, failKey)
+	if err != nil {
+		return
+	}
+
+	// Set TTL on first failure
+	if count == 1 {
+		_ = redis.Expire(ctx, failKey, lockDuration)
+	}
+
+	// Lock account if max attempts exceeded
+	if count >= maxAttempts {
+		_ = redis.SetWithTTL(ctx, lockKey, "1", lockDuration)
+		_ = redis.Del(ctx, failKey) // Clear fail counter
+	}
 }
 
 func (d *authDomain) GenerateToken(user *model.User) (string, int64, error) {

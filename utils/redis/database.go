@@ -48,3 +48,22 @@ func Get(ctx context.Context, key string) (string, error) {
 func Del(ctx context.Context, key string) error {
 	return dbClient.Del(ctx, key).Err()
 }
+
+// Incr increments a key and returns the new value
+func Incr(ctx context.Context, key string) (int64, error) {
+	return dbClient.Incr(ctx, key).Result()
+}
+
+// Expire sets TTL on an existing key
+func Expire(ctx context.Context, key string, ttl time.Duration) error {
+	return dbClient.Expire(ctx, key, ttl).Err()
+}
+
+// GetInt gets a key value as integer
+func GetInt(ctx context.Context, key string) (int64, error) {
+	result, err := dbClient.Get(ctx, key).Int64()
+	if err != nil {
+		return 0, err
+	}
+	return result, nil
+}
