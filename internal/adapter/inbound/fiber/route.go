@@ -184,11 +184,16 @@ func InitRoute(
 		return port.Content().Get(c)
 	})
 
+	// Landing Content (Dynamic)
+	landingHandler := NewLandingContentHandler(d.LandingContent())
+	publicApi.Get("/landing/:key", landingHandler.Get)
+
 	// Protected Owner Routes
 	ownerProtected := owner.Group("/")
 	ownerProtected.Use(func(c *fiber.Ctx) error {
 		return port.Middleware().OwnerAuth(c)
 	})
+	ownerProtected.Put("/landing/:key", landingHandler.Set)
 	ownerProtected.Get("/tenants", func(c *fiber.Ctx) error {
 		return port.Owner().GetTenants(c)
 	})

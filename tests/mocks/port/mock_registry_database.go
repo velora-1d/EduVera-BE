@@ -288,6 +288,20 @@ func (mr *MockDatabasePortMockRecorder) Student() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Student", reflect.TypeOf((*MockDatabasePort)(nil).Student))
 }
 
+// LandingContent mocks base method.
+func (m *MockDatabasePort) LandingContent() outbound_port.LandingContentDatabasePort {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LandingContent")
+	ret0, _ := ret[0].(outbound_port.LandingContentDatabasePort)
+	return ret0
+}
+
+// LandingContent indicates an expected call of LandingContent.
+func (mr *MockDatabasePortMockRecorder) LandingContent() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LandingContent", reflect.TypeOf((*MockDatabasePort)(nil).LandingContent))
+}
+
 // MockDatabaseExecutor is a mock of DatabaseExecutor interface.
 type MockDatabaseExecutor struct {
 	ctrl     *gomock.Controller

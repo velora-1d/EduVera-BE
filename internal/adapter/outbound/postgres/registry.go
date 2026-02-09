@@ -154,3 +154,10 @@ func (s *adapter) Student() outbound_port.StudentDatabasePort {
 func (s *adapter) NotificationTemplate() outbound_port.NotificationTemplateDatabasePort {
 	return NewNotificationTemplateAdapter(s.db)
 }
+
+func (s *adapter) LandingContent() outbound_port.LandingContentDatabasePort {
+	if s.dbexecutor != nil {
+		return NewLandingContentAdapter(s.dbexecutor)
+	}
+	return NewLandingContentAdapter(s.db)
+}

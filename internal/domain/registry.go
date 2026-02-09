@@ -9,6 +9,7 @@ import (
 	disbursement_domain "prabogo/internal/domain/disbursement"
 	erapor_domain "prabogo/internal/domain/erapor"
 	export_domain "prabogo/internal/domain/export"
+	"prabogo/internal/domain/landing_content"
 	notification_domain "prabogo/internal/domain/notification"
 	"prabogo/internal/domain/payment"
 	dashboard "prabogo/internal/domain/pesantren/dashboard"
@@ -42,6 +43,7 @@ type Domain interface {
 	Export() export_domain.ExportDomain
 	WhatsApp() whatsapp_domain.WhatsAppDomain
 	Student() student_domain.StudentDomain
+	LandingContent() *landing_content.Domain
 }
 
 type domain struct {
@@ -141,4 +143,8 @@ func (d *domain) WhatsApp() whatsapp_domain.WhatsAppDomain {
 
 func (d *domain) Student() student_domain.StudentDomain {
 	return student_domain.NewStudentDomain(d.databasePort)
+}
+
+func (d *domain) LandingContent() *landing_content.Domain {
+	return landing_content.NewDomain(d.databasePort)
 }

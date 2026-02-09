@@ -6,6 +6,7 @@ import (
 	"prabogo/internal"
 
 	_ "github.com/joho/godotenv/autoload"
+	_ "github.com/lib/pq"
 )
 
 func main() {
