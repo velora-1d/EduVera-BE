@@ -241,6 +241,18 @@ func (d *paymentDomain) HandleWebhook(ctx context.Context, notification *model.M
 		return stacktrace.NewError("invalid signature")
 	}
 
+	// SECURITY: Idempotency check - prevent duplicate webhook processing
+	// Check if payment already has final status (paid/failed/expired)
+	existingPayment, err := d.databasePort.Payment().FindByOrderID(notification.OrderID)
+	if err == nil && existingPayment != nil {
+		// If already in final state, skip processing (idempotent)
+		if existingPayment.Status == model.PaymentStatusPaid ||
+			existingPayment.Status == model.PaymentStatusFailed ||
+			existingPayment.Status == model.PaymentStatusExpired {
+			return nil // Already processed, skip
+		}
+	}
+
 	// Update payment based on transaction status
 	var status string
 	switch notification.TransactionStatus {

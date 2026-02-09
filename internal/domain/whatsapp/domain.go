@@ -3,9 +3,11 @@ package whatsapp
 import (
 	"context"
 	"errors"
+	"time"
 
 	"prabogo/internal/model"
 	outbound_port "prabogo/internal/port/outbound"
+	"prabogo/utils/redis"
 
 	"github.com/google/uuid"
 )
@@ -164,9 +166,13 @@ func (d *whatsAppDomain) SendMessage(ctx context.Context, tenantID, phone, messa
 	var err error
 
 	if tenantID == "" {
-		// Owner session
+		// Owner session - no rate limit for owner
 		session, err = d.dbPort.WhatsApp().GetByInstanceName(ctx, "eduvera_owner")
 	} else {
+		// SECURITY: Check message rate limit for tenant (100 messages/day)
+		if err := d.checkMessageRateLimit(ctx, tenantID); err != nil {
+			return err
+		}
 		session, err = d.dbPort.WhatsApp().GetByTenantID(ctx, tenantID)
 	}
 
@@ -178,5 +184,45 @@ func (d *whatsAppDomain) SendMessage(ctx context.Context, tenantID, phone, messa
 		return errors.New("WhatsApp not connected, please reconnect")
 	}
 
-	return d.evolutionPort.SendMessage(ctx, session.InstanceName, session.APIKey, phone, message)
+	// Send message
+	sendErr := d.evolutionPort.SendMessage(ctx, session.InstanceName, session.APIKey, phone, message)
+	if sendErr != nil {
+		return sendErr
+	}
+
+	// Increment message counter on successful send (only for tenant)
+	if tenantID != "" {
+		d.incrementMessageCount(ctx, tenantID)
+	}
+
+	return nil
+}
+
+// checkMessageRateLimit checks if tenant has exceeded daily message limit
+func (d *whatsAppDomain) checkMessageRateLimit(ctx context.Context, tenantID string) error {
+	key := "wa_msg_count:" + tenantID
+	maxMessages := int64(100) // 100 messages per day per tenant
+
+	count, err := redis.GetInt(ctx, key)
+	if err != nil {
+		// Key doesn't exist yet, allow
+		return nil
+	}
+
+	if count >= maxMessages {
+		return errors.New("Batas pengiriman WA harian tercapai (100 pesan/hari). Upgrade ke Premium untuk batas lebih tinggi.")
+	}
+
+	return nil
+}
+
+// incrementMessageCount increments the daily message counter
+func (d *whatsAppDomain) incrementMessageCount(ctx context.Context, tenantID string) {
+	key := "wa_msg_count:" + tenantID
+
+	count, _ := redis.Incr(ctx, key)
+	if count == 1 {
+		// Set TTL to end of day (24 hours)
+		_ = redis.Expire(ctx, key, 24*time.Hour)
+	}
 }
