@@ -49,8 +49,9 @@ func InitRoute(
 
 			return false
 		},
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Sandbox-Tenant",
-		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Sandbox-Tenant",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
+		AllowCredentials: true, // Required for cookies (HttpOnly)
 	}))
 
 	// Rate Limiting (Public API Protection)

@@ -35,27 +35,6 @@ services:
     networks:
       - eduvera_net
 
-  # === WhatsApp Service (Whatsback) ===
-  whatsback:
-    image: eduvera-whatsback
-    build:
-      context: ../services/whatsback
-      dockerfile: Dockerfile
-    container_name: eduvera-whatsback
-    restart: unless-stopped
-    user: root
-    ports:
-      - "5001:5001"
-    environment:
-      - NODE_ENV=production
-      - APP_PORT=5001
-      - SOCKET_IO_CORS_ORIGIN=https://eduvera.ve-lora.my.id,https://api-eduvera.ve-lora.my.id
-      - PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome/linux-135.0.7049.95/chrome-linux64/chrome
-    volumes:
-      - whatsback_data:/usr/src/app/.wwebjs_auth
-    networks:
-      - eduvera_net
-
   # === Backend Service ===
   backend:
     container_name: eduvera_backend
@@ -93,14 +72,15 @@ services:
       - OWNER_PASSWORD=${OWNER_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
       - ALLOWED_ORIGINS=https://eduvera.ve-lora.my.id,https://api-eduvera.ve-lora.my.id
-      - EVOLUTION_API_URL=http://whatsback:5001/api
+      - WA_SESSION_DIR=/app/wa_sessions
     ports:
       - "8000:8000"
+    volumes:
+      - wa_sessions:/app/wa_sessions
     depends_on:
       - postgres
       - redis
       - rabbitmq
-      - whatsback
     networks:
       - eduvera_net
 
@@ -112,4 +92,4 @@ volumes:
   postgres_data:
   redis_data:
   rabbitmq_data:
-  whatsback_data:
+  wa_sessions:

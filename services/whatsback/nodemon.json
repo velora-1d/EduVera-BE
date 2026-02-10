@@ -1,3 +1,0 @@
-{
-  "ignore": ["public/", "node_modules/", "dist/", "src/views", "src/style"]
-}

@@ -96,15 +96,15 @@ func (a *sppAdapter) ListAll(ctx context.Context) ([]model.SPPTransaction, error
 	return transactions, nil
 }
 
-func (a *sppAdapter) FindByID(ctx context.Context, id string) (*model.SPPTransaction, error) {
+func (a *sppAdapter) FindByID(ctx context.Context, tenantID, id string) (*model.SPPTransaction, error) {
 	query := `
 		SELECT id, tenant_id, student_id, student_name, amount, payment_method, payment_type, status, gateway_ref, description, created_at, updated_at
 		FROM spp_transactions
-		WHERE id = $1
+		WHERE id = $1 AND tenant_id = $2
 	`
 	var t model.SPPTransaction
 	var studentID, paymentMethod, paymentType, gatewayRef, description sql.NullString
-	err := a.db.QueryRowContext(ctx, query, id).Scan(
+	err := a.db.QueryRowContext(ctx, query, id, tenantID).Scan(
 		&t.ID, &t.TenantID, &studentID, &t.StudentName, &t.Amount,
 		&paymentMethod, &paymentType, &t.Status, &gatewayRef, &description, &t.CreatedAt, &t.UpdatedAt,
 	)
@@ -119,13 +119,13 @@ func (a *sppAdapter) FindByID(ctx context.Context, id string) (*model.SPPTransac
 	return &t, nil
 }
 
-func (a *sppAdapter) UpdateStatus(ctx context.Context, id string, status model.SPPStatus, paymentMethod string) error {
+func (a *sppAdapter) UpdateStatus(ctx context.Context, tenantID, id string, status model.SPPStatus, paymentMethod string) error {
 	query := `
 		UPDATE spp_transactions 
 		SET status = $1, payment_method = $2, updated_at = NOW() 
-		WHERE id = $3
+		WHERE id = $3 AND tenant_id = $4
 	`
-	_, err := a.db.ExecContext(ctx, query, status, paymentMethod, id)
+	_, err := a.db.ExecContext(ctx, query, status, paymentMethod, id, tenantID)
 	return err
 }
 
@@ -164,31 +164,31 @@ func (a *sppAdapter) Update(ctx context.Context, spp *model.SPPTransaction) erro
 }
 
 // Delete removes an SPP transaction
-func (a *sppAdapter) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM spp_transactions WHERE id = $1`
-	_, err := a.db.ExecContext(ctx, query, id)
+func (a *sppAdapter) Delete(ctx context.Context, tenantID, id string) error {
+	query := `DELETE FROM spp_transactions WHERE id = $1 AND tenant_id = $2`
+	_, err := a.db.ExecContext(ctx, query, id, tenantID)
 	return err
 }
 
 // UploadProof saves the payment proof URL
-func (a *sppAdapter) UploadProof(ctx context.Context, id string, proofURL string) error {
+func (a *sppAdapter) UploadProof(ctx context.Context, tenantID, id string, proofURL string) error {
 	query := `
 		UPDATE spp_transactions 
 		SET payment_proof = $1, updated_at = NOW()
-		WHERE id = $2
+		WHERE id = $2 AND tenant_id = $3
 	`
-	_, err := a.db.ExecContext(ctx, query, proofURL, id)
+	_, err := a.db.ExecContext(ctx, query, proofURL, id, tenantID)
 	return err
 }
 
 // ConfirmPayment marks payment as paid by admin
-func (a *sppAdapter) ConfirmPayment(ctx context.Context, id string, confirmedBy string) error {
+func (a *sppAdapter) ConfirmPayment(ctx context.Context, tenantID, id string, confirmedBy string) error {
 	query := `
 		UPDATE spp_transactions 
 		SET status = 'paid', confirmed_by = $1, paid_at = NOW(), updated_at = NOW()
-		WHERE id = $2
+		WHERE id = $2 AND tenant_id = $3
 	`
-	_, err := a.db.ExecContext(ctx, query, confirmedBy, id)
+	_, err := a.db.ExecContext(ctx, query, confirmedBy, id, tenantID)
 	return err
 }
 

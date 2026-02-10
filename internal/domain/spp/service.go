@@ -12,14 +12,14 @@ import (
 type Service interface {
 	ListByTenant(ctx context.Context, tenantID string) ([]model.SPPTransaction, error)
 	Create(ctx context.Context, spp *model.SPPTransaction) error
-	RecordPayment(ctx context.Context, id string, paymentMethod string) error
+	RecordPayment(ctx context.Context, tenantID, id string, paymentMethod string) error
 	GetStats(ctx context.Context, tenantID string) (*model.SPPStats, error)
 	ListAll(ctx context.Context) ([]model.SPPTransaction, error)
 	// Manual payment methods
-	Update(ctx context.Context, id, studentName string, amount int64, description, dueDate, period string) error
-	Delete(ctx context.Context, id string) error
-	UploadProof(ctx context.Context, id string, proofURL string) error
-	ConfirmPayment(ctx context.Context, id string, confirmedBy string, paymentMethod string) error
+	Update(ctx context.Context, tenantID, id, studentName string, amount int64, description, dueDate, period string) error
+	Delete(ctx context.Context, tenantID, id string) error
+	UploadProof(ctx context.Context, tenantID, id string, proofURL string) error
+	ConfirmPayment(ctx context.Context, tenantID, id string, confirmedBy string, paymentMethod string) error
 	ListOverdue(ctx context.Context, tenantID string) ([]model.SPPTransaction, error)
 	GenerateInvoices(ctx context.Context) error
 	BroadcastOverdue(ctx context.Context, tenantID string) error
@@ -55,16 +55,16 @@ func (s *service) Create(ctx context.Context, spp *model.SPPTransaction) error {
 	return s.repo.Create(ctx, spp)
 }
 
-func (s *service) RecordPayment(ctx context.Context, id string, paymentMethod string) error {
-	err := s.repo.UpdateStatus(ctx, id, model.SPPStatusPaid, paymentMethod)
+func (s *service) RecordPayment(ctx context.Context, tenantID, id string, paymentMethod string) error {
+	err := s.repo.UpdateStatus(ctx, tenantID, id, model.SPPStatusPaid, paymentMethod)
 	if err != nil {
 		return err
 	}
 
 	// Send Success Notification
-	spp, err := s.repo.FindByID(ctx, id)
+	spp, err := s.repo.FindByID(ctx, tenantID, id)
 	if err == nil {
-		student, _ := s.studentRepo.FindByID(spp.StudentID)
+		student, _ := s.studentRepo.FindByID(tenantID, spp.StudentID)
 		if student != nil {
 			title := "SPP"
 			templateName := "payment_success"
@@ -120,8 +120,8 @@ func (s *service) ListAll(ctx context.Context) ([]model.SPPTransaction, error) {
 }
 
 // Update modifies an SPP transaction
-func (s *service) Update(ctx context.Context, id, studentName string, amount int64, description, dueDateStr, period string) error {
-	spp, err := s.repo.FindByID(ctx, id)
+func (s *service) Update(ctx context.Context, tenantID, id, studentName string, amount int64, description, dueDateStr, period string) error {
+	spp, err := s.repo.FindByID(ctx, tenantID, id)
 	if err != nil {
 		return err
 	}
@@ -143,25 +143,25 @@ func (s *service) Update(ctx context.Context, id, studentName string, amount int
 }
 
 // Delete removes an SPP transaction
-func (s *service) Delete(ctx context.Context, id string) error {
-	return s.repo.Delete(ctx, id)
+func (s *service) Delete(ctx context.Context, tenantID, id string) error {
+	return s.repo.Delete(ctx, tenantID, id)
 }
 
 // UploadProof saves the payment proof URL
-func (s *service) UploadProof(ctx context.Context, id string, proofURL string) error {
-	return s.repo.UploadProof(ctx, id, proofURL)
+func (s *service) UploadProof(ctx context.Context, tenantID, id string, proofURL string) error {
+	return s.repo.UploadProof(ctx, tenantID, id, proofURL)
 }
 
 // ConfirmPayment marks payment as confirmed by admin
-func (s *service) ConfirmPayment(ctx context.Context, id string, confirmedBy string, paymentMethod string) error {
+func (s *service) ConfirmPayment(ctx context.Context, tenantID, id string, confirmedBy string, paymentMethod string) error {
 	// First update payment method if provided
 	if paymentMethod != "" {
-		if err := s.repo.UpdateStatus(ctx, id, model.SPPStatusPaid, paymentMethod); err != nil {
+		if err := s.repo.UpdateStatus(ctx, tenantID, id, model.SPPStatusPaid, paymentMethod); err != nil {
 			return err
 		}
 	}
 	// Then mark as confirmed
-	return s.repo.ConfirmPayment(ctx, id, confirmedBy)
+	return s.repo.ConfirmPayment(ctx, tenantID, id, confirmedBy)
 }
 
 // ListOverdue returns overdue pending payments
@@ -283,7 +283,7 @@ func (s *service) BroadcastOverdue(ctx context.Context, tenantID string) error {
 	}
 
 	for i, invoice := range overdue {
-		student, err := s.studentRepo.FindByID(invoice.StudentID)
+		student, err := s.studentRepo.FindByID(tenantID, invoice.StudentID)
 		if err != nil {
 			continue
 		}

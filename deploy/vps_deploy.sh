@@ -41,8 +41,8 @@ ssh "$VPS_USER@$VPS_IP" << EOF
   echo "🏗 Rebuilding and restarting containers..."
   
   # Stop and remove legacy containers
-  docker stop eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback eduvera_evolution 2>/dev/null || true
-  docker rm eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback eduvera_evolution 2>/dev/null || true
+  docker stop eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback 2>/dev/null || true
+  docker rm eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback 2>/dev/null || true
   
   # Remove legacy code directories
   rm -rf $PROJECT_DIR/EduVera-BE/services/whatsback
@@ -58,7 +58,7 @@ ssh "$VPS_USER@$VPS_IP" << EOF
   docker ps -a --filter "name=eduvera" -q | xargs -r docker rm -f
   
   echo "🏗 Rebuilding and restarting containers..."
-  ./docker-compose -f deploy/docker-compose.vps.yml up -d --build --remove-orphans
+  ./docker-compose --env-file .env -f deploy/docker-compose.vps.yml up -d --build --remove-orphans
 EOF
 
 echo "✅ Deployment completed successfully!"

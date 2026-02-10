@@ -23,7 +23,7 @@ import (
 	redis_outbound_adapter "prabogo/internal/adapter/outbound/redis"
 	temporal_outbound_adapter "prabogo/internal/adapter/outbound/temporal"
 	whatsapp_outbound_adapter "prabogo/internal/adapter/outbound/whatsapp"
-	"prabogo/internal/adapter/outbound/whatsback"
+	whatsmeow_adapter "prabogo/internal/adapter/outbound/whatsmeow"
 	"prabogo/internal/domain"
 	_ "prabogo/internal/migration/postgres"
 	outbound_port "prabogo/internal/port/outbound"
@@ -57,6 +57,7 @@ type App struct {
 	message   outbound_port.MessagePort
 	scheduler *scheduler.Scheduler
 	notif     *service_notification.NotificationService
+	waManager *whatsmeow_adapter.Manager
 }
 
 func NewApp() *App {
@@ -74,26 +75,30 @@ func NewApp() *App {
 
 	dbPort := databaseOutbound(ctx)
 	messagePort := messageOutbound(ctx)
-	evolutionPort := whatsback.NewWhatsbackAdapter()
+	waManager := whatsmeow_adapter.NewManager()
 	fonnteAdapter := whatsapp_outbound_adapter.NewAdapter()
 
-	notifService := service_notification.NewNotificationService(fonnteAdapter.WhatsApp(), evolutionPort, dbPort)
+	notifService := service_notification.NewNotificationService(fonnteAdapter.WhatsApp(), waManager, dbPort)
 
 	dom := domain.NewDomain(
 		dbPort,
 		messagePort,
 		cacheOutbound(ctx),
 		workflowOutbound(ctx),
-		evolutionPort,
+		waManager,
 		notifService,
 	)
 
+	// Auto-reconnect all existing WhatsApp sessions from disk
+	go waManager.ReconnectAll()
+
 	return &App{
-		ctx:     ctx,
-		domain:  dom,
-		db:      dbPort,
-		message: messagePort,
-		notif:   notifService,
+		ctx:       ctx,
+		domain:    dom,
+		db:        dbPort,
+		message:   messagePort,
+		notif:     notifService,
+		waManager: waManager,
 	}
 }
 
@@ -244,6 +249,12 @@ func (a *App) httpInbound() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Interrupt)
 	<-quit
+
+	// Gracefully disconnect all WhatsApp sessions
+	if a.waManager != nil {
+		log.WithContext(ctx).Info("Disconnecting WhatsApp sessions...")
+		a.waManager.Shutdown()
+	}
 
 	log.WithContext(ctx).Info("http server stopped")
 }

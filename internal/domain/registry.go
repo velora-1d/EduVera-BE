@@ -51,7 +51,7 @@ type domain struct {
 	messagePort      outbound_port.MessagePort
 	cachePort        outbound_port.CachePort
 	workflowPort     outbound_port.WorkflowPort
-	evolutionPort    outbound_port.WhatsAppClientPort
+	waClientPort     outbound_port.WhatsAppClientPort
 	notificationPort outbound_port.NotificationServicePort
 }
 
@@ -68,7 +68,7 @@ func NewDomain(
 		messagePort:      messagePort,
 		cachePort:        cachePort,
 		workflowPort:     workflowPort,
-		evolutionPort:    evolutionPort,
+		waClientPort:     evolutionPort,
 		notificationPort: notificationPort,
 	}
 }
@@ -138,7 +138,7 @@ func (d *domain) Export() export_domain.ExportDomain {
 }
 
 func (d *domain) WhatsApp() whatsapp_domain.WhatsAppDomain {
-	return whatsapp_domain.NewWhatsAppDomain(d.databasePort, d.evolutionPort)
+	return whatsapp_domain.NewWhatsAppDomain(d.databasePort, d.waClientPort)
 }
 
 func (d *domain) Student() student_domain.StudentDomain {

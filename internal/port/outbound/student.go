@@ -6,8 +6,8 @@ import "prabogo/internal/model"
 type StudentDatabasePort interface {
 	Create(student *model.Student) error
 	Update(student *model.Student) error
-	Delete(id string) error
-	FindByID(id string) (*model.Student, error)
+	Delete(tenantID, id string) error
+	FindByID(tenantID, id string) (*model.Student, error)
 	FindByFilter(filter model.StudentFilter) ([]model.Student, error)
 	CountByTenant(tenantID string) (int, error)
 }

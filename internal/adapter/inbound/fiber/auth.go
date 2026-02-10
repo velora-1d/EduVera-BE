@@ -4,6 +4,9 @@ import (
 	"context"
 	"strings"
 
+	"os"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 
 	"prabogo/internal/domain"
@@ -45,6 +48,23 @@ func (h *authAdapter) Login(a any) error {
 			"error": "Email atau password salah. Silakan coba lagi.",
 		})
 	}
+
+	// Set HttpOnly Cookie
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	if cookieDomain == "" {
+		cookieDomain = ".ve-lora.my.id" // Fallback
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    response.AccessToken,
+		Expires:  time.Unix(response.ExpiresAt, 0), // response.ExpiresAt is likely int64 timestamp
+		HTTPOnly: true,
+		Secure:   true,         // Always true for "None" SameSite
+		SameSite: "None",       // Required for cross-site (api -> app)
+		Domain:   cookieDomain, // Cross-subdomain
+		Path:     "/",
+	})
 
 	return c.JSON(fiber.Map{
 		"status":       "success",
@@ -132,6 +152,23 @@ func (h *authAdapter) Logout(a any) error {
 		expiresAt := claims.ExpiresAt.Time
 		_ = h.domain.Auth().BlacklistToken(ctx, tokenString, expiresAt)
 	}
+
+	// Clear Cookie
+	cookieDomain := os.Getenv("COOKIE_DOMAIN")
+	if cookieDomain == "" {
+		cookieDomain = ".ve-lora.my.id"
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour), // Expire immediately
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "None",
+		Domain:   cookieDomain,
+		Path:     "/",
+	})
 
 	return c.JSON(fiber.Map{
 		"status":  "success",

@@ -16,8 +16,8 @@ type NotificationType string
 
 const (
 	NotificationTypeSystem NotificationType = "system" // Uses Fonnte (platform-level fallback)
-	NotificationTypeTenant NotificationType = "tenant" // Uses Evolution API (tenant-level)
-	NotificationTypeOwner  NotificationType = "owner"  // Uses Evolution API (owner's connected WA)
+	NotificationTypeTenant NotificationType = "tenant" // Uses WhatsMeow (tenant-level)
+	NotificationTypeOwner  NotificationType = "owner"  // Uses WhatsMeow (owner's connected WA)
 )
 
 // WhatsAppNotification represents a notification to be sent
@@ -32,20 +32,20 @@ type WhatsAppNotification struct {
 
 // NotificationService handles sending WhatsApp notifications
 type NotificationService struct {
-	fonntePort    outbound_port.WhatsAppMessagePort
-	evolutionPort outbound_port.WhatsAppClientPort
-	dbPort        outbound_port.DatabasePort
+	fonntePort   outbound_port.WhatsAppMessagePort
+	waClientPort outbound_port.WhatsAppClientPort
+	dbPort       outbound_port.DatabasePort
 }
 
 func NewNotificationService(
 	fonntePort outbound_port.WhatsAppMessagePort,
-	evolutionPort outbound_port.WhatsAppClientPort,
+	waClientPort outbound_port.WhatsAppClientPort,
 	dbPort outbound_port.DatabasePort,
 ) *NotificationService {
 	return &NotificationService{
-		fonntePort:    fonntePort,
-		evolutionPort: evolutionPort,
-		dbPort:        dbPort,
+		fonntePort:   fonntePort,
+		waClientPort: waClientPort,
+		dbPort:       dbPort,
 	}
 }
 
@@ -85,8 +85,8 @@ func (s *NotificationService) sendViaOwner(ctx context.Context, notif WhatsAppNo
 		return s.sendViaFonnte(notif)
 	}
 
-	// Send via Evolution API
-	return s.evolutionPort.SendMessage(ctx, session.InstanceName, session.APIKey, notif.Phone, notif.Message)
+	// Send via WhatsMeow
+	return s.waClientPort.SendMessage(ctx, session.InstanceName, session.APIKey, notif.Phone, notif.Message)
 }
 
 // sendViaTenant sends using tenant's connected WhatsApp via Evolution API
@@ -107,8 +107,8 @@ func (s *NotificationService) sendViaTenant(ctx context.Context, notif WhatsAppN
 		return s.sendViaFonnte(notif) // Fallback
 	}
 
-	// Send via Evolution API
-	return s.evolutionPort.SendMessage(ctx, session.InstanceName, session.APIKey, notif.Phone, notif.Message)
+	// Send via WhatsMeow
+	return s.waClientPort.SendMessage(ctx, session.InstanceName, session.APIKey, notif.Phone, notif.Message)
 }
 
 // SendBatch sends multiple notifications with rate limiting

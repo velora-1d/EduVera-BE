@@ -49,9 +49,9 @@ func (a *studentAdapter) Update(student *model.Student) error {
 	return err
 }
 
-func (a *studentAdapter) Delete(id string) error {
+func (a *studentAdapter) Delete(tenantID, id string) error {
 	dialect := goqu.Dialect("postgres")
-	dataset := dialect.Delete(tableStudents).Where(goqu.Ex{"id": id})
+	dataset := dialect.Delete(tableStudents).Where(goqu.Ex{"id": id, "tenant_id": tenantID})
 
 	query, _, err := dataset.ToSQL()
 	if err != nil {
@@ -62,9 +62,9 @@ func (a *studentAdapter) Delete(id string) error {
 	return err
 }
 
-func (a *studentAdapter) FindByID(id string) (*model.Student, error) {
+func (a *studentAdapter) FindByID(tenantID, id string) (*model.Student, error) {
 	dialect := goqu.Dialect("postgres")
-	dataset := dialect.From(tableStudents).Where(goqu.Ex{"id": id})
+	dataset := dialect.From(tableStudents).Where(goqu.Ex{"id": id, "tenant_id": tenantID})
 
 	query, _, err := dataset.ToSQL()
 	if err != nil {

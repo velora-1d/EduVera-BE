@@ -67,7 +67,8 @@ func (h *studentAdapter) Get(a any) error {
 		})
 	}
 
-	student, err := h.domain.FindByID(ctx, id)
+	tenantID := c.Locals("tenant_id").(string)
+	student, err := h.domain.FindByID(ctx, tenantID, id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Siswa/santri tidak ditemukan",
@@ -143,7 +144,8 @@ func (h *studentAdapter) Update(a any) error {
 		})
 	}
 
-	student, err := h.domain.Update(ctx, id, &input)
+	tenantID := c.Locals("tenant_id").(string)
+	student, err := h.domain.Update(ctx, tenantID, id, &input)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal memperbarui data siswa/santri: " + err.Error(),
@@ -168,7 +170,8 @@ func (h *studentAdapter) Delete(a any) error {
 		})
 	}
 
-	err := h.domain.Delete(ctx, id)
+	tenantID := c.Locals("tenant_id").(string)
+	err := h.domain.Delete(ctx, tenantID, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal menghapus siswa/santri",

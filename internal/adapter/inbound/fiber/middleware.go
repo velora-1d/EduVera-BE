@@ -46,6 +46,11 @@ func (h *middlewareAdapter) OwnerAuth(a any) error {
 		bearerToken = authHeader[bearerPrefixLen:]
 	}
 
+	// Fallback to Cookie
+	if bearerToken == "" {
+		bearerToken = c.Cookies("access_token")
+	}
+
 	if bearerToken == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Sesi Anda telah berakhir. Silakan login kembali.",
@@ -82,6 +87,11 @@ func (h *middlewareAdapter) InternalAuth(a any) error {
 		bearerToken = authHeader[bearerPrefixLen:]
 	}
 
+	// Fallback to Cookie
+	if bearerToken == "" {
+		bearerToken = c.Cookies("access_token")
+	}
+
 	if bearerToken == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": "Akses ditolak. Token tidak ditemukan.",
@@ -104,6 +114,11 @@ func (h *middlewareAdapter) ClientAuth(a any) error {
 	var bearerToken string
 	if len(authHeader) > bearerPrefixLen && authHeader[:bearerPrefixLen] == bearerPrefix {
 		bearerToken = authHeader[bearerPrefixLen:]
+	}
+
+	// Fallback to Cookie
+	if bearerToken == "" {
+		bearerToken = c.Cookies("access_token")
 	}
 
 	if bearerToken == "" {

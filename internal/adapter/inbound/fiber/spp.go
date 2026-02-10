@@ -100,7 +100,15 @@ func (h *sppAdapter) RecordPayment(c *fiber.Ctx) error {
 	}
 	c.BodyParser(&input)
 
-	if err := h.domain.SPP().RecordPayment(ctx, id, input.PaymentMethod); err != nil {
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid",
+		})
+	}
+
+	if err := h.domain.SPP().RecordPayment(ctx, tenantID, id, input.PaymentMethod); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal mencatat pembayaran. " + err.Error(),
 		})
@@ -155,7 +163,15 @@ func (h *sppAdapter) Update(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.domain.SPP().Update(ctx, id, input.StudentName, input.Amount, input.Description, input.DueDate, input.Period); err != nil {
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid",
+		})
+	}
+
+	if err := h.domain.SPP().Update(ctx, tenantID, id, input.StudentName, input.Amount, input.Description, input.DueDate, input.Period); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal memperbarui tagihan. " + err.Error(),
 		})
@@ -171,7 +187,15 @@ func (h *sppAdapter) Delete(c *fiber.Ctx) error {
 	ctx := context.Background()
 	id := c.Params("id")
 
-	if err := h.domain.SPP().Delete(ctx, id); err != nil {
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid",
+		})
+	}
+
+	if err := h.domain.SPP().Delete(ctx, tenantID, id); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal menghapus tagihan. " + err.Error(),
 		})
@@ -204,7 +228,15 @@ func (h *sppAdapter) UploadProof(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := h.domain.SPP().UploadProof(ctx, id, input.ProofURL); err != nil {
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid",
+		})
+	}
+
+	if err := h.domain.SPP().UploadProof(ctx, tenantID, id, input.ProofURL); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal menyimpan bukti pembayaran.",
 		})
@@ -270,7 +302,15 @@ func (h *sppAdapter) ConfirmPayment(c *fiber.Ctx) error {
 	}
 	c.BodyParser(&input)
 
-	if err := h.domain.SPP().ConfirmPayment(ctx, id, confirmedBy, input.PaymentMethod); err != nil {
+	// SECURITY: Get tenant_id from JWT context
+	tenantID, ok := c.Locals("tenant_id").(string)
+	if !ok || tenantID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Akses tidak valid",
+		})
+	}
+
+	if err := h.domain.SPP().ConfirmPayment(ctx, tenantID, id, confirmedBy, input.PaymentMethod); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Gagal konfirmasi pembayaran. " + err.Error(),
 		})

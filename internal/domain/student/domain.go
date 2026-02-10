@@ -13,9 +13,9 @@ import (
 
 type StudentDomain interface {
 	Create(ctx context.Context, tenantID string, input *model.StudentInput) (*model.Student, error)
-	Update(ctx context.Context, id string, input *model.StudentInput) (*model.Student, error)
-	Delete(ctx context.Context, id string) error
-	FindByID(ctx context.Context, id string) (*model.Student, error)
+	Update(ctx context.Context, tenantID, id string, input *model.StudentInput) (*model.Student, error)
+	Delete(ctx context.Context, tenantID, id string) error
+	FindByID(ctx context.Context, tenantID, id string) (*model.Student, error)
 	List(ctx context.Context, filter model.StudentFilter) ([]model.Student, error)
 	CountByTenant(ctx context.Context, tenantID string) (int, error)
 }
@@ -95,8 +95,10 @@ func (d *studentDomain) Create(ctx context.Context, tenantID string, input *mode
 	return student, nil
 }
 
-func (d *studentDomain) Update(ctx context.Context, id string, input *model.StudentInput) (*model.Student, error) {
-	student, err := d.databasePort.Student().FindByID(id)
+func (d *studentDomain) Update(ctx context.Context, tenantID, id string, input *model.StudentInput) (*model.Student, error) {
+	// 1. Verify ownership securely by passing tenantID (which comes from JWT in Handler)
+	// If tenantID doesn't match, FindByID will return error (Not Found)
+	student, err := d.FindByID(ctx, tenantID, id)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "failed to find student")
 	}
@@ -156,12 +158,12 @@ func (d *studentDomain) Update(ctx context.Context, id string, input *model.Stud
 	return student, nil
 }
 
-func (d *studentDomain) Delete(ctx context.Context, id string) error {
-	return d.databasePort.Student().Delete(id)
+func (d *studentDomain) Delete(ctx context.Context, tenantID, id string) error {
+	return d.databasePort.Student().Delete(tenantID, id)
 }
 
-func (d *studentDomain) FindByID(ctx context.Context, id string) (*model.Student, error) {
-	return d.databasePort.Student().FindByID(id)
+func (d *studentDomain) FindByID(ctx context.Context, tenantID, id string) (*model.Student, error) {
+	return d.databasePort.Student().FindByID(tenantID, id)
 }
 
 func (d *studentDomain) List(ctx context.Context, filter model.StudentFilter) ([]model.Student, error) {

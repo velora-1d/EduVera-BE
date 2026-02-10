@@ -338,12 +338,20 @@ func (a *paymentAdapter) SPPWebhook(c *fiber.Ctx) error {
 
 	// If payment successful, update SPP status
 	if notification.TransactionStatus == "settlement" || notification.TransactionStatus == "capture" {
+		// Get payment details to find TenantID
+		payment, err := a.domainRegistry.Payment().GetPaymentByOrderID(ctx, notification.OrderID)
+		if err != nil || payment == nil {
+			log.Printf("[ERROR] SPP Webhook: Payment not found for order %s", notification.OrderID)
+			// We cannot proceed without TenantID due to IDOR protection
+			return c.JSON(fiber.Map{"status": "ok"}) // Return OK to Midtrans to stop retries, but log error
+		}
+
 		// Extract SPP ID from order ID (format: SPP-{sppID}-{timestamp})
 		parts := splitOrderID(notification.OrderID)
 		if len(parts) >= 2 {
 			sppID := parts[1]
 			// Update SPP status to paid
-			_ = a.domainRegistry.SPP().ConfirmPayment(ctx, sppID, "system", "midtrans")
+			_ = a.domainRegistry.SPP().ConfirmPayment(ctx, payment.TenantID, sppID, "system", "midtrans")
 		}
 	}
 
