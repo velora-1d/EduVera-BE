@@ -41,8 +41,11 @@ ssh "$VPS_USER@$VPS_IP" << EOF
   echo "🏗 Rebuilding and restarting containers..."
   
   # Stop and remove legacy containers
-  docker stop eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback 2>/dev/null || true
-  docker rm eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback 2>/dev/null || true
+  docker stop eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback eduvera_evolution 2>/dev/null || true
+  docker rm eduvera_backend eduvera_postgres eduvera_redis eduvera_rabbitmq eduvera-whatsback eduvera_evolution 2>/dev/null || true
+  
+  # Remove legacy code directories
+  rm -rf $PROJECT_DIR/EduVera-BE/services/whatsback
   
   # Ensure we have a working docker-compose v2
   if [ ! -f ./docker-compose ]; then
