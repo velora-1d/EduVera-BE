@@ -27,16 +27,10 @@ func (h *sdmAdapter) GetEmployees(c *fiber.Ctx) error {
 
 	employees, err := h.domain.SDM().GetEmployees(ctx, tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil data pegawai",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil data pegawai", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   employees,
-	})
+	return SendSuccess(c, "Data pegawai berhasil diambil", employees)
 }
 
 func (h *sdmAdapter) CreateEmployee(c *fiber.Ctx) error {
@@ -45,26 +39,16 @@ func (h *sdmAdapter) CreateEmployee(c *fiber.Ctx) error {
 
 	var input model.EmployeeInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Format data tidak valid",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Format data tidak valid", err)
 	}
 	input.TenantID = tenantID
 
 	employee, err := h.domain.SDM().CreateEmployee(ctx, &input)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal membuat data pegawai",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat data pegawai", err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":  "success",
-		"message": "Pegawai berhasil ditambahkan",
-		"data":    employee,
-	})
+	return SendSuccess(c, "Pegawai berhasil ditambahkan", employee)
 }
 
 func (h *sdmAdapter) UpdateEmployee(c *fiber.Ctx) error {
@@ -74,26 +58,16 @@ func (h *sdmAdapter) UpdateEmployee(c *fiber.Ctx) error {
 
 	var input model.EmployeeInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Format data tidak valid",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Format data tidak valid", err)
 	}
 	input.TenantID = tenantID
 
 	employee, err := h.domain.SDM().UpdateEmployee(ctx, employeeID, &input)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengupdate data pegawai",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengupdate data pegawai", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Pegawai berhasil diupdate",
-		"data":    employee,
-	})
+	return SendSuccess(c, "Pegawai berhasil diupdate", employee)
 }
 
 func (h *sdmAdapter) DeleteEmployee(c *fiber.Ctx) error {
@@ -101,16 +75,10 @@ func (h *sdmAdapter) DeleteEmployee(c *fiber.Ctx) error {
 	employeeID := c.Params("id")
 
 	if err := h.domain.SDM().DeleteEmployee(ctx, employeeID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal menghapus pegawai",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menghapus pegawai", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Pegawai berhasil dihapus",
-	})
+	return SendSuccess(c, "Pegawai berhasil dihapus", nil)
 }
 
 // ==========================================
@@ -124,16 +92,10 @@ func (h *sdmAdapter) GetPayrollByPeriod(c *fiber.Ctx) error {
 
 	payrolls, err := h.domain.SDM().GetPayrollByPeriod(ctx, tenantID, period)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil data gaji",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil data gaji", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   payrolls,
-	})
+	return SendSuccess(c, "Data gaji berhasil diambil", payrolls)
 }
 
 func (h *sdmAdapter) GeneratePayroll(c *fiber.Ctx) error {
@@ -142,26 +104,16 @@ func (h *sdmAdapter) GeneratePayroll(c *fiber.Ctx) error {
 
 	var input model.GeneratePayrollInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Format data tidak valid",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Format data tidak valid", err)
 	}
 	input.TenantID = tenantID
 
 	payrolls, err := h.domain.SDM().GeneratePayroll(ctx, &input)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal generate gaji",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal generate gaji", err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":  "success",
-		"message": "Gaji berhasil digenerate",
-		"data":    payrolls,
-	})
+	return SendSuccess(c, "Gaji berhasil digenerate", payrolls)
 }
 
 func (h *sdmAdapter) MarkPayrollPaid(c *fiber.Ctx) error {
@@ -169,16 +121,10 @@ func (h *sdmAdapter) MarkPayrollPaid(c *fiber.Ctx) error {
 	payrollID := c.Params("id")
 
 	if err := h.domain.SDM().MarkPayrollPaid(ctx, payrollID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal menandai gaji sebagai dibayar",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menandai gaji sebagai dibayar", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Gaji berhasil ditandai sebagai dibayar",
-	})
+	return SendSuccess(c, "Gaji berhasil ditandai sebagai dibayar", nil)
 }
 
 func (h *sdmAdapter) GetPaySlip(c *fiber.Ctx) error {
@@ -187,23 +133,14 @@ func (h *sdmAdapter) GetPaySlip(c *fiber.Ctx) error {
 
 	slip, err := h.domain.SDM().GetPaySlip(ctx, payrollID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil slip gaji",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil slip gaji", err)
 	}
 
 	if slip == nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Slip gaji tidak ditemukan",
-		})
+		return SendError(c, fiber.StatusNotFound, "Slip gaji tidak ditemukan", nil)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   slip,
-	})
+	return SendSuccess(c, "Slip gaji berhasil diambil", slip)
 }
 
 func (h *sdmAdapter) DownloadPaySlip(c *fiber.Ctx) error {
@@ -212,11 +149,7 @@ func (h *sdmAdapter) DownloadPaySlip(c *fiber.Ctx) error {
 
 	pdfBytes, err := h.domain.SDM().DownloadPaySlip(ctx, payrollID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal generate PDF slip gaji",
-			"error":   err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal generate PDF slip gaji", err)
 	}
 
 	c.Set("Content-Type", "application/pdf")
@@ -230,42 +163,35 @@ func (h *sdmAdapter) GetPayrollConfig(c *fiber.Ctx) error {
 
 	config, err := h.domain.SDM().GetPayrollConfig(ctx, tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil konfigurasi gaji",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil konfigurasi gaji", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   config,
-	})
+	return SendSuccess(c, "Konfigurasi gaji berhasil diambil", config)
 }
 
 func (h *sdmAdapter) SavePayrollConfig(c *fiber.Ctx) error {
 	ctx := c.Context()
 	tenantID := c.Locals("tenant_id").(string)
 
-	var config model.PayrollConfig
-	if err := c.BodyParser(&config); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Format data tidak valid",
-		})
+	// DTO: Only allow fillable fields (no ID)
+	var input struct {
+		Components []model.PayComponent `json:"components"`
 	}
-	config.TenantID = tenantID
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, fiber.StatusBadRequest, "Format data tidak valid", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	config := model.PayrollConfig{
+		TenantID:   tenantID, // From JWT, not user input
+		Components: input.Components,
+	}
 
 	if err := h.domain.SDM().SavePayrollConfig(ctx, &config); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal menyimpan konfigurasi gaji",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menyimpan konfigurasi gaji", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Konfigurasi gaji berhasil disimpan",
-	})
+	return SendSuccess(c, "Konfigurasi gaji berhasil disimpan", nil)
 }
 
 // ==========================================
@@ -278,24 +204,15 @@ func (h *sdmAdapter) GetAttendance(c *fiber.Ctx) error {
 	date := c.Query("date")
 
 	if date == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Parameter date diperlukan",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Parameter date diperlukan", nil)
 	}
 
 	attendances, err := h.domain.SDM().GetAttendanceByDate(ctx, tenantID, date)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil data absensi",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil data absensi", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   attendances,
-	})
+	return SendSuccess(c, "Data absensi berhasil diambil", attendances)
 }
 
 func (h *sdmAdapter) RecordAttendance(c *fiber.Ctx) error {
@@ -304,26 +221,16 @@ func (h *sdmAdapter) RecordAttendance(c *fiber.Ctx) error {
 
 	var input model.AttendanceInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Format data tidak valid",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Format data tidak valid", err)
 	}
 	input.TenantID = tenantID
 
 	attendance, err := h.domain.SDM().RecordAttendance(ctx, &input)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mencatat absensi",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mencatat absensi", err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"status":  "success",
-		"message": "Absensi berhasil dicatat",
-		"data":    attendance,
-	})
+	return SendSuccess(c, "Absensi berhasil dicatat", attendance)
 }
 
 func (h *sdmAdapter) GetAttendanceSummary(c *fiber.Ctx) error {
@@ -333,14 +240,8 @@ func (h *sdmAdapter) GetAttendanceSummary(c *fiber.Ctx) error {
 
 	summary, err := h.domain.SDM().GetAttendanceSummary(ctx, tenantID, period)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil rekapitulasi absensi",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil rekapitulasi absensi", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   summary,
-	})
+	return SendSuccess(c, "Rekapitulasi absensi berhasil diambil", summary)
 }

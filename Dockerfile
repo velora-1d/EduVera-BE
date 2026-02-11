@@ -32,7 +32,7 @@ COPY --from=builder /app/internal/migration ./internal/migration
 COPY --from=builder /app/web/templates ./web/templates
 
 # Expose port
-EXPOSE 8081
+EXPOSE 8000
 
 # Command to run
 CMD ["./main"]

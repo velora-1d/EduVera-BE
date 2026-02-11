@@ -28,19 +28,15 @@ func (h *sppAdapter) List(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context, not from query params
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid. Silakan login kembali.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid. Silakan login kembali.", nil)
 	}
 
 	transactions, err := h.domain.SPP().ListByTenant(ctx, tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat data SPP.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat data SPP.", err)
 	}
 
-	return c.JSON(fiber.Map{
+	return SendSuccess(c, "Data SPP berhasil dimuat", fiber.Map{
 		"data": transactions,
 	})
 }
@@ -52,9 +48,7 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid. Silakan login kembali.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid. Silakan login kembali.", nil)
 	}
 
 	var input struct {
@@ -65,9 +59,7 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	spp := &model.SPPTransaction{
@@ -79,15 +71,10 @@ func (h *sppAdapter) Create(c *fiber.Ctx) error {
 	}
 
 	if err := h.domain.SPP().Create(ctx, spp); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal membuat tagihan SPP.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat tagihan SPP.", err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Tagihan berhasil dibuat",
-		"data":    spp,
-	})
+	return SendSuccess(c, "Tagihan berhasil dibuat", spp)
 }
 
 // POST /api/v1/tenant/spp/:id/pay
@@ -98,7 +85,11 @@ func (h *sppAdapter) RecordPayment(c *fiber.Ctx) error {
 	var input struct {
 		PaymentMethod string `json:"payment_method"`
 	}
-	c.BodyParser(&input)
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Data tidak valid. Silakan coba lagi.",
+		})
+	}
 
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
@@ -109,15 +100,10 @@ func (h *sppAdapter) RecordPayment(c *fiber.Ctx) error {
 	}
 
 	if err := h.domain.SPP().RecordPayment(ctx, tenantID, id, input.PaymentMethod); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal mencatat pembayaran. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mencatat pembayaran.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "Pembayaran berhasil dicatat",
-		"status":  "paid",
-	})
+	return SendSuccess(c, "Pembayaran berhasil dicatat", fiber.Map{"status": "paid"})
 }
 
 // GET /api/v1/tenant/spp/stats
@@ -127,21 +113,15 @@ func (h *sppAdapter) GetStats(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid. Silakan login kembali.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid. Silakan login kembali.", nil)
 	}
 
 	stats, err := h.domain.SPP().GetStats(ctx, tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat statistik.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat statistik.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"data": stats,
-	})
+	return SendSuccess(c, "Statistik SPP berhasil dimuat", stats)
 }
 
 // PUT /api/v1/tenant/spp/:id
@@ -166,20 +146,14 @@ func (h *sppAdapter) Update(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid", nil)
 	}
 
 	if err := h.domain.SPP().Update(ctx, tenantID, id, input.StudentName, input.Amount, input.Description, input.DueDate, input.Period); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memperbarui tagihan. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memperbarui tagihan.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "Tagihan berhasil diperbarui",
-	})
+	return SendSuccess(c, "Tagihan berhasil diperbarui", nil)
 }
 
 // DELETE /api/v1/tenant/spp/:id
@@ -190,20 +164,14 @@ func (h *sppAdapter) Delete(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid", nil)
 	}
 
 	if err := h.domain.SPP().Delete(ctx, tenantID, id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal menghapus tagihan. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menghapus tagihan.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "Tagihan berhasil dihapus",
-	})
+	return SendSuccess(c, "Tagihan berhasil dihapus", nil)
 }
 
 // POST /api/v1/tenant/spp/:id/upload-proof
@@ -231,20 +199,14 @@ func (h *sppAdapter) UploadProof(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid", nil)
 	}
 
 	if err := h.domain.SPP().UploadProof(ctx, tenantID, id, input.ProofURL); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal menyimpan bukti pembayaran.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menyimpan bukti pembayaran.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "Bukti pembayaran berhasil diupload",
-	})
+	return SendSuccess(c, "Bukti pembayaran berhasil diupload", nil)
 }
 
 // isValidProofURL validates that the URL is safe to store
@@ -300,26 +262,23 @@ func (h *sppAdapter) ConfirmPayment(c *fiber.Ctx) error {
 	var input struct {
 		PaymentMethod string `json:"payment_method"` // cash, transfer
 	}
-	c.BodyParser(&input)
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Data tidak valid. Silakan coba lagi.",
+		})
+	}
 
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid", nil)
 	}
 
 	if err := h.domain.SPP().ConfirmPayment(ctx, tenantID, id, confirmedBy, input.PaymentMethod); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal konfirmasi pembayaran. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal konfirmasi pembayaran.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"message": "Pembayaran berhasil dikonfirmasi",
-		"status":  "paid",
-	})
+	return SendSuccess(c, "Pembayaran berhasil dikonfirmasi", fiber.Map{"status": "paid"})
 }
 
 // GET /api/v1/tenant/spp/overdue
@@ -329,21 +288,15 @@ func (h *sppAdapter) ListOverdue(c *fiber.Ctx) error {
 	// SECURITY: Get tenant_id from JWT context
 	tenantID, ok := c.Locals("tenant_id").(string)
 	if !ok || tenantID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akses tidak valid. Silakan login kembali.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akses tidak valid. Silakan login kembali.", nil)
 	}
 
 	transactions, err := h.domain.SPP().ListOverdue(ctx, tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat data tunggakan.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat data tunggakan.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"data": transactions,
-	})
+	return SendSuccess(c, "Data tunggakan berhasil dimuat", transactions)
 }
 
 // POST /api/v1/owner/invoices/generate

@@ -11,22 +11,38 @@ func (h *akademikHandler) GetTabunganList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	data, err := h.service.GetTabunganList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil daftar tabungan", err)
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Daftar tabungan berhasil diambil", data)
 }
 
 func (h *akademikHandler) CreateTabunganMutasi(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var m model.TabunganMutasi
-	if err := c.BodyParser(&m); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+
+	// DTO: Only allow fillable fields (no ID, CreatedAt)
+	var input struct {
+		TabunganID string `json:"tabungan_id"`
+		Tipe       string `json:"tipe"`
+		Nominal    int64  `json:"nominal"`
+		Keterangan string `json:"keterangan"`
+		Petugas    string `json:"petugas"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, http.StatusBadRequest, "Invalid request body", err)
 	}
 
-	// Helper: if m.Petugas empty, get from context if available (skip for now)
+	// Explicit mapping: DTO → DB Model
+	m := model.TabunganMutasi{
+		TenantID:   tenantID, // From JWT, not user input
+		TabunganID: input.TabunganID,
+		Tipe:       input.Tipe,
+		Nominal:    input.Nominal,
+		Keterangan: input.Keterangan,
+		Petugas:    input.Petugas,
+	}
 
 	if err := h.service.CreateTabunganMutasi(c.Context(), tenantID, &m); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal membuat mutasi", err)
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Mutasi created", "data": m})
+	return SendCreated(c, "Mutasi created", m)
 }

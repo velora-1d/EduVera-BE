@@ -30,37 +30,27 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	if input.Email == "" || input.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Email dan password wajib diisi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Email dan password wajib diisi.", nil)
 	}
 
 	// Find user by email in database
 	user, err := h.domain.Auth().GetUserByEmail(ctx, input.Email)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Email atau password salah. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Email atau password salah. Silakan coba lagi.", err)
 	}
 
 	// Check if user is an owner
 	if !user.IsOwner {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Akun ini bukan akun owner.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Akun ini bukan akun owner.", nil)
 	}
 
 	// Validate password
 	if !user.CheckPassword(input.Password) {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Email atau password salah. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Email atau password salah. Silakan coba lagi.", nil)
 	}
 
 	// Create owner user for JWT (use actual user data)
@@ -76,9 +66,7 @@ func (h *ownerAdapter) Login(c *fiber.Ctx) error {
 	// Generate Token via Auth Domain
 	token, expiresAt, err := h.domain.Auth().GenerateToken(ownerUser)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal membuat token. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat token. Silakan coba lagi.", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -95,23 +83,17 @@ func (h *ownerAdapter) Impersonate(c *fiber.Ctx) error {
 
 	var input model.ImpersonateInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	if input.TenantID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Tenant ID wajib diisi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Tenant ID wajib diisi.", nil)
 	}
 
 	// Get tenant info
 	tenant, err := h.domain.Tenant().FindByID(ctx, input.TenantID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Tenant tidak ditemukan.",
-		})
+		return SendError(c, fiber.StatusNotFound, "Tenant tidak ditemukan.", err)
 	}
 
 	// Determine view mode based on tenant plan type
@@ -133,9 +115,7 @@ func (h *ownerAdapter) Impersonate(c *fiber.Ctx) error {
 	// Generate Token with impersonation context
 	token, expiresAt, err := h.domain.Auth().GenerateToken(impersonateUser)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal membuat token impersonate.",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat token impersonate.", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -153,9 +133,7 @@ func (h *ownerAdapter) GetTenants(c *fiber.Ctx) error {
 
 	tenants, err := h.domain.Tenant().GetAll(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat data tenant. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat data tenant.", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -169,9 +147,7 @@ func (h *ownerAdapter) GetStats(c *fiber.Ctx) error {
 
 	tenants, err := h.domain.Tenant().GetAll(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal memuat statistik. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat statistik.", err)
 	}
 
 	totalTenants := len(tenants)
@@ -210,9 +186,7 @@ func (h *ownerAdapter) GetTenantDetail(c *fiber.Ctx) error {
 
 	tenant, err := h.domain.Tenant().FindByID(ctx, id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Tenant tidak ditemukan.",
-		})
+		return SendError(c, fiber.StatusNotFound, "Tenant tidak ditemukan.", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -230,25 +204,19 @@ func (h *ownerAdapter) UpdateTenantStatus(c *fiber.Ctx) error {
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	// Validate status
 	if input.Status != model.TenantStatusActive &&
 		input.Status != model.TenantStatusPending &&
 		input.Status != model.TenantStatusSuspended {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Status tidak valid. Pilih: active, pending, atau suspended",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Status tidak valid. Pilih: active, pending, atau suspended", nil)
 	}
 
 	err := h.domain.Tenant().UpdateStatus(ctx, id, input.Status)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal mengubah status tenant. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengubah status tenant.", err)
 	}
 
 	// Log Admin Action
@@ -277,9 +245,7 @@ func (h *ownerAdapter) GetRegistrations(c *fiber.Ctx) error {
 	// Get all tenants sorted by created_at desc (registration logs)
 	tenants, err := h.domain.Tenant().GetAll(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat data registrasi.", err)
 	}
 
 	// Map to registration format
@@ -307,9 +273,7 @@ func (h *ownerAdapter) GetSPPTransactions(c *fiber.Ctx) error {
 
 	transactions, err := h.domain.SPP().ListAll(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat data transaksi.", err)
 	}
 
 	// Calculate stats
@@ -337,9 +301,7 @@ func (h *ownerAdapter) GetDisbursements(c *fiber.Ctx) error {
 	ctx := context.Background()
 	disbursements, err := h.domain.Disbursement().GetAll(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat data pencairan.", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -353,9 +315,7 @@ func (h *ownerAdapter) ApproveDisbursement(c *fiber.Ctx) error {
 	ctx := context.Background()
 
 	if err := h.domain.Disbursement().Approve(ctx, id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menyetujui pencairan.", err)
 	}
 
 	// Log Admin Action
@@ -386,12 +346,12 @@ func (h *ownerAdapter) RejectDisbursement(c *fiber.Ctx) error {
 	var input struct {
 		Reason string `json:"reason"`
 	}
-	c.BodyParser(&input)
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
+	}
 
 	if err := h.domain.Disbursement().Reject(ctx, id, input.Reason); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal menolak pencairan.", err)
 	}
 
 	// Log Admin Action
@@ -421,16 +381,12 @@ func (h *ownerAdapter) GetNotificationLogs(c *fiber.Ctx) error {
 
 	notifications, err := h.domain.Notification().GetAll(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat notifikasi.", err)
 	}
 
 	stats, err := h.domain.Notification().GetStats(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal memuat statistik notifikasi.", err)
 	}
 
 	return c.JSON(fiber.Map{

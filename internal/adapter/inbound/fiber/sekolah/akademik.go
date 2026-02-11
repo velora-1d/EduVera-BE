@@ -27,30 +27,46 @@ func (h *akademikHandler) GetSiswaList(c *fiber.Ctx) error {
 
 	siswaList, err := h.service.GetSiswaList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil daftar siswa", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"data": siswaList,
-	})
+	return SendSuccess(c, "Daftar siswa berhasil diambil", siswaList)
 }
 
 func (h *akademikHandler) CreateSiswa(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 
-	var siswa model.Siswa
-	if err := c.BodyParser(&siswa); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	// DTO: Only allow fillable fields (no ID, CreatedAt, etc.)
+	var input struct {
+		NIS      string `json:"nis"`
+		Nama     string `json:"nama"`
+		KelasID  string `json:"kelas_id"`
+		Alamat   string `json:"alamat"`
+		NamaWali string `json:"nama_wali"`
+		NoHPWali string `json:"no_hp_wali"`
+		Status   string `json:"status"`
 	}
-	siswa.TenantID = tenantID
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	siswa := model.Siswa{
+		TenantID: tenantID, // From JWT, not user input
+		NIS:      input.NIS,
+		Nama:     input.Nama,
+		KelasID:  input.KelasID,
+		Alamat:   input.Alamat,
+		NamaWali: input.NamaWali,
+		NoHPWali: input.NoHPWali,
+		Status:   input.Status,
+	}
 
 	if err := h.service.CreateSiswa(c.Context(), siswa); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal membuat siswa", err)
 	}
 
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Siswa created successfully"})
+	return SendCreated(c, "Siswa created successfully", nil)
 }
 
 // ------ Guru Handler ------
@@ -63,23 +79,37 @@ func (h *akademikHandler) GetGuruList(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(fiber.Map{"data": guruList})
+	return SendSuccess(c, "Daftar guru berhasil diambil", guruList)
 }
 
 func (h *akademikHandler) CreateGuru(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 
-	var guru model.Guru
-	if err := c.BodyParser(&guru); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	// DTO: Only allow fillable fields
+	var input struct {
+		NIP    string `json:"nip"`
+		Nama   string `json:"nama"`
+		Jenis  string `json:"jenis"`
+		Status string `json:"status"`
 	}
-	guru.TenantID = tenantID
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	guru := model.Guru{
+		TenantID: tenantID, // From JWT, not user input
+		NIP:      input.NIP,
+		Nama:     input.Nama,
+		Jenis:    input.Jenis,
+		Status:   input.Status,
+	}
 
 	if err := h.service.CreateGuru(c.Context(), guru); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat guru", err)
 	}
 
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Guru created successfully"})
+	return SendCreated(c, "Guru created successfully", nil)
 }
 
 // ------ Mapel Handler ------
@@ -89,10 +119,10 @@ func (h *akademikHandler) GetMapelList(c *fiber.Ctx) error {
 
 	mapelList, err := h.service.GetMapelList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil daftar mapel", err)
 	}
 
-	return c.JSON(fiber.Map{"data": mapelList})
+	return SendSuccess(c, "Daftar mapel berhasil diambil", mapelList)
 }
 
 // ------ Kelas Handler ------
@@ -102,23 +132,37 @@ func (h *akademikHandler) GetKelasList(c *fiber.Ctx) error {
 
 	kelasList, err := h.service.GetKelasList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil daftar kelas", err)
 	}
 
-	return c.JSON(fiber.Map{"data": kelasList})
+	return SendSuccess(c, "Daftar kelas berhasil diambil", kelasList)
 }
 
 func (h *akademikHandler) CreateKelas(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 
-	var kelas model.Kelas
-	if err := c.BodyParser(&kelas); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	// DTO: Only allow fillable fields
+	var input struct {
+		Nama    string `json:"nama"`
+		Tingkat string `json:"tingkat"`
+		Urutan  int    `json:"urutan"`
+		Status  string `json:"status"`
 	}
-	kelas.TenantID = tenantID
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	kelas := model.Kelas{
+		TenantID: tenantID, // From JWT, not user input
+		Nama:     input.Nama,
+		Tingkat:  input.Tingkat,
+		Urutan:   input.Urutan,
+		Status:   input.Status,
+	}
 
 	if err := h.service.CreateKelas(c.Context(), tenantID, &kelas); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat kelas", err)
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Kelas created", "data": kelas})
+	return SendCreated(c, "Kelas created", kelas)
 }

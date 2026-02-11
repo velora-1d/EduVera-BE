@@ -1,0 +1,18 @@
+basePath: /api/v1
+host: api-eduvera.ve-lora.my.id
+info:
+  contact:
+    email: support@eduvera.id
+    name: API Support
+  description: REST API for EduVera School Management System
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: EduVera API
+  version: "1.0"
+paths: {}
+schemes:
+- https
+- http
+swagger: "2.0"

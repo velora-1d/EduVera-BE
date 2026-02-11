@@ -9,6 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/swagger"
+
+	_ "prabogo/docs"
 
 	"prabogo/internal/domain"
 	inbound_port "prabogo/internal/port/inbound"
@@ -22,6 +26,9 @@ func InitRoute(
 	d domain.Domain,
 	dbPort outbound_port.DatabasePort,
 ) {
+	// Panic Recovery Middleware - First line of defense
+	app.Use(recover.New())
+
 	// Enable CORS for frontend access with dynamic subdomain support
 	app.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
@@ -53,6 +60,26 @@ func InitRoute(
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true, // Required for cookies (HttpOnly)
 	}))
+
+	// Security Headers (Nikto Fix)
+	app.Use(func(c *fiber.Ctx) error {
+		c.Set("X-Frame-Options", "DENY")
+		c.Set("X-Content-Type-Options", "nosniff")
+		c.Set("X-XSS-Protection", "1; mode=block")
+		c.Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		return c.Next()
+	})
+
+	// Health Check - for Docker/Load Balancer
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "ok",
+			"uptime": "active",
+		})
+	})
+
+	// Swagger Documentation
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	// Rate Limiting (Public API Protection)
 	// 60 requests per minute per IP for general endpoints

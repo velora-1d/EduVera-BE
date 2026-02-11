@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
@@ -64,6 +65,20 @@ func NewApp() *App {
 	ctx := activity.NewContext("init")
 	ctx = activity.WithClientID(ctx, "system")
 	_ = godotenv.Load(".env")
+
+	// Initialize Sentry
+	if dsn := os.Getenv("SENTRY_DSN"); dsn != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:              dsn,
+			Environment:      os.Getenv("APP_MODE"),
+			TracesSampleRate: 1.0,
+		}); err != nil {
+			logrus.Errorf("Sentry initialization failed: %v", err)
+		} else {
+			logrus.Info("Sentry initialized successfully")
+		}
+	}
+
 	configureLogging()
 	outboundDatabaseDriver = os.Getenv("OUTBOUND_DATABASE_DRIVER")
 	outboundMessageDriver = os.Getenv("OUTBOUND_MESSAGE_DRIVER")
@@ -214,6 +229,28 @@ func (a *App) httpInbound() {
 		engine := html.New("./web/templates", ".html")
 		app := fiber.New(fiber.Config{
 			Views: engine,
+			ErrorHandler: func(c *fiber.Ctx, err error) error {
+				code := fiber.StatusInternalServerError
+				if e, ok := err.(*fiber.Error); ok {
+					code = e.Code
+				}
+				// Capture 500 errors to Sentry
+				if code == fiber.StatusInternalServerError && os.Getenv("SENTRY_DSN") != "" {
+					sentry.CaptureException(err)
+					log.WithContext(c.Context()).Errorf("Sentry captured error: %v", err)
+				}
+
+				message := err.Error()
+				if code == fiber.StatusInternalServerError && os.Getenv("APP_MODE") == "release" {
+					message = "Internal Server Error"
+				}
+
+				// Standard error response
+				return c.Status(code).JSON(fiber.Map{
+					"status":  "error",
+					"message": message,
+				})
+			},
 		})
 		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain, a.message)
 		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter, a.domain, a.db)

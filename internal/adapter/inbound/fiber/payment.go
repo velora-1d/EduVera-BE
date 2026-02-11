@@ -42,16 +42,12 @@ type CreatePaymentRequest struct {
 func (a *paymentAdapter) CreateTransaction(c *fiber.Ctx) error {
 	var req CreatePaymentRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	// Validate required fields
 	if req.TenantID == "" || req.PlanType == "" || req.Email == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "tenant_id, plan_type, and email are required",
-		})
+		return SendError(c, fiber.StatusBadRequest, "tenant_id, plan_type, and email are required", nil)
 	}
 
 	ctx := context.Background()
@@ -65,9 +61,7 @@ func (a *paymentAdapter) CreateTransaction(c *fiber.Ctx) error {
 		ctx, input, req.CustomerName, req.Email,
 	)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, err.Error(), err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -84,27 +78,19 @@ func (a *paymentAdapter) CreateTransaction(c *fiber.Ctx) error {
 func (a *paymentAdapter) Webhook(c *fiber.Ctx) error {
 	var notification model.MidtransNotification
 	if err := c.BodyParser(&notification); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid notification payload",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid notification payload", err)
 	}
 
 	// SECURITY: Verify Midtrans signature to prevent fake webhooks
 	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
 	if !notification.VerifySignature(serverKey) {
 		log.Printf("[SECURITY] Invalid webhook signature for order: %s", notification.OrderID)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid signature",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Invalid signature", nil)
 	}
 
 	ctx := context.Background()
 	if err := a.domainRegistry.Payment().HandleWebhook(ctx, &notification); err != nil {
-		// Log internal error but return generic message
-		log.Printf("[ERROR] Webhook processing failed: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Failed to process notification",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Failed to process notification", err)
 	}
 
 	// Handle subscription renewal if payment success
@@ -165,12 +151,12 @@ func (a *paymentAdapter) XenditWebhook(c *fiber.Ctx) error {
 	// 1. Validation
 	if expectedToken != "" && callbackToken != expectedToken {
 		log.Printf("[SECURITY] Invalid Xendit Callback Token from %s", c.IP())
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+		return SendError(c, fiber.StatusUnauthorized, "Unauthorized", nil)
 	}
 
 	var payload model.XenditCallback
 	if err := c.BodyParser(&payload); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
+		return SendError(c, fiber.StatusBadRequest, "Invalid payload", err)
 	}
 
 	log.Printf("[INFO] Xendit Webhook: OrderID=%s Status=%s", payload.ExternalID, payload.Status)
@@ -183,7 +169,7 @@ func (a *paymentAdapter) XenditWebhook(c *fiber.Ctx) error {
 		payment, err := a.domainRegistry.Payment().GetPaymentByOrderID(ctx, payload.ExternalID)
 		if err != nil {
 			log.Printf("[ERROR] Payment not found for order %s: %v", payload.ExternalID, err)
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Payment not found"})
+			return SendError(c, fiber.StatusNotFound, "Payment not found", err)
 		}
 
 		// Update Payment Status
@@ -222,17 +208,13 @@ func (a *paymentAdapter) XenditWebhook(c *fiber.Ctx) error {
 func (a *paymentAdapter) GetStatus(c *fiber.Ctx) error {
 	orderID := c.Params("order_id")
 	if orderID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "order_id is required",
-		})
+		return SendError(c, fiber.StatusBadRequest, "order_id is required", nil)
 	}
 
 	ctx := context.Background()
 	payment, err := a.domainRegistry.Payment().GetPaymentByOrderID(ctx, orderID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Payment not found",
-		})
+		return SendError(c, fiber.StatusNotFound, "Payment not found", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -259,16 +241,12 @@ type CreateSPPPaymentRequest struct {
 func (a *paymentAdapter) CreateSPPPayment(c *fiber.Ctx) error {
 	var req CreateSPPPaymentRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	// Validate required fields
 	if req.SPPID == "" || req.TenantID == "" || req.Amount <= 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "spp_id, tenant_id, dan amount wajib diisi",
-		})
+		return SendError(c, fiber.StatusBadRequest, "spp_id, tenant_id, dan amount wajib diisi", nil)
 	}
 
 	// Check tenant tier - only Premium can use PG
@@ -285,6 +263,7 @@ func (a *paymentAdapter) CreateSPPPayment(c *fiber.Ctx) error {
 			"error":       "Fitur Payment Gateway hanya tersedia untuk paket Premium",
 			"upgrade_url": "/pricing",
 		})
+		// Note: Keeping manual JSON here for 'upgrade_url'
 	}
 
 	// Create Midtrans Snap transaction for SPP
@@ -292,9 +271,7 @@ func (a *paymentAdapter) CreateSPPPayment(c *fiber.Ctx) error {
 		ctx, req.SPPID, req.TenantID, req.Amount, req.StudentName, req.ParentEmail,
 	)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal membuat transaksi pembayaran. " + err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal membuat transaksi pembayaran.", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -311,29 +288,21 @@ func (a *paymentAdapter) CreateSPPPayment(c *fiber.Ctx) error {
 func (a *paymentAdapter) SPPWebhook(c *fiber.Ctx) error {
 	var notification model.MidtransNotification
 	if err := c.BodyParser(&notification); err != nil {
-		log.Printf("[ERROR] SPP Webhook: Failed to parse notification: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid notification payload",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid notification payload", err)
 	}
 
 	// SECURITY: Verify Midtrans signature
 	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
 	if !notification.VerifySignature(serverKey) {
 		log.Printf("[SECURITY] Invalid SPP webhook signature for order: %s", notification.OrderID)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Invalid signature",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Invalid signature", nil)
 	}
 
 	log.Printf("[INFO] SPP Webhook received: OrderID=%s, Status=%s", notification.OrderID, notification.TransactionStatus)
 
 	ctx := context.Background()
 	if err := a.domainRegistry.Payment().HandleSPPWebhook(ctx, &notification); err != nil {
-		log.Printf("[ERROR] SPP Webhook: Error handling notification: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to process notification",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to process notification", err)
 	}
 
 	// If payment successful, update SPP status

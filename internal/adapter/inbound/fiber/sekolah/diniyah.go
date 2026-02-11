@@ -11,19 +11,36 @@ func (h *akademikHandler) GetDiniyahKitabList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	data, err := h.service.GetDiniyahKitabList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil daftar kitab", err)
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Daftar kitab berhasil diambil", data)
 }
 
 func (h *akademikHandler) CreateDiniyahKitab(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var m model.DiniyahKitab
-	if err := c.BodyParser(&m); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+
+	// DTO: Only allow fillable fields (no ID, CreatedAt, UpdatedAt)
+	var input struct {
+		NamaKitab   string `json:"nama_kitab"`
+		BidangStudi string `json:"bidang_studi"`
+		Pengarang   string `json:"pengarang"`
+		Keterangan  string `json:"keterangan"`
 	}
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, http.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	m := model.DiniyahKitab{
+		TenantID:    tenantID, // From JWT, not user input
+		NamaKitab:   input.NamaKitab,
+		BidangStudi: input.BidangStudi,
+		Pengarang:   input.Pengarang,
+		Keterangan:  input.Keterangan,
+	}
+
 	if err := h.service.CreateDiniyahKitab(c.Context(), tenantID, &m); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal membuat kitab", err)
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Kitab created", "data": m})
+	return SendCreated(c, "Kitab created", m)
 }

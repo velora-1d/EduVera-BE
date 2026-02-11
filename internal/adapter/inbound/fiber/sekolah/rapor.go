@@ -11,25 +11,48 @@ func (h *akademikHandler) GetRaporList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	data, err := h.service.GetRaporList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err != nil {
+			return SendError(c, http.StatusInternalServerError, "Gagal mengambil data rapor", err)
+		}
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Data rapor berhasil diambil", data)
 }
 
 func (h *akademikHandler) CreateRapor(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var m model.Rapor
-	if err := c.BodyParser(&m); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+
+	// DTO: Only allow fillable fields (no ID, CreatedAt, UpdatedAt, joined fields)
+	var input struct {
+		PeriodeID        string `json:"periode_id"`
+		SantriID         string `json:"santri_id"`
+		Status           string `json:"status"`
+		CatatanWaliKelas string `json:"catatan_wali_kelas"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, http.StatusBadRequest, "Invalid request body", err)
+		}
 	}
 
 	// Default status if not provided
-	if m.Status == "" {
-		m.Status = "Draft"
+	status := input.Status
+	if status == "" {
+		status = "Draft"
+	}
+
+	// Explicit mapping: DTO → DB Model
+	m := model.Rapor{
+		TenantID:         tenantID, // From JWT, not user input
+		PeriodeID:        input.PeriodeID,
+		SantriID:         input.SantriID,
+		Status:           status,
+		CatatanWaliKelas: input.CatatanWaliKelas,
 	}
 
 	if err := h.service.CreateRapor(c.Context(), tenantID, &m); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err := h.service.CreateRapor(c.Context(), tenantID, &m); err != nil {
+			return SendError(c, http.StatusInternalServerError, "Gagal membuat rapor", err)
+		}
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Rapor created", "data": m})
+	return SendCreated(c, "Rapor created", m)
 }

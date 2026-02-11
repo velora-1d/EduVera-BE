@@ -2,6 +2,7 @@ package sekolah
 
 import (
 	"prabogo/internal/model"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,22 +12,44 @@ func (h *akademikHandler) GetAsramaList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	list, err := h.service.GetAsramaList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err != nil {
+			return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil data asrama", err)
+		}
 	}
-	return c.JSON(fiber.Map{"data": list})
+	return SendSuccess(c, "Data asrama berhasil diambil", list)
 }
 
 func (h *akademikHandler) CreateAsrama(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var req model.Asrama
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+
+	// DTO: Only allow fillable fields (no ID, CreatedAt, calculated fields)
+	var input struct {
+		Nama      string  `json:"nama"`
+		Jenis     string  `json:"jenis"`
+		MusyrifID *string `json:"musyrif_id"`
+		Status    string  `json:"status"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, fiber.StatusBadRequest, "Invalid request", err)
+		}
+	}
+
+	// Explicit mapping: DTO → DB Model
+	req := model.Asrama{
+		TenantID:  tenantID, // From JWT, not user input
+		Nama:      input.Nama,
+		Jenis:     input.Jenis,
+		MusyrifID: input.MusyrifID,
+		Status:    input.Status,
 	}
 
 	if err := h.service.CreateAsrama(c.Context(), tenantID, &req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err := h.service.CreateAsrama(c.Context(), tenantID, &req); err != nil {
+			return SendError(c, fiber.StatusInternalServerError, "Gagal membuat asrama", err)
+		}
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Asrama created", "data": req})
+	return SendCreated(c, "Asrama created", req)
 }
 
 // Kamar Handlers
@@ -35,22 +58,44 @@ func (h *akademikHandler) GetKamarList(c *fiber.Ctx) error {
 	asramaID := c.Query("asrama_id")
 	list, err := h.service.GetKamarList(c.Context(), tenantID, asramaID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err != nil {
+			return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil data kamar", err)
+		}
 	}
-	return c.JSON(fiber.Map{"data": list})
+	return SendSuccess(c, "Data kamar berhasil diambil", list)
 }
 
 func (h *akademikHandler) CreateKamar(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var req model.Kamar
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+
+	// DTO: Only allow fillable fields
+	var input struct {
+		AsramaID  string `json:"asrama_id"`
+		Nomor     string `json:"nomor"`
+		Kapasitas int    `json:"kapasitas"`
+		Status    string `json:"status"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, fiber.StatusBadRequest, "Invalid request", err)
+		}
+	}
+
+	// Explicit mapping: DTO → DB Model
+	req := model.Kamar{
+		TenantID:  tenantID, // From JWT, not user input
+		AsramaID:  input.AsramaID,
+		Nomor:     input.Nomor,
+		Kapasitas: input.Kapasitas,
+		Status:    input.Status,
 	}
 
 	if err := h.service.CreateKamar(c.Context(), tenantID, &req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err := h.service.CreateKamar(c.Context(), tenantID, &req); err != nil {
+			return SendError(c, fiber.StatusInternalServerError, "Gagal membuat kamar", err)
+		}
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Kamar created", "data": req})
+	return SendCreated(c, "Kamar created", req)
 }
 
 // Penempatan Handlers
@@ -58,20 +103,50 @@ func (h *akademikHandler) GetPenempatanList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	list, err := h.service.GetPenempatanList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err != nil {
+			return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil data penempatan", err)
+		}
 	}
-	return c.JSON(fiber.Map{"data": list})
+	return SendSuccess(c, "Data penempatan berhasil diambil", list)
 }
 
 func (h *akademikHandler) CreatePenempatan(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var req model.Penempatan
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+
+	// DTO: Only allow fillable fields
+	var input struct {
+		SantriID     string `json:"santri_id"`
+		KamarID      string `json:"kamar_id"`
+		TanggalMasuk string `json:"tanggal_masuk"`
+		Status       string `json:"status"`
+		Keterangan   string `json:"keterangan"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		if err := c.BodyParser(&input); err != nil {
+			return SendError(c, fiber.StatusBadRequest, "Invalid request", err)
+		}
+	}
+
+	// Explicit mapping: DTO → DB Model
+	req := model.Penempatan{
+		TenantID:   tenantID, // From JWT, not user input
+		SantriID:   input.SantriID,
+		KamarID:    input.KamarID,
+		Status:     input.Status,
+		Keterangan: input.Keterangan,
+	}
+
+	// Parse TanggalMasuk if provided
+	if input.TanggalMasuk != "" {
+		if t, err := time.Parse("2006-01-02", input.TanggalMasuk); err == nil {
+			req.TanggalMasuk = t
+		}
 	}
 
 	if err := h.service.CreatePenempatan(c.Context(), tenantID, &req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err := h.service.CreatePenempatan(c.Context(), tenantID, &req); err != nil {
+			return SendError(c, fiber.StatusInternalServerError, "Gagal membuat penempatan", err)
+		}
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Penempatan created", "data": req})
+	return SendCreated(c, "Penempatan created", req)
 }

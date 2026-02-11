@@ -11,7 +11,9 @@ func (h *akademikHandler) GetDashboardStats(c *fiber.Ctx) error {
 
 	stats, err := h.service.GetDashboardStats(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		if err != nil {
+			return SendError(c, http.StatusInternalServerError, "Gagal mengambil statistik dashboard", err)
+		}
 	}
-	return c.JSON(fiber.Map{"data": stats})
+	return SendSuccess(c, "Statistik dashboard berhasil diambil", stats)
 }

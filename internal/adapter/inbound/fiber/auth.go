@@ -31,22 +31,17 @@ func (h *authAdapter) Login(a any) error {
 
 	var input model.LoginInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	if input.Email == "" || input.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Email dan password wajib diisi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Email dan password wajib diisi.", nil)
 	}
 
 	response, err := h.domain.Auth().Login(ctx, &input, c.IP())
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Email atau password salah. Silakan coba lagi.",
-		})
+		// Log actual error but show generic message
+		return SendError(c, fiber.StatusUnauthorized, "Email atau password salah. Silakan coba lagi.", err)
 	}
 
 	// Set HttpOnly Cookie
@@ -66,8 +61,7 @@ func (h *authAdapter) Login(a any) error {
 		Path:     "/",
 	})
 
-	return c.JSON(fiber.Map{
-		"status":       "success",
+	return SendSuccess(c, "Login berhasil", fiber.Map{
 		"user":         response.User,
 		"access_token": response.AccessToken,
 		"expires_at":   response.ExpiresAt,
@@ -83,33 +77,25 @@ func (h *authAdapter) Me(a any) error {
 	// Get token from header
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Sesi Anda telah berakhir. Silakan login kembali.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Sesi Anda telah berakhir. Silakan login kembali.", nil)
 	}
 
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenString == authHeader {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Format authorization tidak valid.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Format authorization tidak valid.", nil)
 	}
 
 	claims, err := h.domain.Auth().ValidateToken(ctx, tokenString)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Sesi Anda telah berakhir. Silakan login kembali.",
-		})
+		return SendError(c, fiber.StatusUnauthorized, "Sesi Anda telah berakhir. Silakan login kembali.", err)
 	}
 
 	user, err := h.domain.Auth().GetCurrentUser(ctx, claims.UserID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Data pengguna tidak ditemukan.",
-		})
+		return SendError(c, fiber.StatusNotFound, "Data pengguna tidak ditemukan.", err)
 	}
 
-	return c.JSON(fiber.Map{
+	return SendSuccess(c, "Data user berhasil diambil", fiber.Map{
 		"user": user,
 	})
 }
@@ -117,10 +103,7 @@ func (h *authAdapter) Me(a any) error {
 // POST /api/v1/auth/refresh - placeholder for token refresh
 func (h *authAdapter) Refresh(a any) error {
 	c := a.(*fiber.Ctx)
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Token refresh not yet implemented",
-	})
+	return SendSuccess(c, "Token refresh not yet implemented", nil)
 }
 
 // POST /api/v1/auth/logout - blacklist token to invalidate session
@@ -139,10 +122,7 @@ func (h *authAdapter) Logout(a any) error {
 
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 	if tokenString == authHeader || tokenString == "" {
-		return c.JSON(fiber.Map{
-			"status":  "success",
-			"message": "Berhasil logout",
-		})
+		return SendSuccess(c, "Berhasil logout", nil)
 	}
 
 	// Validate token to get expiry time
@@ -170,10 +150,7 @@ func (h *authAdapter) Logout(a any) error {
 		Path:     "/",
 	})
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Berhasil logout",
-	})
+	return SendSuccess(c, "Berhasil logout", nil)
 }
 
 // POST /api/v1/auth/forgot-password
@@ -183,24 +160,17 @@ func (h *authAdapter) ForgotPassword(a any) error {
 
 	var input model.ForgotPasswordInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	if input.Email == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Email wajib diisi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Email wajib diisi.", nil)
 	}
 
 	// Process forgot password (always return success to not reveal email existence)
 	_ = h.domain.Auth().ForgotPassword(ctx, &input)
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Jika email terdaftar, link reset password akan dikirim ke WhatsApp Anda.",
-	})
+	return SendSuccess(c, "Jika email terdaftar, link reset password akan dikirim ke WhatsApp Anda.", nil)
 }
 
 // POST /api/v1/auth/reset-password
@@ -210,32 +180,21 @@ func (h *authAdapter) ResetPassword(a any) error {
 
 	var input model.ResetPasswordInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data tidak valid. Silakan coba lagi.", err)
 	}
 
 	if input.Token == "" || input.NewPassword == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Token dan password baru wajib diisi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Token dan password baru wajib diisi.", nil)
 	}
 
 	if len(input.NewPassword) < 8 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Password minimal 8 karakter.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Password minimal 8 karakter.", nil)
 	}
 
 	err := h.domain.Auth().ResetPassword(ctx, &input)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Token tidak valid atau sudah kadaluarsa. Silakan request reset password baru.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Token tidak valid atau sudah kadaluarsa. Silakan request reset password baru.", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Password berhasil diubah. Silakan login dengan password baru Anda.",
-	})
+	return SendSuccess(c, "Password berhasil diubah. Silakan login dengan password baru Anda.", nil)
 }

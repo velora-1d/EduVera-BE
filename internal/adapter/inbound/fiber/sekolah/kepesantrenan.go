@@ -3,85 +3,147 @@ package sekolah
 import (
 	"net/http"
 	"prabogo/internal/model"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-// Extending the same handler struct or creating a new one?
-// Since `akademikHandler` implements `SekolahHttpPort`, and we added methods to `SekolahHttpPort` (wait, did we?),
-// we should probably check if `SekolahHttpPort` has these methods.
-// Actually, `akademikHandler` is used for general sekolah stuff. Let's see if we should add to it.
-// The `akademikHandler` struct is in `akademik.go`.
-// Go allows methods to be in different files if they are in the same package.
-// So we can use `func (h *akademikHandler) ...` here.
-
-// But first I need to check if `SekolahHttpPort` has been updated. I forgot to update `SekolahHttpPort` in `inbound/sekolah.go`.
-// Let me update the port first.
-// I will write this content to a temporary buffer or just wait?
-// I will update the port first.
-
-// Wait, I can't cancel a tool call once thought process starts, but I can chain them.
-// I will write the handler file assuming I will update the port.
 
 func (h *akademikHandler) GetPelanggaranAturanList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	data, err := h.service.GetPelanggaranAturanList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil daftar pelanggaran aturan", err)
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Daftar pelanggaran aturan berhasil diambil", data)
 }
 
 func (h *akademikHandler) CreatePelanggaranAturan(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var m model.PelanggaranAturan
-	if err := c.BodyParser(&m); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+
+	// DTO: Only allow fillable fields (no ID, CreatedAt, UpdatedAt)
+	var input struct {
+		Judul    string `json:"judul"`
+		Kategori string `json:"kategori"`
+		Poin     int    `json:"poin"`
+		Level    string `json:"level"`
 	}
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, http.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	m := model.PelanggaranAturan{
+		TenantID: tenantID, // From JWT, not user input
+		Judul:    input.Judul,
+		Kategori: input.Kategori,
+		Poin:     input.Poin,
+		Level:    input.Level,
+	}
+
 	if err := h.service.CreatePelanggaranAturan(c.Context(), tenantID, &m); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal membuat aturan", err)
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Aturan created", "data": m})
+	return SendCreated(c, "Aturan created", m)
 }
 
 func (h *akademikHandler) GetPelanggaranSiswaList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	data, err := h.service.GetPelanggaranSiswaList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil daftar pelanggaran siswa", err)
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Daftar pelanggaran siswa berhasil diambil", data)
 }
 
 func (h *akademikHandler) CreatePelanggaranSiswa(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var m model.PelanggaranSiswa
-	if err := c.BodyParser(&m); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+
+	// DTO: Only allow fillable fields
+	var input struct {
+		SantriID   string  `json:"santri_id"`
+		AturanID   *string `json:"aturan_id"`
+		Tanggal    string  `json:"tanggal"`
+		Poin       int     `json:"poin"`
+		Keterangan string  `json:"keterangan"`
+		Status     string  `json:"status"`
+		Sanksi     string  `json:"sanksi"`
 	}
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, http.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	m := model.PelanggaranSiswa{
+		TenantID:   tenantID, // From JWT, not user input
+		SantriID:   input.SantriID,
+		AturanID:   input.AturanID,
+		Poin:       input.Poin,
+		Keterangan: input.Keterangan,
+		Status:     input.Status,
+		Sanksi:     input.Sanksi,
+	}
+
+	// Parse Tanggal
+	if input.Tanggal != "" {
+		if t, err := time.Parse("2006-01-02", input.Tanggal); err == nil {
+			m.Tanggal = t
+		}
+	}
+
 	if err := h.service.CreatePelanggaranSiswa(c.Context(), tenantID, &m); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mencatat pelanggaran", err)
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Pelanggaran recorded", "data": m})
+	return SendCreated(c, "Pelanggaran recorded", m)
 }
 
 func (h *akademikHandler) GetPerizinanList(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
 	data, err := h.service.GetPerizinanList(c.Context(), tenantID)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil daftar perizinan", err)
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Daftar perizinan berhasil diambil", data)
 }
 
 func (h *akademikHandler) CreatePerizinan(c *fiber.Ctx) error {
 	tenantID := c.Locals("tenant_id").(string)
-	var m model.Perizinan
-	if err := c.BodyParser(&m); err != nil {
-		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+
+	// DTO: Only allow fillable fields
+	var input struct {
+		SantriID string `json:"santri_id"`
+		Tipe     string `json:"tipe"`
+		Alasan   string `json:"alasan"`
+		Dari     string `json:"dari"`
+		Sampai   string `json:"sampai"`
+		Status   string `json:"status"`
 	}
+	if err := c.BodyParser(&input); err != nil {
+		return SendError(c, http.StatusBadRequest, "Invalid request body", err)
+	}
+
+	// Explicit mapping: DTO → DB Model
+	m := model.Perizinan{
+		TenantID: tenantID, // From JWT, not user input
+		SantriID: input.SantriID,
+		Tipe:     input.Tipe,
+		Alasan:   input.Alasan,
+		Status:   input.Status,
+	}
+
+	// Parse date fields
+	if input.Dari != "" {
+		if t, err := time.Parse(time.RFC3339, input.Dari); err == nil {
+			m.Dari = t
+		}
+	}
+	if input.Sampai != "" {
+		if t, err := time.Parse(time.RFC3339, input.Sampai); err == nil {
+			m.Sampai = t
+		}
+	}
+
 	if err := h.service.CreatePerizinan(c.Context(), tenantID, &m); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal membuat perizinan", err)
 	}
-	return c.Status(http.StatusCreated).JSON(fiber.Map{"message": "Perizinan created", "data": m})
+	return SendCreated(c, "Perizinan created", m)
 }

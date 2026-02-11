@@ -16,7 +16,7 @@ func (h *akademikHandler) GetReportData(c *fiber.Ctx) error {
 
 	data, err := h.service.GetReportData(c.Context(), tenantID, req)
 	if err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return SendError(c, http.StatusInternalServerError, "Gagal mengambil data laporan", err)
 	}
-	return c.JSON(fiber.Map{"data": data})
+	return SendSuccess(c, "Data laporan berhasil diambil", data)
 }

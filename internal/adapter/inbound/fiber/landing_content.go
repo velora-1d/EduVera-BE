@@ -23,23 +23,14 @@ func (h *landingContentHandler) Get(c *fiber.Ctx) error {
 
 	content, err := h.domain.Get(ctx, key)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": "error",
-			"error":  err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengambil konten landing page", err)
 	}
 
 	if content == nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"status": "error",
-			"error":  "Content not found",
-		})
+		return SendError(c, fiber.StatusNotFound, "Content not found", nil)
 	}
 
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   content,
-	})
+	return SendSuccess(c, "Success", content)
 }
 
 // PUT /api/v1/owner/landing/:key
@@ -49,21 +40,12 @@ func (h *landingContentHandler) Set(c *fiber.Ctx) error {
 
 	var input map[string]interface{}
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": "error",
-			"error":  "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	if err := h.domain.Set(ctx, key, input); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": "error",
-			"error":  err.Error(),
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengupdate konten", err)
 	}
 
-	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Content updated successfully",
-	})
+	return SendSuccess(c, "Content updated successfully", nil)
 }

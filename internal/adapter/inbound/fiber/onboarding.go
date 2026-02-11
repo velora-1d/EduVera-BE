@@ -152,9 +152,7 @@ func (h *onboardingAdapter) CheckSubdomain(a any) error {
 
 	var input SubdomainCheckInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	subdomain := strings.ToLower(strings.TrimSpace(input.Subdomain))
@@ -183,9 +181,7 @@ func (h *onboardingAdapter) CheckSubdomain(a any) error {
 	// Step 3: Check if already taken in database
 	exists, err := h.domain.Tenant().SubdomainExists(ctx, subdomain)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Gagal mengecek subdomain",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Gagal mengecek subdomain", err)
 	}
 
 	if exists {
@@ -213,22 +209,16 @@ func (h *onboardingAdapter) Register(a any) error {
 
 	var input RegisterInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Data yang dikirim tidak valid. Silakan coba lagi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Data yang dikirim tidak valid. Silakan coba lagi.", err)
 	}
 
 	// Validate required fields
 	if input.Name == "" || input.Email == "" || input.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Mohon lengkapi semua data: Nama, Email, dan Password wajib diisi.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Mohon lengkapi semua data: Nama, Email, dan Password wajib diisi.", nil)
 	}
 
 	if len(input.Password) < 8 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Password minimal 8 karakter untuk keamanan akun Anda.",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Password minimal 8 karakter untuk keamanan akun Anda.", nil)
 	}
 
 	// Register user (without tenant for now - tenant will be created in institution step)
@@ -240,24 +230,18 @@ func (h *onboardingAdapter) Register(a any) error {
 		Role:     model.RoleAdmin,
 	})
 	if err != nil {
-		fmt.Printf("DEBUG: Registration error: %v\n", err)
 		errMsg := "Terjadi kesalahan saat membuat akun."
 		if strings.Contains(err.Error(), "email already registered") {
 			errMsg = "Email ini sudah terdaftar. Silakan gunakan email lain atau login ke akun yang sudah ada."
 		}
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error":  errMsg,
-			"detail": err.Error(), // DEBUG: remove in production
-		})
+		return SendError(c, fiber.StatusConflict, errMsg, err)
 	}
 
 	// Generate short-lived onboarding token (reusing existing JWT for simplicity)
 	// This token will be used to authorize the Institution step
 	onboardingToken, expiresAt, err := h.domain.Auth().GenerateToken(user)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generate onboarding token",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to generate onboarding token", err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -277,9 +261,7 @@ func (h *onboardingAdapter) Institution(a any) error {
 
 	var input InstitutionInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	// Validate institution type
@@ -292,9 +274,7 @@ func (h *onboardingAdapter) Institution(a any) error {
 		}
 	}
 	if !isValidType {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Institution type must be: sekolah, pesantren, or hybrid",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Institution type must be: sekolah, pesantren, or hybrid", nil)
 	}
 
 	// Determine subdomain: use custom input or generate from name
@@ -323,9 +303,7 @@ func (h *onboardingAdapter) Institution(a any) error {
 	// Check if subdomain already taken
 	exists, err := h.domain.Tenant().SubdomainExists(ctx, subdomain)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to check subdomain",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to check subdomain", err)
 	}
 	if exists {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
@@ -342,9 +320,7 @@ func (h *onboardingAdapter) Institution(a any) error {
 		Address:         input.Address,
 	})
 	if err != nil {
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return SendError(c, fiber.StatusConflict, err.Error(), err)
 	}
 
 	// Link user to tenant - Extract UserID from Authorization token (not from body!)
@@ -368,9 +344,7 @@ func (h *onboardingAdapter) Institution(a any) error {
 	if userID != "" {
 		err = h.domain.Auth().LinkUserToTenant(ctx, userID, tenant.ID)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": "Failed to link user to tenant: " + err.Error(),
-			})
+			return SendError(c, fiber.StatusInternalServerError, "Failed to link user to tenant: "+err.Error(), err)
 		}
 	}
 
@@ -391,9 +365,7 @@ func (h *onboardingAdapter) Subdomain(a any) error {
 
 	var input SubdomainInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	subdomain := strings.ToLower(strings.TrimSpace(input.Subdomain))
@@ -420,9 +392,7 @@ func (h *onboardingAdapter) Subdomain(a any) error {
 	// Check availability
 	exists, err := h.domain.Tenant().SubdomainExists(ctx, subdomain)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to check subdomain",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to check subdomain", err)
 	}
 
 	if exists {
@@ -459,23 +429,17 @@ func (h *onboardingAdapter) BankAccount(a any) error {
 
 	var input BankAccountInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	// Validate required fields
 	if input.BankName == "" || input.AccountNumber == "" || input.AccountHolder == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Bank name, account number, and account holder are required",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Bank name, account number, and account holder are required", nil)
 	}
 
 	// Validate account type
 	if input.AccountType != "" && input.AccountType != "pribadi" && input.AccountType != "yayasan" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Account type must be: pribadi or yayasan",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Account type must be: pribadi or yayasan", nil)
 	}
 
 	// Update tenant with bank account
@@ -486,9 +450,7 @@ func (h *onboardingAdapter) BankAccount(a any) error {
 		input.AccountHolder,
 	)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to save bank account",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to save bank account", err)
 	}
 
 	return c.JSON(fiber.Map{
@@ -505,25 +467,19 @@ func (h *onboardingAdapter) Confirm(a any) error {
 
 	var input ConfirmInput
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Invalid request body", err)
 	}
 
 	// Activate tenant
 	err := h.domain.Tenant().Activate(ctx, input.TenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to activate account",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to activate account", err)
 	}
 
 	// Get tenant for subdomain info
 	tenant, err := h.domain.Tenant().FindByID(ctx, input.TenantID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to get tenant info",
-		})
+		return SendError(c, fiber.StatusInternalServerError, "Failed to get tenant info", err)
 	}
 
 	// Get user info for WhatsApp notification
@@ -580,16 +536,12 @@ func (h *onboardingAdapter) Status(a any) error {
 
 	tenantID := c.Params("id")
 	if tenantID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Tenant ID required",
-		})
+		return SendError(c, fiber.StatusBadRequest, "Tenant ID required", nil)
 	}
 
 	tenant, err := h.domain.Tenant().FindByID(ctx, tenantID)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "Tenant not found",
-		})
+		return SendError(c, fiber.StatusNotFound, "Tenant not found", err)
 	}
 
 	return c.JSON(fiber.Map{
